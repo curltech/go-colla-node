@@ -2,7 +2,7 @@ package action
 
 import (
 	"context"
-	"curltech.io/camsi/camsi-biz/app/websocket"
+	"github.com/curltech/go-colla-biz/app/websocket"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/crypto/std"
 	"github.com/curltech/go-colla-core/util/message"

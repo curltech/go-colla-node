@@ -1,0 +1,87 @@
+app:
+  name: peer1
+  serialize: json
+  sessionLog: false
+  template: html
+server:
+  name: camsi-boot-peer1
+  email: hujs@colla.cc
+  runmode: dev
+  password: "123456"
+log:
+  level: error
+http:
+  port: 8081
+  addr:
+  externalAddr: localhost
+  externalPort: 8089
+  tls:
+    port: 9091
+    url: curltech.io
+    email: hujs@colla.cc
+    cert: conf/camsi-server-ec.crt
+    key: conf/camsi-server-ec.key
+  proxy:
+    mode: tls
+    address: localhost:5720
+    target: http://localhost:4720
+    redirect: false
+database:
+  drivername: sqlite3 #postgres
+  dsn: /Users/hujingsong/peer1.db
+  host: localhost
+  port: 5433
+  dbname: peer1
+  user: postgres
+  password: 123456
+  orm: xorm
+  sequence: table
+  showSQL: false
+content:
+  path: /Users/hujingsong/content/peer1
+rbac:
+  accessTokenMaxAge: 1000
+workflow:
+  enable: false
+libp2p:
+  enable: true
+  enableWebrtc: false
+  addr: 0.0.0.0
+  port: 3720
+  wsPort: 4720
+  dht:
+    bootstraps: /ip4/192.168.1.125/tcp/3720/p2p/12D3KooWH5WqYgZBnnrtrKjSt7zGX7nH11MRfShLkKg3MifawLHF
+  enableAddressFactory: true
+  externalAddr: localhost
+  externalPort: 3720
+  externalWsPort: 4720
+  externalWssPort: 5720
+  enableAutoRelay: false
+ipfs:
+  enable: false
+  repoPath: /Users/hujingsong/content/peer1
+turn:
+  enable: false
+  realm: ion
+  host: localhost
+  ip: 0.0.0.0
+  tcpport: 3478
+  udpport: 3478
+  credentials: pion=ion,pion2=ion2
+  # cert: path/to/cert.pem
+  # key: path/to/key.pem
+sfu:
+  enable: true
+  ballast: 0
+  withstats: false
+  maxbandwidth: 1500
+  maxbuffertime: 1000
+  bestqualityfirst: true
+  enabletemporallayer: false
+  minport: 5000
+  maxport: 5200
+  sdpsemantics: unified-plan
+  level: trace
+  urls: stun:192.168.1.104:3478:turn:192.168.1.104:3478
+  username: :wf
+  credential: :wf123

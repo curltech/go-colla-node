@@ -1,7 +1,7 @@
 package action
 
 import (
-	"curltech.io/camsi/camsi-biz/app/websocket"
+	"github.com/curltech/go-colla-biz/app/websocket"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/chain/service"

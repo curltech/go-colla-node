@@ -1,7 +1,6 @@
 package server
 
 import (
-	"curltech.io/camsi/camsi-biz/rbac/service"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/kataras/golog"
 	"github.com/pion/stun"
@@ -9,16 +8,15 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 )
 
 func authHandler(username string, realm string, srcAddr net.Addr) ([]byte, bool) {
-	cred := strings.SplitN(username, "=", 2)
-	user, err := service.GetUserService().Auth(cred[0], cred[1])
-	if err == nil {
-		return []byte(user.UserId), true
-	}
+	//cred := strings.SplitN(username, "=", 2)
+	//user, err := service.GetUserService().Auth(cred[0], cred[1])
+	//if err == nil {
+	//	return []byte(user.UserId), true
+	//}
 	return nil, false
 }
 
