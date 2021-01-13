@@ -1,0 +1,45 @@
+package action
+
+import (
+	"github.com/curltech/go-colla-node/p2p/chain/handler"
+	"github.com/curltech/go-colla-node/p2p/chain/handler/sender"
+	"github.com/curltech/go-colla-node/p2p/msg"
+	"github.com/kataras/golog"
+	"time"
+)
+
+type BaseAction struct {
+	MsgType string
+}
+
+/**
+主动发送消息
+*/
+func (this *BaseAction) Send(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+	golog.Infof("Send %v message", this.MsgType)
+	response, err := sender.Send(chainMessage)
+
+	return response, err
+}
+
+/**
+接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
+*/
+func (this *BaseAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+	go sender.RelaySend(chainMessage)
+	response := handler.Response(chainMessage.MessageType, time.Now())
+
+	return response, nil
+}
+
+/**
+处理返回消息
+*/
+func (this *BaseAction) Response(chainMessage *msg.ChainMessage) error {
+	golog.Infof("Response %v message:%v", this.MsgType, chainMessage)
+
+	return nil
+}
+
+func init() {
+}
