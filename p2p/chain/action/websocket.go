@@ -1,7 +1,6 @@
 package action
 
 import (
-	//"github.com/curltech/go-colla-biz/app/websocket"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/dht"

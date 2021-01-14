@@ -18,7 +18,6 @@ require (
 	github.com/casbin/xorm-adapter v1.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.0.2 // indirect
 	github.com/cloudwebrtc/go-protoo v0.0.0-20200926140535-79ecde67b906 // indirect
-	github.com/curltech/go-colla-biz v0.0.0-20210113184808-66b6559edba6
 	github.com/curltech/go-colla-core v0.0.0-20210113190646-02661a14497f
 	github.com/cznic/b v0.0.0-20181122101859-a26611c4d92d // indirect
 	github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548 // indirect
