@@ -1,11 +1,11 @@
 package service
 
 import (
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	msg1 "github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 )
 
 /**
@@ -59,10 +59,10 @@ func ReceivePC(chainMessage *msg1.PCChainMessage) (*msg1.PCChainMessage, error) 
 	//if direct == msgtype.MsgDirect_Request {
 	payload, err := chainMessageHandler.PCReceiveHandler(chainMessage)
 	if err != nil {
-		golog.Errorf("PCReceiveHandler return err: %v", err)
+		logger.Errorf("PCReceiveHandler return err: %v", err)
 		return nil, err
 	}
-	golog.Infof("payload: %v", payload)
+	logger.Infof("payload: %v", payload)
 	response := InitPCResponse(chainMessage.MessagePayload.SrcPeer.(*entity.PeerClient), chainMessage.MessagePayload.MessageType)
 	response.MessagePayload.Payload = payload
 	/*} else if direct == msgtype.MsgDirect_Response {

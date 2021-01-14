@@ -5,6 +5,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/curltech/go-colla-core/crypto/openpgp"
 	"github.com/curltech/go-colla-core/crypto/std"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/compress"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/global"
@@ -14,7 +15,6 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	msg1 "github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 	"unsafe"
 )
 
@@ -322,7 +322,7 @@ func DecryptPC(msg *msg1.PCChainMessage) (*msg1.PCChainMessage, error) {
 		err = message.TextUnmarshal(msg.MessagePayload.TransportPayload, payload)
 		msg.MessagePayload.Payload = payload
 	} else {
-		golog.Errorf("InvalidPayloadClass: %v", msg.MessagePayload.PayloadClass)
+		logger.Errorf("InvalidPayloadClass: %v", msg.MessagePayload.PayloadClass)
 		err = errors.New("InvalidPayloadClass")
 	}
 	if err != nil {

@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/global"
@@ -10,7 +11,6 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	msg1 "github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 )
 
 func InitPCResponse(targetPC *entity.PeerClient, messageType msgtype.MsgType) *msg1.PCChainMessage {
@@ -41,14 +41,14 @@ func GetLocalPEP(peerId string) ([]*entity.PeerEndpoint, error) {
 	key := ns.GetPeerEndpointKey(peerId)
 	rec, err := dht.PeerEndpointDHT.GetLocal(key)
 	if err != nil {
-		golog.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
+		logger.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
 		return nil, err
 	}
 	if rec != nil {
 		peerEndpoints := make([]*entity.PeerEndpoint, 0)
 		err = message.Unmarshal(rec.GetValue(), &peerEndpoints)
 		if err != nil {
-			golog.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
+			logger.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
 			return nil, err
 		}
 		return peerEndpoints, nil
@@ -104,19 +104,19 @@ func GetLocalPCs(keyKind string, peerId string, mobile string, clientId string) 
 		}
 		key = ns.GetPeerClientMobileKey(mobile)
 	} else {
-		golog.Errorf("InvalidPeerClientKeyKind: %v", keyKind)
+		logger.Errorf("InvalidPeerClientKeyKind: %v", keyKind)
 		return nil, errors.New("InvalidPeerClientKeyKind")
 	}
 	rec, err := dht.PeerEndpointDHT.GetLocal(key)
 	if err != nil {
-		golog.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
+		logger.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
 		return nil, err
 	}
 	if rec != nil {
 		peerClients := make([]*entity.PeerClient, 0)
 		err = message.Unmarshal(rec.GetValue(), &peerClients)
 		if err != nil {
-			golog.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
+			logger.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
 			return nil, err
 		}
 		if len(clientId) > 0 {
@@ -170,7 +170,7 @@ func PutPC(peerClient *entity.PeerClient, keyKind string) error {
 	} else if keyKind == ns.PeerClient_Mobile_KeyKind {
 		key = ns.GetPeerClientMobileKey(peerClient.Mobile)
 	} else {
-		golog.Errorf("InvalidPeerClientKeyKind: %v", keyKind)
+		logger.Errorf("InvalidPeerClientKeyKind: %v", keyKind)
 		return errors.New("InvalidPeerClientKeyKind")
 	}
 
@@ -211,19 +211,19 @@ func GetLocalDBs(keyKind string, createPeerId string, blockId string, receiverPe
 		}
 		key = ns.GetDataBlockKey(blockId)
 	} else {
-		golog.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
+		logger.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
 		return nil, errors.New("InvalidDataBlockKeyKind")
 	}
 	rec, err := dht.PeerEndpointDHT.GetLocal(key)
 	if err != nil {
-		golog.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
+		logger.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
 		return nil, err
 	}
 	if rec != nil {
 		dataBlocks := make([]*entity2.DataBlock, 0)
 		err = message.Unmarshal(rec.GetValue(), &dataBlocks)
 		if err != nil {
-			golog.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
+			logger.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
 			return nil, err
 		}
 		dbs := make([]*entity2.DataBlock, 0)
@@ -285,7 +285,7 @@ func PutDB(dataBlock *entity2.DataBlock, keyKind string) error {
 	} else if keyKind == ns.DataBlock_Owner_KeyKind {
 		key = ns.GetDataBlockOwnerKey(dataBlock.PeerId)
 	} else {
-		golog.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
+		logger.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
 		return errors.New("InvalidDataBlockKeyKind")
 	}
 
@@ -311,19 +311,19 @@ func GetLocalPTs(keyKind string, srcPeerId string, targetPeerId string) ([]*enti
 		}
 		key = ns.GetPeerTransactionTargetKey(targetPeerId)
 	} else {
-		golog.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
+		logger.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
 		return nil, errors.New("InvalidPeerTransactionKeyKind")
 	}
 	rec, err := dht.PeerEndpointDHT.GetLocal(key)
 	if err != nil {
-		golog.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
+		logger.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
 		return nil, err
 	}
 	if rec != nil {
 		peerTransactions := make([]*entity2.PeerTransaction, 0)
 		err = message.Unmarshal(rec.GetValue(), &peerTransactions)
 		if err != nil {
-			golog.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
+			logger.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
 			return nil, err
 		}
 		pts := make([]*entity2.PeerTransaction, 0)
@@ -371,7 +371,7 @@ func PutPT(peerTransaction *entity2.PeerTransaction, keyKind string) error {
 	} else if keyKind == ns.PeerTransaction_Target_KeyKind {
 		key = ns.GetPeerTransactionTargetKey(peerTransaction.TargetPeerId)
 	} else {
-		golog.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
+		logger.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
 		return errors.New("InvalidPeerTransactionKeyKind")
 	}
 

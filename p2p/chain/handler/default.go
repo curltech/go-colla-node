@@ -2,8 +2,8 @@ package handler
 
 import (
 	"errors"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/p2p/msg"
-	"github.com/kataras/golog"
 )
 
 type ChainMessageHandler struct {
@@ -26,7 +26,7 @@ func registChainMessageHandler(msgType string, handler *ChainMessageHandler) {
 	if !found {
 		chainMessageHandlers[msgType] = handler
 	} else {
-		golog.Errorf("ReceiveHandler:%v exist", msgType)
+		logger.Errorf("ReceiveHandler:%v exist", msgType)
 	}
 }
 
@@ -35,7 +35,7 @@ func GetChainMessageHandler(msgType string) (*ChainMessageHandler, error) {
 	if found {
 		return fn, nil
 	} else {
-		golog.Errorf("ChainMessageHandler:%v is not exist", msgType)
+		logger.Errorf("ChainMessageHandler:%v is not exist", msgType)
 
 		return nil, errors.New("NotExist")
 	}
@@ -60,7 +60,7 @@ func RegistChainMessageHandler(msgType string,
 		chainMessageHandler.ResponseHandler = responseHandler
 		chainMessageHandlers[msgType] = &chainMessageHandler
 	} else {
-		golog.Errorf("ReceiveHandler:%v exist", msgType)
+		logger.Errorf("ReceiveHandler:%v exist", msgType)
 	}
 }
 
@@ -83,7 +83,7 @@ func registPCChainMessageHandler(msgType string, handler *PCChainMessageHandler)
 	if !found {
 		pcChainMessageHandlers[msgType] = handler
 	} else {
-		golog.Errorf("ReceivePCHandler:%v exist", msgType)
+		logger.Errorf("ReceivePCHandler:%v exist", msgType)
 	}
 }
 
@@ -92,7 +92,7 @@ func GetPCChainMessageHandler(msgType string) (*PCChainMessageHandler, error) {
 	if found {
 		return fn, nil
 	} else {
-		golog.Errorf("PCChainMessageHandler:%v is not exist", msgType)
+		logger.Errorf("PCChainMessageHandler:%v is not exist", msgType)
 
 		return nil, errors.New("NotExist")
 	}
@@ -108,6 +108,6 @@ func RegistPCChainMessageHandler(msgType string, sendHandler func(chainMessage *
 		pcChainMessageHandler.PCResponseHandler = responseHandler
 		pcChainMessageHandlers[msgType] = &pcChainMessageHandler
 	} else {
-		golog.Errorf("ReceivePCHandler:%v exist", msgType)
+		logger.Errorf("ReceivePCHandler:%v exist", msgType)
 	}
 }

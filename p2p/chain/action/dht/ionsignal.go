@@ -2,6 +2,7 @@ package dht
 
 import (
 	"errors"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/p2p"
 	"github.com/curltech/go-colla-node/p2p/chain/action"
@@ -9,7 +10,6 @@ import (
 	"github.com/curltech/go-colla-node/p2p/chain/handler/sender"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 )
 
 type ionSignalAction struct {
@@ -33,7 +33,7 @@ func (this *ionSignalAction) RegistReceiver(receiver func(netPeer *p2p.NetPeer, 
 peerId如果为空，发送的对象是自己，需要检查如果是自己，则检查最终目标，考虑转发
 */
 func (this *ionSignalAction) Signal(peerId string, payloadType string, data interface{}, targetPeerId string) (interface{}, error) {
-	golog.Infof("Send %v message", this.MsgType)
+	logger.Infof("Send %v message", this.MsgType)
 	chainMessage := msg.ChainMessage{}
 	chainMessage.TargetPeerId = targetPeerId
 	chainMessage.Payload = data
@@ -59,7 +59,7 @@ func (this *ionSignalAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chain
 	if chainMessage.TargetPeerId != "" && global.IsMyself(chainMessage.TargetPeerId) {
 		signal := chainMessage.Payload.(map[string]interface{})
 		if this.receiver == nil {
-			golog.Errorf("NoReceiver")
+			logger.Errorf("NoReceiver")
 			err = errors.New("NoReceiver")
 		} else {
 			netPeer := &p2p.NetPeer{TargetPeerId: chainMessage.SrcPeerId, ConnectPeerId: chainMessage.SrcConnectPeerId, ConnectSessionId: chainMessage.SrcConnectSessionId}

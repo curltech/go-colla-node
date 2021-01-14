@@ -2,8 +2,8 @@ package peer
 
 import (
 	"errors"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/webrtc"
-	"github.com/kataras/golog"
 	webrtc1 "github.com/pion/webrtc/v3"
 	"sync"
 )
@@ -69,7 +69,7 @@ func (this *Sfu) join(webrtcPeer IWebrtcPeer) error {
 		}
 		this.onTrack(webrtcPeer)
 	} else {
-		golog.Errorf("id:%v is exist", id)
+		logger.Errorf("id:%v is exist", id)
 
 		return errors.New("Exist")
 	}
@@ -88,7 +88,7 @@ func (this *Sfu) onTrack(webrtcPeer IWebrtcPeer) {
 			c := track.Codec().RTPCodecCapability
 			trackLocal, err := webrtcPeer.CreateTrack(&c, track.ID(), track.StreamID())
 			if err != nil {
-				golog.Error(err.Error())
+				logger.Errorf(err.Error())
 				return nil, err
 			}
 			var other IWebrtcPeer = webrtcPeer
@@ -100,7 +100,7 @@ func (this *Sfu) onTrack(webrtcPeer IWebrtcPeer) {
 			}
 			_, err = other.AddTrack(trackLocal)
 			if err != nil {
-				golog.Error(err.Error())
+				logger.Errorf(err.Error())
 				return nil, err
 			}
 			for {
@@ -160,7 +160,7 @@ func (this *Sfu) leave(webrtcPeer IWebrtcPeer) error {
 		delete(this.subscribers, id)
 		delete(this.webrtcPeers, id)
 	} else {
-		golog.Errorf("id:%v is not exist", id)
+		logger.Errorf("id:%v is not exist", id)
 
 		return errors.New("NotExist")
 	}
@@ -190,12 +190,12 @@ func (this *Sfu) publish(webrtcPeer IWebrtcPeer) error {
 			}
 			this.publishers[id] = subscribers
 		} else {
-			golog.Errorf("id:%v is exist", id)
+			logger.Errorf("id:%v is exist", id)
 
 			return errors.New("Exist")
 		}
 	} else {
-		golog.Errorf("id:%v is exist", id)
+		logger.Errorf("id:%v is exist", id)
 
 		return errors.New("Exist")
 	}
@@ -219,12 +219,12 @@ func (this *Sfu) publishTrack(webrtcPeer IWebrtcPeer, trackRemote *webrtc1.Track
 			c := trackRemote.Codec().RTPCodecCapability
 			trackLocal, err := webrtcPeer.CreateTrack(&c, trackRemote.ID(), trackRemote.StreamID())
 			if err != nil {
-				golog.Error(err.Error())
+				logger.Errorf(err.Error())
 				return err
 			}
 			_, err = webrtcPeer.AddTrack(trackLocal)
 			if err != nil {
-				golog.Error(err.Error())
+				logger.Errorf(err.Error())
 				return err
 			}
 			// 遍历订阅列表，对所有的订阅节点加上新的发布节点
@@ -237,18 +237,18 @@ func (this *Sfu) publishTrack(webrtcPeer IWebrtcPeer, trackRemote *webrtc1.Track
 			//	if ok {
 			//		_, err = subscriber.AddTrack(trackLocal)
 			//		if err != nil {
-			//			golog.Error(err.Error())
+			//			logger.Errorf(err.Error())
 			//			return err
 			//		}
 			//	}
 			//}
 		} else {
-			golog.Errorf("id:%v is exist", id)
+			logger.Errorf("id:%v is exist", id)
 
 			return errors.New("Exist")
 		}
 	} else {
-		golog.Errorf("id:%v is exist", id)
+		logger.Errorf("id:%v is exist", id)
 
 		return errors.New("Exist")
 	}
@@ -291,7 +291,7 @@ func (this *Sfu) subscribe(webrtcPeer IWebrtcPeer) error {
 							c := trackRemote.Codec().RTPCodecCapability
 							trackLocal, err := pub.CreateTrack(&c, trackRemote.ID(), trackRemote.StreamID())
 							if err != nil {
-								golog.Error(err.Error())
+								logger.Errorf(err.Error())
 								return err
 							}
 							trackLocals = append(trackLocals, trackLocal)
@@ -302,12 +302,12 @@ func (this *Sfu) subscribe(webrtcPeer IWebrtcPeer) error {
 			for _, trackLocal := range trackLocals {
 				_, err := webrtcPeer.AddTrack(trackLocal)
 				if err != nil {
-					golog.Error(err.Error())
+					logger.Errorf(err.Error())
 					return err
 				}
 			}
 		} else {
-			golog.Errorf("id:%v is exist", id)
+			logger.Errorf("id:%v is exist", id)
 
 			return errors.New("Exist")
 		}
@@ -354,7 +354,7 @@ func (this *SfuPool) Join(webrtcPeer IWebrtcPeer) (*Sfu, error) {
 	}
 	err := sfu.join(webrtcPeer)
 	if err == nil {
-		golog.Infof("sfu:%v successfully join peer:%v", router.RoomId, webrtcPeer.Id())
+		logger.Infof("sfu:%v successfully join peer:%v", router.RoomId, webrtcPeer.Id())
 	}
 
 	return sfu, err
@@ -386,16 +386,16 @@ func (this *SfuPool) Leave(webrtcPeer IWebrtcPeer) error {
 	if ok {
 		err := sfu.leave(webrtcPeer)
 		if err == nil {
-			golog.Infof("sfu:%v successfully left peer:%v", router.RoomId, webrtcPeer.Id())
+			logger.Infof("sfu:%v successfully left peer:%v", router.RoomId, webrtcPeer.Id())
 			if len(sfu.webrtcPeers) == 0 {
 				delete(this.sfus, router.RoomId)
-				golog.Infof("sfu:%v last peer left and closed", router.RoomId)
+				logger.Infof("sfu:%v last peer left and closed", router.RoomId)
 			}
 		}
 
 		return err
 	} else {
-		golog.Errorf("id:%v is not exist", router.RoomId)
+		logger.Errorf("id:%v is not exist", router.RoomId)
 
 		return errors.New("NotExist")
 	}
@@ -409,9 +409,9 @@ func (this *SfuPool) Destroy(roomId string) error {
 	_, ok := this.sfus[roomId]
 	if ok {
 		delete(this.sfus, roomId)
-		golog.Infof("sfu:%v was destroyed", roomId)
+		logger.Infof("sfu:%v was destroyed", roomId)
 	} else {
-		golog.Errorf("id:%v is not exist", roomId)
+		logger.Errorf("id:%v is not exist", roomId)
 
 		return errors.New("NotExist")
 	}

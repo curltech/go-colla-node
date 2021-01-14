@@ -3,11 +3,11 @@ package handler
 import (
 	"errors"
 	"github.com/curltech/go-colla-core/container"
+	"github.com/curltech/go-colla-core/logger"
 	service2 "github.com/curltech/go-colla-core/service"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/ipfs/go-datastore"
 	dsq "github.com/ipfs/go-datastore/query"
-	"github.com/kataras/golog"
 	"github.com/multiformats/go-base32"
 	"strings"
 )
@@ -62,19 +62,19 @@ func NewKeyRequest(key datastore.Key) (*DispatchRequest, error) {
 func NewPrefixRequest(prefix string) (*DispatchRequest, error) {
 	ds := GetDatastore(prefix)
 	if ds == nil {
-		golog.Errorf("No datastore:%v", prefix)
+		logger.Errorf("No datastore:%v", prefix)
 		return nil, errors.New("No datastore")
 	}
 	s := container.GetService(prefix)
 	var svc service2.BaseService
 	if s == nil {
-		golog.Warnf("No service:%v", prefix)
+		logger.Warnf("No service:%v", prefix)
 	} else {
 		svc = s.(service2.BaseService)
 	}
 	keyname, ok := keynamePool[prefix]
 	if !ok {
-		golog.Errorf("No keyname:%v", prefix)
+		logger.Errorf("No keyname:%v", prefix)
 		return nil, errors.New("No keyname")
 	}
 
@@ -145,7 +145,7 @@ func (this *DispatchDatastore) Delete(key datastore.Key) (err error) {
 
 // Query implements Datastore.Query
 func (this *DispatchDatastore) Query(q dsq.Query) (dsq.Results, error) {
-	golog.Warnf("query trigger:%v:%v", q.Prefix, q.String())
+	logger.Warnf("query trigger:%v:%v", q.Prefix, q.String())
 	request, err := NewPrefixRequest(q.Prefix)
 	if err != nil {
 		return nil, err

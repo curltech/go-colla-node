@@ -2,12 +2,12 @@ package handler
 
 import (
 	"fmt"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/pipe"
 	"github.com/curltech/go-colla-node/p2p/handler"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
@@ -32,8 +32,8 @@ func HandleRaw(data []byte, p *pipe.Pipe) ([]byte, error) {
 		p.Write(data, false)
 	}
 	p.Reset()
-	golog.Infof("read data:%v", string(data))
-	golog.Infof("read protocolID:%v", protocolID)
+	logger.Infof("read data:%v", string(data))
+	logger.Infof("read protocolID:%v", protocolID)
 
 	return data, nil
 }
@@ -69,15 +69,15 @@ func SendRaw(peerId string, protocolId string, data []byte) ([]byte, error) {
 	peerId = GetAddrInfo(peerId)
 	pipe, err := GetPipePool().GetRequestPipe(peerId, protocolId)
 	if err != nil {
-		golog.Errorf("createPipe failure")
+		logger.Errorf("createPipe failure")
 
 		return nil, err
 	}
 
-	golog.Infof("Write data length:%v", len(data))
+	logger.Infof("Write data length:%v", len(data))
 	pipe, _, err = pipe.Write(data, false)
 	if err != nil {
-		golog.Errorf("pipe.Write failure")
+		logger.Errorf("pipe.Write failure")
 
 		return nil, err
 	}

@@ -1,7 +1,7 @@
 package simplepeer
 
 import (
-	"github.com/kataras/golog"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/pion/webrtc/v3"
 	"io"
 	"time"
@@ -31,7 +31,7 @@ func (this *SimplePeer) detachOpen() error {
 	// Detach the data channel
 	raw, dErr := this.dataChannel.Detach()
 	if dErr != nil {
-		golog.Error(dErr.Error())
+		logger.Errorf(dErr.Error())
 		return dErr
 	}
 
@@ -50,11 +50,11 @@ func readLoop(d io.Reader) {
 		buffer := make([]byte, MessageSize)
 		n, err := d.Read(buffer)
 		if err != nil {
-			golog.Infof("Datachannel closed; Exit the readloop:", err)
+			logger.Infof("Datachannel closed; Exit the readloop:", err)
 			return
 		}
 
-		golog.Infof("Message from DataChannel: %s\n", string(buffer[:n]))
+		logger.Infof("Message from DataChannel: %s\n", string(buffer[:n]))
 	}
 }
 
@@ -62,11 +62,11 @@ func readLoop(d io.Reader) {
 func writeLoop(d io.Writer) {
 	for range time.NewTicker(5 * time.Second).C {
 		message := "hello,胡劲松"
-		golog.Infof("Sending %s \n", message)
+		logger.Infof("Sending %s \n", message)
 
 		_, err := d.Write([]byte(message))
 		if err != nil {
-			golog.Error(err.Error())
+			logger.Errorf(err.Error())
 		}
 	}
 }

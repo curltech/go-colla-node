@@ -7,9 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/curltech/go-colla-core/config"
+	"github.com/curltech/go-colla-core/logger"
 	session2 "github.com/curltech/go-colla-core/session"
 	"github.com/gorilla/websocket"
-	"github.com/kataras/golog"
 	"github.com/kataras/iris/v12/sessions"
 	"net"
 	"net/http"
@@ -188,12 +188,12 @@ func (conn *Connection) loopRead() {
 			// 判断是不是超时
 			if netErr, ok := err.(net.Error); ok {
 				if netErr.Timeout() {
-					golog.Errorf("ReadMessage timeout remote: %v\n", conn.wsConnect.RemoteAddr())
+					logger.Errorf("ReadMessage timeout remote: %v\n", conn.wsConnect.RemoteAddr())
 				}
 			}
 			// 其他错误，如果是 1001 和 1000 就不打印日志
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
-				golog.Errorf("ReadMessage other remote:%v error: %v \n", conn.wsConnect.RemoteAddr(), err)
+				logger.Errorf("ReadMessage other remote:%v error: %v \n", conn.wsConnect.RemoteAddr(), err)
 			}
 			conn.Close()
 		} else {
@@ -234,7 +234,7 @@ func (conn *Connection) loopHeartbeat() {
 	for {
 		time.Sleep(time.Duration(heartbeatInterval) * time.Second)
 		if err := conn.Write(websocket.BinaryMessage, []byte("heartbeat from server")); err != nil {
-			golog.Errorf("heartbeat fail")
+			logger.Errorf("heartbeat fail")
 			conn.Close()
 			break
 		}

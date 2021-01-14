@@ -2,8 +2,8 @@ package http
 
 import (
 	"bufio"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/global"
-	"github.com/kataras/golog"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
@@ -19,7 +19,7 @@ func Connect() {
 	client := &nethttp.Client{Transport: tr}
 	res, err := client.Get("libp2p://Qmaoi4isbcTbFfohQyn28EiYM5CDWQx9QRCjDh3CTeiY7P/hello")
 	if err != nil {
-		golog.Infof("response:", res)
+		logger.Infof("response:", res)
 	}
 }
 

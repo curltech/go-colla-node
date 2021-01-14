@@ -1,10 +1,10 @@
 package action
 
 import (
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 )
 
 type disconnectAction struct {
@@ -17,7 +17,7 @@ var DisconnectAction disconnectAction
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
 func (this *disconnectAction) PCReceive(chainMessage *msg.PCChainMessage) (interface{}, error) {
-	//golog.Infof("Receive %v message", this.MsgType)
+	//logger.Infof("Receive %v message", this.MsgType)
 	//peerClient := chainMessage.MessagePayload.Payload.(*entity.PeerClient)
 	//err := service.ValidatePC(chainMessage.MessagePayload)
 	//if err != nil {
@@ -61,7 +61,7 @@ func (this *disconnectAction) PCReceive(chainMessage *msg.PCChainMessage) (inter
 处理返回消息
 */
 func (this *disconnectAction) PCResponse(chainMessage *msg.PCChainMessage) error {
-	golog.Infof("Response %v message:%v", this.MsgType, chainMessage)
+	logger.Infof("Response %v message:%v", this.MsgType, chainMessage)
 
 	return nil
 }

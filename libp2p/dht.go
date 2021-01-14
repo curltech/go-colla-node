@@ -2,6 +2,7 @@ package libp2p
 
 import (
 	"github.com/curltech/go-colla-core/config"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/datastore/handler"
 	"github.com/curltech/go-colla-node/libp2p/datastore/xorm"
 	dht2 "github.com/curltech/go-colla-node/libp2p/dht"
@@ -11,7 +12,6 @@ import (
 	"github.com/ipfs/go-ds-leveldb"
 	"github.com/ipfs/go-ds-redis"
 	sqlds "github.com/ipfs/go-ds-sql"
-	"github.com/kataras/golog"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
@@ -286,19 +286,19 @@ func routingTableFilter(dht *kaddht.IpfsDHT, conns []network.Conn) bool {
 }
 
 func PeerAdded(id peer.ID) {
-	golog.Infof("PeerEndpointDHT.RoutingTable add peer: %v", id.Pretty())
+	logger.Infof("PeerEndpointDHT.RoutingTable add peer: %v", id.Pretty())
 
 	//err := dht.PingAction.Ping(id.Pretty(), "")
 	//if err != nil {
-	//	golog.Errorf("failed to ping: %v, err: %v", id.Pretty(), err)
+	//	logger.Errorf("failed to ping: %v, err: %v", id.Pretty(), err)
 	//} else {
-	//	golog.Infof("successfully ping: %v", id.Pretty())
+	//	logger.Infof("successfully ping: %v", id.Pretty())
 	//}
 
 	dht2.PingPing(id)
 }
 
 func PeerRemoved(id peer.ID) {
-	golog.Infof("PeerEndpointDHT.RoutingTable remove peer: %v", id.Pretty())
+	logger.Infof("PeerEndpointDHT.RoutingTable remove peer: %v", id.Pretty())
 	//更改状态
 }

@@ -2,11 +2,11 @@ package simplepeer
 
 import (
 	"errors"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/p2p/chain/action/dht"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	webrtc2 "github.com/curltech/go-colla-node/webrtc"
-	"github.com/kataras/golog"
 	"github.com/pion/webrtc/v3" //用到了webrtc的数据结构，但是更好的是不用，只将转换的方法做在webrtc里面
 )
 
@@ -151,21 +151,21 @@ func Transform(payload map[string]interface{}) *WebrtcSignal {
 */
 func (this *SimplePeer) Signal(webrtcSignal *WebrtcSignal) error {
 	if this.destroyed {
-		golog.Errorf("cannot signal after peer is destroyed'), 'ERRSIGNALING")
+		logger.Errorf("cannot signal after peer is destroyed'), 'ERRSIGNALING")
 		return errors.New(webrtc2.ERR_SIGNALING)
 	}
 	/**
 	如果是发起方并且需要重新协商
 	*/
 	if webrtcSignal.Renegotiate && this.initiator {
-		golog.Infof("got request to renegotiate")
+		logger.Infof("got request to renegotiate")
 		this.needsNegotiation()
 	}
 	/**
 	如果是发起方并且需要增加收发器
 	*/
 	if webrtcSignal.TransceiverRequest != nil && this.initiator {
-		golog.Infof("got request for transceiver")
+		logger.Infof("got request for transceiver")
 		webrtcSignal.TransceiverRequest = make(map[string]interface{})
 		kind, ok := webrtcSignal.TransceiverRequest["kind"]
 		if ok {
@@ -195,14 +195,14 @@ func (this *SimplePeer) Signal(webrtcSignal *WebrtcSignal) error {
 		if this.candidateFastAdd {
 			err := this.addIceCandidate(webrtcSignal.Candidate)
 			if err != nil {
-				golog.Errorf("addIceCandidate err:%v", err.Error())
+				logger.Errorf("addIceCandidate err:%v", err.Error())
 			}
 		} else {
 			desc := this.peerConnection.RemoteDescription()
 			if desc != nil && desc.Type != 0 {
 				err := this.addIceCandidate(webrtcSignal.Candidate)
 				if err != nil {
-					golog.Errorf("addIceCandidate err:%v", err.Error())
+					logger.Errorf("addIceCandidate err:%v", err.Error())
 				}
 			} else {
 				this.candidatesMux.Lock()
@@ -236,7 +236,7 @@ func (this *SimplePeer) Signal(webrtcSignal *WebrtcSignal) error {
 					// 加所有的候选candidate
 					err := this.addIceCandidate(&candidate)
 					if err != nil {
-						golog.Errorf("addIceCandidate err:%v", err.Error())
+						logger.Errorf("addIceCandidate err:%v", err.Error())
 					}
 				}
 				this.pendingCandidates = make([]webrtc.ICECandidateInit, 0)
@@ -260,7 +260,7 @@ func (this *SimplePeer) signalCandidate(candidate *webrtc.ICECandidateInit) (int
 	candidateSignal := &WebrtcSignal{SignalType: WebrtcSignalType_Candidate, Candidate: candidate}
 	resp, err := this.EmitEvent(webrtc2.EVENT_SIGNAL, &webrtc2.PeerEvent{Data: candidateSignal})
 	if err != nil {
-		golog.Errorf("%v", err.Error())
+		logger.Errorf("%v", err.Error())
 	}
 
 	return resp, err

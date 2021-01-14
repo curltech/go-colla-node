@@ -9,7 +9,8 @@ server:
   runmode: dev
   password: "123456"
 log:
-  level: error
+  level: info
+  encoder: console
 http:
   port: 8081
   addr:

@@ -3,6 +3,7 @@ package sender
 import (
 	"errors"
 	"github.com/curltech/go-colla-core/config"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/pipe/handler"
@@ -10,7 +11,6 @@ import (
 	handler1 "github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	msg1 "github.com/curltech/go-colla-node/p2p/msg"
-	"github.com/kataras/golog"
 )
 
 /**
@@ -70,7 +70,7 @@ func send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 				}
 			} else {
 				//也许可以找targetPeerId最近的节点发送
-				golog.Error("NoConnectPeerId")
+				logger.Errorf("NoConnectPeerId")
 				return msg, errors.New("NoConnectPeerId")
 			}
 			if topic != "" {

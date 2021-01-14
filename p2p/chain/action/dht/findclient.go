@@ -3,6 +3,7 @@ package dht
 import (
 	"errors"
 	"github.com/curltech/go-colla-core/config"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/ns"
@@ -13,7 +14,6 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 )
 
 type findClientAction struct {
@@ -73,7 +73,7 @@ func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 	} else if len(mobileNumber) > 0 {
 		key = ns.GetPeerClientMobileKey(mobileNumber)
 	} else {
-		golog.Errorf("InvalidPeerClientKey")
+		logger.Errorf("InvalidPeerClientKey")
 		response = handler.Error(chainMessage.MessageType, errors.New("InvalidPeerClientKey"))
 		return response, nil
 	}
@@ -87,7 +87,7 @@ func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			pcs := make([]*entity.PeerClient, 0)
 			err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
 			if err != nil {
-				golog.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
 			}
@@ -131,7 +131,7 @@ func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			pcs := make([]*entity.PeerClient, 0)
 			err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
 			if err != nil {
-				golog.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
 			}

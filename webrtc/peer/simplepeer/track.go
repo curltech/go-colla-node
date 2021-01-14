@@ -2,8 +2,8 @@ package simplepeer
 
 import (
 	"errors"
+	"github.com/curltech/go-colla-core/logger"
 	webrtc2 "github.com/curltech/go-colla-node/webrtc"
-	"github.com/kataras/golog"
 	"github.com/pion/rtcp"
 	"github.com/pion/webrtc/v3"
 	"time"
@@ -16,7 +16,7 @@ func (this *SimplePeer) AddTrack(track webrtc.TrackLocal) (*webrtc.RTPSender, er
 	// Add this newly created track to the PeerConnection
 	sender, err := this.peerConnection.AddTrack(track)
 	if err != nil {
-		golog.Error(err.Error())
+		logger.Errorf(err.Error())
 
 		return nil, err
 	}
@@ -68,9 +68,9 @@ func (this *SimplePeer) removeTrack(track webrtc.TrackLocal) {
 */
 func (this *SimplePeer) remb(track *webrtc.TrackRemote) {
 	// Send a remb message with a very high bandwidth to trigger chrome to send also the high bitrate stream
-	golog.Infof("Sending remb for stream with rid: %q, ssrc: %d\n", track.RID(), track.SSRC())
+	logger.Infof("Sending remb for stream with rid: %q, ssrc: %d\n", track.RID(), track.SSRC())
 	if writeErr := this.peerConnection.WriteRTCP([]rtcp.Packet{&rtcp.ReceiverEstimatedMaximumBitrate{Bitrate: 10000000, SenderSSRC: uint32(track.SSRC())}}); writeErr != nil {
-		golog.Infof(writeErr.Error())
+		logger.Infof(writeErr.Error())
 	}
 }
 
@@ -82,7 +82,7 @@ func (this *SimplePeer) keyFrame(track *webrtc.TrackRemote) {
 	for range ticker.C {
 		errSend := this.peerConnection.WriteRTCP([]rtcp.Packet{&rtcp.PictureLossIndication{MediaSSRC: uint32(track.SSRC())}})
 		if errSend != nil {
-			golog.Error(errSend.Error())
+			logger.Errorf(errSend.Error())
 			ticker.Stop()
 			break
 		}
@@ -96,7 +96,7 @@ func (this *SimplePeer) onTrack(track *webrtc.TrackRemote, receiver *webrtc.RTPR
 	// Send a PLI on an interval so that the publisher is pushing a keyframe every rtcpPLIInterval
 	// This is a temporary fix until we implement incoming RTCP events, then we would push a PLI only when a viewer requests it
 	go this.keyFrame(track)
-	golog.Infof("Track has started, of type %d: %s \n", track.PayloadType(), track.Codec().MimeType)
+	logger.Infof("Track has started, of type %d: %s \n", track.PayloadType(), track.Codec().MimeType)
 
 	// track *webrtc.TrackRemote, receiver *webrtc.RTPReceiver
 	if this.destroyed {

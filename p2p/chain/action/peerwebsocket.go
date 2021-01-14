@@ -1,10 +1,10 @@
 package action
 
 import (
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 )
 
 type peerWebsocketAction struct {
@@ -17,7 +17,7 @@ var PeerWebsocketAction peerWebsocketAction
 主动发送消息
 */
 func (this *peerWebsocketAction) Send(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	golog.Infof("Send %v message", this.MsgType)
+	logger.Infof("Send %v message", this.MsgType)
 	response := &msg.ChainMessage{}
 
 	return response, nil
@@ -27,7 +27,7 @@ func (this *peerWebsocketAction) Send(chainMessage *msg.ChainMessage) (*msg.Chai
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
 func (this *peerWebsocketAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	golog.Infof("Receive %v message", this.MsgType)
+	logger.Infof("Receive %v message", this.MsgType)
 	//wcm := chainMessage.Payload.(*msg.WebsocketChainMessage)
 	//targetPeerClient := wcm.TargetPeerClient
 	//targetPeerId := targetPeerClient.PeerId
@@ -65,7 +65,7 @@ func (this *peerWebsocketAction) Receive(chainMessage *msg.ChainMessage) (*msg.C
 处理返回消息
 */
 func (this *peerWebsocketAction) Response(chainMessage *msg.ChainMessage) error {
-	golog.Infof("Response %v message:%v", this.MsgType, chainMessage)
+	logger.Infof("Response %v message:%v", this.MsgType, chainMessage)
 
 	return nil
 }

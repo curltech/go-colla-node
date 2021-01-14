@@ -1,13 +1,13 @@
 package handler
 
 import (
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/libp2p/pipe"
 	"github.com/curltech/go-colla-node/p2p/chain/service"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/peerstore"
@@ -35,7 +35,7 @@ func (this *PipePool) Connect(p *pipe.Pipe) {
 	conn := p.GetStream().Conn()
 	if conn != nil {
 		peerId := conn.RemotePeer().Pretty()
-		golog.Infof("remote peer:%v", peerId)
+		logger.Infof("remote peer:%v", peerId)
 		key := peerId + ":" + conn.ID()
 		oldConn, ok := this.connectionPool[key]
 		if ok {
@@ -103,7 +103,7 @@ func (this *PipePool) GetRequestPipe(peerId string, protocolId string) (*pipe.Pi
 	} else {
 		p, err := createPipe(peerId, protocolId)
 		if err != nil {
-			golog.Errorf("createPipe failure")
+			logger.Errorf("createPipe failure")
 		}
 
 		return p, err
@@ -119,13 +119,13 @@ peerId是带地址信息的/ip4/192.168.0.104/tcp/3721/p2p/12D3KooWPpZrX5bNEpJcH
 func createPipe(peerId string, protocolId string) (*pipe.Pipe, error) {
 	addr, err := ma.NewMultiaddr(peerId)
 	if err != nil {
-		golog.Errorf(err.Error())
+		logger.Errorf(err.Error())
 		return nil, err
 	}
 	// Extract the peer ID from the multiaddr.
 	info, err := peer.AddrInfoFromP2pAddr(addr)
 	if err != nil {
-		golog.Errorf(err.Error())
+		logger.Errorf(err.Error())
 		return nil, err
 	}
 	// Add the destination's peer multiaddress in the peerstore.
@@ -134,7 +134,7 @@ func createPipe(peerId string, protocolId string) (*pipe.Pipe, error) {
 	global.Global.Host.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.PermanentAddrTTL)
 	stream, err := global.Global.Host.NewStream(global.Global.Context, info.ID, protocol.ID(protocolId))
 	if err != nil {
-		golog.Errorf("CreatePipe failed:%v", err)
+		logger.Errorf("CreatePipe failed:%v", err)
 		return nil, err
 	} else {
 		/**
@@ -149,7 +149,7 @@ func createPipe(peerId string, protocolId string) (*pipe.Pipe, error) {
 func CreatePipe(stream network.Stream, msgtype string) (*pipe.Pipe, error) {
 	pipe, err := pipe.CreatePipe(stream, HandleRaw, msgtype)
 	if err != nil {
-		golog.Errorf(err.Error())
+		logger.Errorf(err.Error())
 		return nil, err
 	}
 	if pipe != nil {
@@ -170,7 +170,7 @@ func (this *PipePool) Close(peerId string, protocolId string, connectSessionId s
 			delete(this.responsePool, key)
 			peerClients, err := service.GetLocalPCs(ns.PeerClient_KeyKind, peerId, "", "")
 			if err != nil {
-				golog.Errorf("failed to GetLocalPCs by peerId: %v", peerId)
+				logger.Errorf("failed to GetLocalPCs by peerId: %v", peerId)
 				return
 			}
 			if len(peerClients) > 0 {

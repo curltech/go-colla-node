@@ -3,7 +3,7 @@ package stream
 import (
 	"bytes"
 	"github.com/at-wat/ebml-go/webm"
-	"github.com/kataras/golog"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/pion/rtp"
 	"github.com/pion/rtp/codecs"
 	"github.com/pion/webrtc/v3"
@@ -31,7 +31,7 @@ func readVideo(videoFileName string, videoTrack *webrtc.TrackLocalStaticSample) 
 	_, err := os.Stat(videoFileName)
 	haveVideoFile := !os.IsNotExist(err)
 	if !haveVideoFile {
-		golog.Error("Could not find `" + videoFileName + "`")
+		logger.Errorf("Could not find `" + videoFileName + "`")
 		return
 	}
 
@@ -40,13 +40,13 @@ func readVideo(videoFileName string, videoTrack *webrtc.TrackLocalStaticSample) 
 			// Open a IVF file and start reading using our IVFReader
 			file, ivfErr := os.Open(videoFileName)
 			if ivfErr != nil {
-				golog.Error(ivfErr)
+				logger.Errorf(ivfErr.Error())
 				return
 			}
 
 			ivf, header, ivfErr := ivfreader.NewWith(file)
 			if ivfErr != nil {
-				golog.Error(ivfErr)
+				logger.Errorf(ivfErr.Error())
 				return
 			}
 			// Send our video file frame at a time. Pace our sending so we send it at the same speed it should be played back as.
@@ -55,19 +55,19 @@ func readVideo(videoFileName string, videoTrack *webrtc.TrackLocalStaticSample) 
 			for {
 				frame, _, ivfErr := ivf.ParseNextFrame()
 				if ivfErr == io.EOF {
-					golog.Infof("All video frames parsed and sent")
+					logger.Infof("All video frames parsed and sent")
 					return
 				}
 
 				if ivfErr != nil {
-					golog.Error(ivfErr)
+					logger.Errorf(ivfErr.Error())
 					return
 				}
 				frame = encrypt(frame)
 
 				time.Sleep(sleepTime)
 				if ivfErr = videoTrack.WriteSample(media.Sample{Data: frame, Duration: time.Second}); ivfErr != nil {
-					golog.Error(ivfErr)
+					logger.Errorf(ivfErr.Error())
 					return
 				}
 			}
@@ -80,7 +80,7 @@ func readH264Video(videoFileName string, videoTrack *webrtc.TrackLocalStaticSamp
 	_, err := os.Stat(videoFileName)
 	haveVideoFile := !os.IsNotExist(err)
 	if !haveVideoFile {
-		golog.Error("Could not find `" + videoFileName + "`")
+		logger.Errorf("Could not find `" + videoFileName + "`")
 		return
 	}
 
@@ -88,7 +88,7 @@ func readH264Video(videoFileName string, videoTrack *webrtc.TrackLocalStaticSamp
 		go func() {
 			reader, readerError := h264reader.NewReader(os.Stdin)
 			if readerError != nil {
-				golog.Error(readerError.Error())
+				logger.Errorf(readerError.Error())
 				return
 			}
 
@@ -97,12 +97,12 @@ func readH264Video(videoFileName string, videoTrack *webrtc.TrackLocalStaticSamp
 			for {
 				nal, readerError := reader.NextNAL()
 				if readerError == io.EOF {
-					golog.Infof("All video frames parsed and sent")
+					logger.Infof("All video frames parsed and sent")
 					return
 				}
 
 				if readerError != nil {
-					golog.Error(readerError.Error())
+					logger.Errorf(readerError.Error())
 					return
 				}
 
@@ -110,7 +110,7 @@ func readH264Video(videoFileName string, videoTrack *webrtc.TrackLocalStaticSamp
 					time.Sleep(sleepTime)
 				}
 				if writeErr := videoTrack.WriteSample(media.Sample{Data: nal.Data, Duration: time.Second}); writeErr != nil {
-					golog.Error(writeErr.Error())
+					logger.Errorf(writeErr.Error())
 					return
 				}
 			}
@@ -137,7 +137,7 @@ func readAudio(audioFileName string, audioTrack *webrtc.TrackLocalStaticSample) 
 	_, err := os.Stat(audioFileName)
 	haveAudioFile := !os.IsNotExist(err)
 	if !haveAudioFile {
-		golog.Error("Could not find `" + audioFileName)
+		logger.Errorf("Could not find `" + audioFileName)
 		return
 	}
 	if haveAudioFile {
@@ -145,14 +145,14 @@ func readAudio(audioFileName string, audioTrack *webrtc.TrackLocalStaticSample) 
 			// Open a IVF file and start reading using our IVFReader
 			file, oggErr := os.Open(audioFileName)
 			if oggErr != nil {
-				golog.Error(oggErr)
+				logger.Errorf(oggErr.Error())
 				return
 			}
 
 			// Open on oggfile in non-checksum mode.
 			ogg, _, oggErr := oggreader.NewWith(file)
 			if oggErr != nil {
-				golog.Error(oggErr)
+				logger.Errorf(oggErr.Error())
 				return
 			}
 
@@ -161,12 +161,12 @@ func readAudio(audioFileName string, audioTrack *webrtc.TrackLocalStaticSample) 
 			for {
 				pageData, pageHeader, oggErr := ogg.ParseNextPage()
 				if oggErr == io.EOF {
-					golog.Error("All audio pages parsed and sent")
+					logger.Errorf("All audio pages parsed and sent")
 					return
 				}
 
 				if oggErr != nil {
-					golog.Error(oggErr)
+					logger.Errorf(oggErr.Error())
 					return
 				}
 
@@ -195,7 +195,7 @@ func writeAudio(audioFileName string, track *webrtc.TrackRemote) {
 	}
 	codec := track.Codec()
 	if codec.MimeType == "audio/opus" {
-		golog.Infof("Got Opus track, saving to disk as output.opus (48 kHz, 2 channels)")
+		logger.Infof("Got Opus track, saving to disk as output.opus (48 kHz, 2 channels)")
 		saveToDisk(oggFile, track)
 	}
 }
@@ -206,12 +206,12 @@ func writeAudio(audioFileName string, track *webrtc.TrackRemote) {
 func writeVideo(videoFileName string, track *webrtc.TrackRemote) {
 	ivfFile, err := ivfwriter.New(videoFileName)
 	if err != nil {
-		golog.Error(err.Error())
+		logger.Errorf(err.Error())
 		return
 	}
 	codec := track.Codec()
 	if codec.MimeType == "video/VP8" {
-		golog.Infof("Got VP8 track, saving to disk as output.ivf")
+		logger.Infof("Got VP8 track, saving to disk as output.ivf")
 		saveToDisk(ivfFile, track)
 	}
 }
@@ -222,7 +222,7 @@ func writeVideo(videoFileName string, track *webrtc.TrackRemote) {
 func saveToDisk(i media.Writer, track *webrtc.TrackRemote) {
 	defer func() {
 		if err := i.Close(); err != nil {
-			golog.Error(err.Error())
+			logger.Errorf(err.Error())
 			return
 		}
 	}()
@@ -233,7 +233,7 @@ func saveToDisk(i media.Writer, track *webrtc.TrackRemote) {
 			panic(err)
 		}
 		if err := i.WriteRTP(rtpPacket); err != nil {
-			golog.Error(err.Error())
+			logger.Errorf(err.Error())
 			return
 		}
 	}
@@ -260,17 +260,17 @@ func newWebmSaver(filename string) *webmSaver {
 }
 
 func (s *webmSaver) Close() error {
-	golog.Infof("Finalizing webm...\n")
+	logger.Infof("Finalizing webm...\n")
 	if s.audioWriter != nil {
 		if err := s.audioWriter.Close(); err != nil {
-			golog.Error(err.Error())
+			logger.Errorf(err.Error())
 
 			return err
 		}
 	}
 	if s.videoWriter != nil {
 		if err := s.videoWriter.Close(); err != nil {
-			golog.Error(err.Error())
+			logger.Errorf(err.Error())
 
 			return err
 		}
@@ -290,7 +290,7 @@ func (s *webmSaver) PushOpus(rtpPacket *rtp.Packet) error {
 		if s.audioWriter != nil {
 			s.audioTimestamp += sample.Duration
 			if _, err := s.audioWriter.Write(true, int64(s.audioTimestamp/time.Millisecond), sample.Data); err != nil {
-				golog.Error(err.Error())
+				logger.Errorf(err.Error())
 
 				return err
 			}
@@ -320,7 +320,7 @@ func (this *webmSaver) PushVP8(rtpPacket *rtp.Packet) error {
 				// Initialize WebM saver using received frame size.
 				err := this.InitWriter(width, height)
 				if err != nil {
-					golog.Error(err.Error())
+					logger.Errorf(err.Error())
 
 					return err
 				}
@@ -329,7 +329,7 @@ func (this *webmSaver) PushVP8(rtpPacket *rtp.Packet) error {
 		if this.videoWriter != nil {
 			this.videoTimestamp += sample.Duration
 			if _, err := this.videoWriter.Write(videoKeyframe, int64(this.audioTimestamp/time.Millisecond), sample.Data); err != nil {
-				golog.Error(err.Error())
+				logger.Errorf(err.Error())
 
 				return err
 			}
@@ -342,7 +342,7 @@ func (this *webmSaver) PushVP8(rtpPacket *rtp.Packet) error {
 func (this *webmSaver) InitWriter(width, height int) error {
 	w, err := os.OpenFile(this.filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		golog.Error(err.Error())
+		logger.Errorf(err.Error())
 
 		return err
 	}
@@ -374,11 +374,11 @@ func (this *webmSaver) InitWriter(width, height int) error {
 			},
 		})
 	if err != nil {
-		golog.Error(err.Error())
+		logger.Errorf(err.Error())
 
 		return err
 	}
-	golog.Infof("WebM saver has started with video width=%d, height=%d\n", width, height)
+	logger.Infof("WebM saver has started with video width=%d, height=%d\n", width, height)
 	this.audioWriter = ws[0]
 	this.videoWriter = ws[1]
 

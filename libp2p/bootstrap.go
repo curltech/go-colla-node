@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/entity"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/util"
 	"github.com/curltech/go-colla-node/p2p/chain/action/dht"
 	dhtentity "github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
-	"github.com/kataras/golog"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
 )
@@ -20,14 +20,14 @@ import (
 func getPeerInfosFromConf() []*peer.AddrInfo {
 	bootstraps, err := config.GetString("libp2p.dht.bootstraps")
 	if err != nil {
-		golog.Errorf("config bootstraps error")
+		logger.Errorf("config bootstraps error")
 	}
 	addrInfos := make([]*peer.AddrInfo, 0)
 	bootstrapPeers := strings.Split(bootstraps, ",")
 	if len(bootstrapPeers) > 0 {
 		addrs := util.ToMultiaddr(bootstrapPeers)
 		addrInfos = util.MultiaddrToAddInfo(addrs)
-		golog.Infof("config bootstraps:%v", addrInfos)
+		logger.Infof("config bootstraps:%v", addrInfos)
 
 		return addrInfos
 	}
@@ -52,7 +52,7 @@ func getPeerInfosFromStore() []*peer.AddrInfo {
 				peerinfos = append(peerinfos, addrInfo)
 			}
 		}
-		golog.Infof("store bootstraps:%v", peerinfos)
+		logger.Infof("store bootstraps:%v", peerinfos)
 	}
 
 	return peerinfos
@@ -101,23 +101,23 @@ func Bootstrap() error {
 			if strings.Contains(peerId, "127.0.0.1") || strings.Contains(peerId, "localhost") {
 				return
 			}
-			golog.Infof("will connect %v", peerId)
+			logger.Infof("will connect %v", peerId)
 			if err := global.Global.Host.Connect(global.Global.Context, peerInfo); err != nil {
-				golog.Errorf("bootstrapPeerInfo %v failed to connect: %v", peerInfo, err)
+				logger.Errorf("bootstrapPeerInfo %v failed to connect: %v", peerInfo, err)
 			} else {
-				golog.Infof("Connection established with bootstrap node: %v", peerInfo)
+				logger.Infof("Connection established with bootstrap node: %v", peerInfo)
 			}
 			_, err := dht.PingAction.Ping(peerId, "")
 			if err != nil {
-				golog.Errorf("bootstrapPeerInfo %v failed to ping: %v", peerInfo, err)
+				logger.Errorf("bootstrapPeerInfo %v failed to ping: %v", peerInfo, err)
 			} else {
-				golog.Infof("Successfully ping bootstrap node: %v", peerInfo)
+				logger.Infof("Successfully ping bootstrap node: %v", peerInfo)
 			}
 		}()
 	}
 
 	// 初始化dht，5分钟刷新路由表
-	golog.Infof("Bootstrapping the DHT")
+	logger.Infof("Bootstrapping the DHT")
 	if err := global.Global.PeerEndpointDHT.Bootstrap(global.Global.Context); err != nil {
 		return err
 	}

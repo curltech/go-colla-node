@@ -2,8 +2,8 @@ package util
 
 import (
 	"fmt"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
-	"github.com/kataras/golog"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
 )
@@ -64,7 +64,7 @@ func ToAddInfo(peerId string, saddr string) (*peer.AddrInfo, error) {
 	saddr = GetStringAddr(saddr, peerId)
 	addr, err := multiaddr.NewMultiaddr(saddr)
 	if err != nil {
-		golog.Errorf("addr:%v can't build Multiaddr", saddr)
+		logger.Errorf("addr:%v can't build Multiaddr", saddr)
 		return nil, err
 	}
 	addrInfo, err := peer.AddrInfoFromP2pAddr(addr)

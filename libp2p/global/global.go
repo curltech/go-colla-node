@@ -3,8 +3,8 @@ package global
 import (
 	"context"
 	openpgp "github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
-	"github.com/kataras/golog"
 	"github.com/libp2p/go-libp2p-core/connmgr"
 	libp2pcrypto "github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
@@ -52,11 +52,11 @@ const DefaultExternalWssPort = "5720"
 
 func Print() {
 	Global.Multiaddrs = Global.Host.Addrs()
-	golog.Infof("p2p local peer address:%v", Global.Multiaddrs)
-	golog.Infof("p2p local peer peerId:%v", string(Global.PeerId))
-	golog.Infof("p2p local peer rendezvous:%v", Global.Rendezvous)
-	golog.Infof("protocolID are:%v", Global.ChainProtocolID)
-	golog.Infof("successfully start p2p server, enjoy it!")
+	logger.Infof("p2p local peer address:%v", Global.Multiaddrs)
+	logger.Infof("p2p local peer peerId:%v", string(Global.PeerId))
+	logger.Infof("p2p local peer rendezvous:%v", Global.Rendezvous)
+	logger.Infof("protocolID are:%v", Global.ChainProtocolID)
+	logger.Infof("successfully start p2p server, enjoy it!")
 }
 
 func IsMyself(peerId string) bool {

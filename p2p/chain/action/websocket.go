@@ -2,6 +2,7 @@ package action
 
 import (
 	"github.com/curltech/go-colla-core/config"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/global"
@@ -12,7 +13,6 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 	"strings"
 )
 
@@ -26,7 +26,7 @@ var WebsocketAction websocketAction
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
 func (this *websocketAction) PCReceive(chainMessage *msg.PCChainMessage) (interface{}, error) {
-	golog.Infof("Receive %v message", this.MsgType)
+	logger.Infof("Receive %v message", this.MsgType)
 	wcm := chainMessage.MessagePayload.Payload.(*msg.WebsocketChainMessage)
 	targetPeerId := wcm.TargetPeerClient.PeerId
 
@@ -41,7 +41,7 @@ func (this *websocketAction) PCReceive(chainMessage *msg.PCChainMessage) (interf
 			pcs := make([]*entity.PeerClient, 0)
 			err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
 			if err != nil {
-				golog.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
 				return msgtype.ERROR, err
 			}
 			for _, pc := range pcs {
@@ -75,7 +75,7 @@ func (this *websocketAction) PCReceive(chainMessage *msg.PCChainMessage) (interf
 			pcs := make([]*entity.PeerClient, 0)
 			err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
 			if err != nil {
-				golog.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
 				return msgtype.ERROR, err
 			}
 			for _, pc := range pcs {
@@ -144,7 +144,7 @@ func (this *websocketAction) PCReceive(chainMessage *msg.PCChainMessage) (interf
 处理返回消息
 */
 func (this *websocketAction) PCResponse(chainMessage *msg.PCChainMessage) error {
-	golog.Infof("Response %v message:%v", this.MsgType, chainMessage)
+	logger.Infof("Response %v message:%v", this.MsgType, chainMessage)
 
 	return nil
 }

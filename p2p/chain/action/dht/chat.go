@@ -1,12 +1,12 @@
 package dht
 
 import (
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/chain/handler/sender"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 	"time"
 )
 
@@ -20,7 +20,7 @@ var ChatAction chatAction
 在chain目录下的采用自定义protocol "/chain"的方式自己实现的功能
 */
 func (this *chatAction) Chat(peerId string, payloadType string, data interface{}, targetPeerId string) (interface{}, error) {
-	golog.Infof("Receive %v message", this.MsgType)
+	logger.Infof("Receive %v message", this.MsgType)
 	chainMessage := msg.ChainMessage{}
 	chainMessage.TargetPeerId = targetPeerId
 	chainMessage.Payload = data

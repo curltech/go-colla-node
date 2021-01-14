@@ -1,8 +1,8 @@
 package handler
 
 import (
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/ipfs/go-datastore"
-	"github.com/kataras/golog"
 )
 
 var dsServiceContainer = make(map[string]datastore.Datastore)
@@ -18,9 +18,9 @@ func RegistDatastore(name string, ds datastore.Datastore) {
 	_, ok := c[name]
 	if !ok {
 		c[name] = ds
-		golog.Infof("bean:%v registed", name)
+		logger.Infof("bean:%v registed", name)
 	} else {
-		golog.Warnf("bean:%v exist", name)
+		logger.Warnf("bean:%v exist", name)
 	}
 }
 

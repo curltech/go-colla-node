@@ -1,9 +1,9 @@
 package pubsub
 
 import (
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/p2p/chain/handler/receiver"
-	"github.com/kataras/golog"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 )
@@ -70,7 +70,7 @@ func subLoop(sub *pubsub.Subscription) error {
 	for {
 		topicMsg, err := sub.Next(global.Global.Context)
 		if err != nil {
-			golog.Errorf("%v", err)
+			logger.Errorf("%v", err)
 			continue
 		}
 		receiver.HandleChainMessage(topicMsg.Data, nil)

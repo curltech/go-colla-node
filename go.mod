@@ -18,7 +18,7 @@ require (
 	github.com/casbin/xorm-adapter v1.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.0.2 // indirect
 	github.com/cloudwebrtc/go-protoo v0.0.0-20200926140535-79ecde67b906 // indirect
-	github.com/curltech/go-colla-core v0.0.0-20210113190646-02661a14497f
+	github.com/curltech/go-colla-core v0.0.1
 	github.com/cznic/b v0.0.0-20181122101859-a26611c4d92d // indirect
 	github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548 // indirect
 	github.com/cznic/strutil v0.0.0-20181122101858-275e90344537 // indirect
@@ -76,7 +76,6 @@ require (
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
-	github.com/kataras/golog v0.1.5
 	github.com/kataras/iris v0.0.2 // indirect
 	github.com/kataras/iris/v12 v12.2.0-alpha.0.20201113181155-4d09475c290d
 	github.com/kataras/jwt v0.0.5 // indirect

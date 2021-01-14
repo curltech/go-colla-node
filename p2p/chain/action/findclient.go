@@ -3,6 +3,7 @@ package action
 import (
 	"errors"
 	"github.com/curltech/go-colla-core/config"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/ns"
@@ -12,7 +13,6 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 )
 
 type findClientAction struct {
@@ -25,7 +25,7 @@ var FindClientAction findClientAction
 主动发送消息
 */
 func (this *findClientAction) Send(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	golog.Infof("Send %v message", this.MsgType)
+	logger.Infof("Send %v message", this.MsgType)
 	response := &msg.ChainMessage{}
 
 	return response, nil
@@ -35,7 +35,7 @@ func (this *findClientAction) Send(chainMessage *msg.ChainMessage) (*msg.ChainMe
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
 func (this *findClientAction) PCReceive(chainMessage *msg.PCChainMessage) (interface{}, error) {
-	golog.Infof("Receive %v message", this.MsgType)
+	logger.Infof("Receive %v message", this.MsgType)
 	conditionBean := chainMessage.MessagePayload.Payload.(map[string]interface{})
 	var peerId string = ""
 	var mobileNumber string = ""
@@ -53,7 +53,7 @@ func (this *findClientAction) PCReceive(chainMessage *msg.PCChainMessage) (inter
 	} else if len(mobileNumber) > 0 {
 		key = ns.GetPeerClientMobileKey(mobileNumber)
 	} else {
-		golog.Errorf("InvalidPeerClientKey")
+		logger.Errorf("InvalidPeerClientKey")
 		return msgtype.ERROR, errors.New("InvalidPeerClientKey")
 	}
 	if config.Libp2pParams.FaultTolerantLevel == 0 {
@@ -65,7 +65,7 @@ func (this *findClientAction) PCReceive(chainMessage *msg.PCChainMessage) (inter
 			pcs := make([]*entity.PeerClient, 0)
 			err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
 			if err != nil {
-				golog.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
 				return msgtype.ERROR, err
 			}
 			for _, pc := range pcs {
@@ -105,7 +105,7 @@ func (this *findClientAction) PCReceive(chainMessage *msg.PCChainMessage) (inter
 			pcs := make([]*entity.PeerClient, 0)
 			err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
 			if err != nil {
-				golog.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
 				return msgtype.ERROR, err
 			}
 			for _, pc := range pcs {
@@ -137,7 +137,7 @@ func (this *findClientAction) PCReceive(chainMessage *msg.PCChainMessage) (inter
 处理返回消息
 */
 func (this *findClientAction) PCResponse(chainMessage *msg.PCChainMessage) error {
-	golog.Infof("Response %v message:%v", this.MsgType, chainMessage)
+	logger.Infof("Response %v message:%v", this.MsgType, chainMessage)
 
 	return nil
 }

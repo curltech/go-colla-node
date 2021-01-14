@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/curltech/go-colla-core/config"
-	"github.com/kataras/golog"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"net"
@@ -41,7 +41,7 @@ func GetChannel(stream network.Stream, peer *peer.AddrInfo, handler func(data st
 	peerId := peer.ID.Pretty()
 	ch, ok := channelPool.Load(peerId)
 	if ok {
-		golog.Infof("peer:%v exist", peerId)
+		logger.Infof("peer:%v exist", peerId)
 
 		return ch.(*Channel), nil
 	}
@@ -112,7 +112,7 @@ func (channel *Channel) loopRead() {
 			// 判断是不是超时
 			if netErr, ok := err.(net.Error); ok {
 				if netErr.Timeout() {
-					golog.Errorf("ReadMessage timeout remote: %v\n", channel.stream.ID())
+					logger.Errorf("ReadMessage timeout remote: %v\n", channel.stream.ID())
 				}
 			}
 			channel.Close()

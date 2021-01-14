@@ -2,9 +2,9 @@ package simplepeer
 
 import (
 	"errors"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/security"
 	webrtc2 "github.com/curltech/go-colla-node/webrtc"
-	"github.com/kataras/golog"
 	"github.com/pion/webrtc/v3"
 	"strings"
 	"sync"
@@ -120,7 +120,7 @@ func (this *SimplePeer) createApi() (*webrtc.API, error) {
 
 func (this *SimplePeer) Create(opts *webrtc2.WebrtcOption) error {
 	this.id = security.UUID()
-	golog.Infof("new peer %v", opts)
+	logger.Infof("new peer %v", opts)
 
 	if opts.Initiator {
 		this.channelName = opts.ChannelName
@@ -157,7 +157,7 @@ func (this *SimplePeer) Create(opts *webrtc2.WebrtcOption) error {
 	// 使用缺省的音视频编码
 	this.peerConnection, err = webrtc.NewPeerConnection(*this.config)
 	if err != nil {
-		golog.Errorf("%v", err)
+		logger.Errorf("%v", err)
 		return err
 	}
 
@@ -236,7 +236,7 @@ func (this *SimplePeer) onIceStateChange() {
 	var iceConnectionState = this.peerConnection.ICEConnectionState()
 	var iceGatheringState = this.peerConnection.ICEGatheringState()
 
-	golog.Infof(
+	logger.Infof(
 		"iceStateChange (connection: %s) (gathering: %s)",
 		iceConnectionState,
 		iceGatheringState,
@@ -277,7 +277,7 @@ func (this *SimplePeer) onSignalingStateChange(state webrtc.SignalingState) {
 		this.isNegotiating = false
 
 		// HACK: Firefox doesn't yet support removing tracks when signalingState !== 'stable'
-		golog.Infof("flushing sender queue", this.sendersAwaitingStable)
+		logger.Infof("flushing sender queue", this.sendersAwaitingStable)
 		for _, sender := range this.sendersAwaitingStable {
 			this.peerConnection.RemoveTrack(&sender)
 			this.queuedNegotiation = true
@@ -285,16 +285,16 @@ func (this *SimplePeer) onSignalingStateChange(state webrtc.SignalingState) {
 		this.sendersAwaitingStable = make([]webrtc.RTPSender, 0)
 
 		if this.queuedNegotiation {
-			golog.Infof("flushing negotiation queue")
+			logger.Infof("flushing negotiation queue")
 			this.queuedNegotiation = false
 			this.needsNegotiation() // negotiate again
 		} else {
-			golog.Infof("negotiated")
+			logger.Infof("negotiated")
 			this.EmitEvent(webrtc2.EVENT_NEGOTIATED, nil)
 		}
 	}
 
-	golog.Infof("signalingStateChange %s", this.peerConnection.SignalingState())
+	logger.Infof("signalingStateChange %s", this.peerConnection.SignalingState())
 	this.EmitEvent(webrtc2.EVENT_SIGNALING_STATE_CHANGE, &webrtc2.PeerEvent{Data: this.peerConnection.SignalingState()})
 }
 
@@ -354,7 +354,7 @@ func (this *SimplePeer) startIceCompleteTimeout() {
 	if this.iceCompleteTimer != nil {
 		return
 	}
-	golog.Infof("started iceComplete timeout")
+	logger.Infof("started iceComplete timeout")
 	this.iceCompleteTimer = time.NewTimer(time.Duration(this.iceCompleteTimeout) * time.Second)
 	defer this.iceCompleteTimer.Stop()
 	/**
@@ -364,7 +364,7 @@ func (this *SimplePeer) startIceCompleteTimeout() {
 		// 没完成，设置成完成，触发完成和超时事件
 		if !this.iceComplete {
 			this.iceComplete = true
-			golog.Infof("iceComplete timeout completed")
+			logger.Infof("iceComplete timeout completed")
 			this.EmitEvent(webrtc2.EVENT_ICE_TIMEOUT, nil)
 			this.EmitEvent(webrtc2.EVENT_ICE_COMPLETE, nil)
 		}
@@ -387,10 +387,10 @@ func (this *SimplePeer) needsNegotiation() {
 	go func() {
 		this.batchedNegotiation = false
 		if this.initiator || !this.firstNegotiation {
-			golog.Infof("starting batched negotiation")
+			logger.Infof("starting batched negotiation")
 			this.negotiate()
 		} else {
-			golog.Infof("non-initiator initial negotiation request discarded")
+			logger.Infof("non-initiator initial negotiation request discarded")
 		}
 		this.firstNegotiation = false
 	}()
@@ -404,17 +404,17 @@ func (this *SimplePeer) negotiate() {
 	if this.initiator {
 		if this.isNegotiating {
 			this.queuedNegotiation = true
-			golog.Infof("already negotiating, queueing")
+			logger.Infof("already negotiating, queueing")
 		} else {
-			golog.Infof("start negotiation")
+			logger.Infof("start negotiation")
 			this.createOffer() // HACK: Chrome crashes if we immediately call createOffer
 		}
 	} else { //如果被动方，如果正在协商，标志，否则发送协商信号
 		if this.isNegotiating {
 			this.queuedNegotiation = true
-			golog.Infof("already negotiating, queueing")
+			logger.Infof("already negotiating, queueing")
 		} else {
-			golog.Infof("requesting negotiation from initiator")
+			logger.Infof("requesting negotiation from initiator")
 			var webrtcSignal = &WebrtcSignal{}
 			webrtcSignal.SignalType = WebrtcSignalType_Renegotiate
 			webrtcSignal.Renegotiate = true
@@ -452,7 +452,7 @@ func (this *SimplePeer) createOffer() {
 		webrtcSignal := &WebrtcSignal{SignalType: WebrtcSignalType_Offer, Sdp: local}
 		_, err = this.EmitEvent("signal", &webrtc2.PeerEvent{Data: webrtcSignal})
 		if err != nil {
-			golog.Errorf("%v", err)
+			logger.Errorf("%v", err)
 			return
 		}
 	}
@@ -460,7 +460,7 @@ func (this *SimplePeer) createOffer() {
 	if err != nil {
 		this.Destroy(errors.New(webrtc2.ERR_SET_LOCAL_DESCRIPTION))
 	} else {
-		golog.Infof("createOffer success")
+		logger.Infof("createOffer success")
 		if this.destroyed {
 			return
 		}
@@ -479,12 +479,12 @@ func (this *SimplePeer) requestMissingTransceivers() {
 		for _, transceiver := range transceivers {
 			sender := transceiver.Sender()
 			mid := transceiver.Mid()
-			golog.Errorf("transceiver mid:%v;sender:%v", mid, sender != nil)
+			logger.Errorf("transceiver mid:%v;sender:%v", mid, sender != nil)
 			if sender != nil {
 				track := sender.Track()
 				if mid == "" && track != nil {
 					kind := track.Kind()
-					golog.Errorf("addTransceiver: %v", kind)
+					logger.Errorf("addTransceiver: %v", kind)
 					if kind != 0 {
 						this.addTransceiver(kind)
 					}
@@ -546,7 +546,7 @@ func (this *SimplePeer) createAnswer() {
 		webrtcSignal := &WebrtcSignal{SignalType: WebrtcSignalType_Answer, Sdp: local}
 		_, err = this.EmitEvent("signal", &webrtc2.PeerEvent{Data: webrtcSignal})
 		if err != nil {
-			golog.Errorf("%v", err)
+			logger.Errorf("%v", err)
 			return
 		}
 
@@ -580,9 +580,9 @@ func (this *SimplePeer) Destroy(err error) {
 	}
 	this.destroying = true
 	if err != nil {
-		golog.Errorf("destroying (error: %s)", err.Error())
+		logger.Errorf("destroying (error: %s)", err.Error())
 	} else {
-		golog.Error("destroying no error")
+		logger.Errorf("destroying no error")
 	}
 	//this.readable = this.writable = false
 	//
@@ -634,9 +634,9 @@ func (this *SimplePeer) Destroy(err error) {
 	this.destroying = false
 	this.destroyed = true
 	if err != nil {
-		golog.Errorf("destroy (error: %s)", err.Error())
+		logger.Errorf("destroy (error: %s)", err.Error())
 	} else {
-		golog.Error("destroy no error")
+		logger.Errorf("destroy no error")
 	}
 }
 
@@ -646,7 +646,7 @@ func (this *SimplePeer) addIceCandidate(candidate *webrtc.ICECandidateInit) erro
 		// 找出错误原因
 		can := &webrtc.ICECandidate{}
 		if can.Address != "" || strings.HasSuffix(can.Address, ".local") {
-			golog.Infof("Ignoring unsupported ICE candidate.")
+			logger.Infof("Ignoring unsupported ICE candidate.")
 		} else {
 			this.Destroy(errors.New(webrtc2.ERR_ADD_ICE_CANDIDATE))
 		}
@@ -686,12 +686,12 @@ func (this *SimplePeer) setStatsReport() {
 	statsReports := this.peerConnection.GetStats()
 	candidatePair := &webrtc.ICECandidatePair{}
 	candidatePairStats, _ := statsReports.GetICECandidatePairStats(candidatePair)
-	golog.Infof("%v", candidatePairStats)
+	logger.Infof("%v", candidatePairStats)
 
 	candidate := &webrtc.ICECandidate{}
 	statsReports.GetICECandidateStats(candidate)
 
-	golog.Infof(
+	logger.Infof(
 		"connect local: %s:%s remote: %s:%s",
 		this.localAddress,
 		this.localPort,
@@ -701,5 +701,5 @@ func (this *SimplePeer) setStatsReport() {
 }
 
 func (this *SimplePeer) onNegotiationNeeded() {
-	golog.Infof("onNegotiationNeeded")
+	logger.Infof("onNegotiationNeeded")
 }

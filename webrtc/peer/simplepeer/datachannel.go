@@ -2,8 +2,8 @@ package simplepeer
 
 import (
 	"errors"
+	"github.com/curltech/go-colla-core/logger"
 	webrtc2 "github.com/curltech/go-colla-node/webrtc"
-	"github.com/kataras/golog"
 	"github.com/pion/webrtc/v3"
 )
 
@@ -48,7 +48,7 @@ func (this *SimplePeer) setupDataChannel(dataChannel *webrtc.DataChannel) {
 }
 
 func (this *SimplePeer) onChannelMessage(msg webrtc.DataChannelMessage) {
-	golog.Infof("DataChannel message receive")
+	logger.Infof("DataChannel message receive")
 	if this.destroyed {
 		return
 	}
@@ -62,7 +62,7 @@ func (this *SimplePeer) onChannelBufferedAmountLow() {
 	if this.destroyed {
 		return
 	}
-	golog.Debugf("ending backpressure: bufferedAmount %d", this.dataChannel.BufferedAmount())
+	logger.Debugf("ending backpressure: bufferedAmount %d", this.dataChannel.BufferedAmount())
 }
 
 func (this *SimplePeer) onChannelOpen() {
@@ -72,7 +72,7 @@ func (this *SimplePeer) onChannelOpen() {
 	}
 	this.connecting = false
 	this.connected = true
-	golog.Infof("connected")
+	logger.Infof("connected")
 	/**
 	初始化数据的缓冲池
 	*/
@@ -86,7 +86,7 @@ func (this *SimplePeer) onChannelOpen() {
 数据通道关闭，关闭节点
 */
 func (this *SimplePeer) onChannelClose() {
-	golog.Infof("DataChannel close")
+	logger.Infof("DataChannel close")
 	if this.destroyed {
 		return
 	}

@@ -3,6 +3,7 @@ package action
 import (
 	"errors"
 	"github.com/curltech/go-colla-core/config"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/ns"
@@ -11,7 +12,6 @@ import (
 	service1 "github.com/curltech/go-colla-node/p2p/chain/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 )
 
 type queryValueAction struct {
@@ -24,7 +24,7 @@ var QueryValueAction queryValueAction
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
 func (this *queryValueAction) PCReceive(chainMessage *msg.PCChainMessage) (interface{}, error) {
-	golog.Infof("Receive %v message", this.MsgType)
+	logger.Infof("Receive %v message", this.MsgType)
 	conditionBean := chainMessage.MessagePayload.Payload.(map[string]interface{})
 	var getAllBlockIndex bool = false
 	if conditionBean["getAllBlockIndex"] != nil {
@@ -51,7 +51,7 @@ func (this *queryValueAction) PCReceive(chainMessage *msg.PCChainMessage) (inter
 				pts := make([]*entity2.PeerTransaction, 0)
 				err = message.TextUnmarshal(string(recvdVal.Val), &pts)
 				if err != nil {
-					golog.Errorf("failed to TextUnmarshal PeerTransaction value: %v, err: %v", recvdVal.Val, err)
+					logger.Errorf("failed to TextUnmarshal PeerTransaction value: %v, err: %v", recvdVal.Val, err)
 					return msgtype.ERROR, err
 				}
 				for _, pt := range pts {
@@ -89,7 +89,7 @@ func (this *queryValueAction) PCReceive(chainMessage *msg.PCChainMessage) (inter
 				pts := make([]*entity2.PeerTransaction, 0)
 				err = message.TextUnmarshal(string(recvdVal.Val), &pts)
 				if err != nil {
-					golog.Errorf("failed to TextUnmarshal PeerTransaction value: %v, err: %v", recvdVal.Val, err)
+					logger.Errorf("failed to TextUnmarshal PeerTransaction value: %v, err: %v", recvdVal.Val, err)
 					return msgtype.ERROR, err
 				}
 				for _, pt := range pts {
@@ -146,7 +146,7 @@ func (this *queryValueAction) PCReceive(chainMessage *msg.PCChainMessage) (inter
 				dbs := make([]*entity2.DataBlock, 0)
 				err = message.TextUnmarshal(string(recvdVal.Val), &dbs)
 				if err != nil {
-					golog.Errorf("failed to TextUnmarshal DataBlock value: %v, err: %v", recvdVal.Val, err)
+					logger.Errorf("failed to TextUnmarshal DataBlock value: %v, err: %v", recvdVal.Val, err)
 					return msgtype.ERROR, err
 				}
 				for _, db := range dbs {
@@ -191,12 +191,12 @@ func (this *queryValueAction) PCReceive(chainMessage *msg.PCChainMessage) (inter
 				dbs := make([]*entity2.DataBlock, 0)
 				err = message.TextUnmarshal(string(recvdVal.Val), &dbs)
 				if err != nil {
-					golog.Errorf("failed to TextUnmarshal DataBlock value: %v, err: %v", recvdVal.Val, err)
+					logger.Errorf("failed to TextUnmarshal DataBlock value: %v, err: %v", recvdVal.Val, err)
 					return msgtype.ERROR, err
 				}
 				err = service1.PutLocalDBs(dbs)
 				if err != nil {
-					golog.Errorf("failed to PutLocalDBs DataBlock value: %v, err: %v", recvdVal.Val, err)
+					logger.Errorf("failed to PutLocalDBs DataBlock value: %v, err: %v", recvdVal.Val, err)
 					return msgtype.ERROR, err
 				}
 			}
@@ -220,7 +220,7 @@ func (this *queryValueAction) PCReceive(chainMessage *msg.PCChainMessage) (inter
 处理返回消息
 */
 func (this *queryValueAction) PCResponse(chainMessage *msg.PCChainMessage) error {
-	golog.Infof("Response %v message:%v", this.MsgType, chainMessage)
+	logger.Infof("Response %v message:%v", this.MsgType, chainMessage)
 
 	return nil
 }

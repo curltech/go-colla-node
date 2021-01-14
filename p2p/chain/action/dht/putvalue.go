@@ -1,6 +1,7 @@
 package dht
 
 import (
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/ns"
@@ -10,7 +11,6 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 )
 
 type putValueAction struct {
@@ -23,7 +23,7 @@ var PutValueAction putValueAction
 在chain目录下的采用自定义protocol "/chain"的方式自己实现的功能
 */
 func (this *putValueAction) PutValue(peerId string, payloadType string, data interface{}) (interface{}, error) {
-	golog.Infof("Receive %v message", this.MsgType)
+	logger.Infof("Receive %v message", this.MsgType)
 	chainMessage := msg.ChainMessage{}
 	chainMessage.Payload = data
 	chainMessage.ConnectPeerId = peerId

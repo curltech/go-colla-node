@@ -4,13 +4,13 @@ import (
 	"errors"
 	"github.com/curltech/go-colla-core/crypto/std"
 	entity3 "github.com/curltech/go-colla-core/entity"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	entity2 "github.com/curltech/go-colla-node/p2p/chain/entity"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/chain/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 	"unsafe"
 )
 
@@ -24,7 +24,7 @@ var StoreAction storeAction
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
 func (this *storeAction) PCReceive(chainMessage *msg.PCChainMessage) (interface{}, error) {
-	golog.Infof("Receive %v message", this.MsgType)
+	logger.Infof("Receive %v message", this.MsgType)
 	dataBlock := chainMessage.MessagePayload.Payload.(*entity2.DataBlock)
 	err := service.ValidateDB(chainMessage.MessagePayload)
 	if err != nil {
@@ -64,7 +64,7 @@ func (this *storeAction) PCReceive(chainMessage *msg.PCChainMessage) (interface{
 处理返回消息
 */
 func (this *storeAction) PCResponse(chainMessage *msg.PCChainMessage) error {
-	golog.Infof("Response %v message", this.MsgType)
+	logger.Infof("Response %v message", this.MsgType)
 
 	return nil
 }

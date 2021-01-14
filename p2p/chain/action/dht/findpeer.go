@@ -2,12 +2,12 @@ package dht
 
 import (
 	"errors"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 
@@ -21,7 +21,7 @@ var FindPeerAction findPeerAction
 在chain目录下的采用自定义protocol "/chain"的方式自己实现的功能
 */
 func (this *findPeerAction) FindPeer(peerId string, payloadType string, data interface{}) (interface{}, error) {
-	golog.Infof("Receive %v message", this.MsgType)
+	logger.Infof("Receive %v message", this.MsgType)
 	chainMessage := msg.ChainMessage{}
 	chainMessage.Payload = data
 	chainMessage.ConnectPeerId = peerId

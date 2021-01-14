@@ -3,9 +3,9 @@ package handler
 import (
 	"errors"
 	"github.com/curltech/go-colla-core/config"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/pipe"
 	"github.com/curltech/go-colla-node/p2p/chain/handler/receiver"
-	"github.com/kataras/golog"
 )
 
 type ProtocolMessageHandler struct {
@@ -23,7 +23,7 @@ func GetProtocolMessageHandler(protocolID string) (*ProtocolMessageHandler, erro
 	if found {
 		return fn, nil
 	} else {
-		golog.Errorf("ChainMessageHandler:%v is not exist", protocolID)
+		logger.Errorf("ChainMessageHandler:%v is not exist", protocolID)
 
 		return nil, errors.New("NotExist")
 	}
@@ -38,7 +38,7 @@ func RegistProtocolMessageHandler(protocolID string,
 		protocolMessageHandler.ReceiveHandler = receiveHandler
 		protocolMessageHandlers[protocolID] = &protocolMessageHandler
 	} else {
-		golog.Errorf("ReceiveHandler:%v exist", protocolID)
+		logger.Errorf("ReceiveHandler:%v exist", protocolID)
 	}
 }
 

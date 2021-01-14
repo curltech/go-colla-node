@@ -2,7 +2,7 @@ package client
 
 import (
 	"fmt"
-	"github.com/kataras/golog"
+	"github.com/curltech/go-colla-core/logger"
 	"log"
 	"net"
 	"strings"
@@ -63,7 +63,7 @@ func (this *tcpClient) Dial(host string, port string, user string, realm string)
 
 	// The relayConn's local address is actually the transport
 	// address assigned on the TURN server.
-	golog.Infof("relayed-address=%s", relayConn.LocalAddr().String())
+	logger.Infof("relayed-address=%s", relayConn.LocalAddr().String())
 }
 
 func (this *tcpClient) Close() {

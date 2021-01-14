@@ -2,9 +2,9 @@ package simplepeer
 
 import (
 	"errors"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/security"
 	webrtc2 "github.com/curltech/go-colla-node/webrtc"
-	"github.com/kataras/golog"
 	"github.com/pion/rtp"
 	"github.com/pion/webrtc/v3"
 	"io"
@@ -27,7 +27,7 @@ func (this *SimplePeer) CreateTrack(c *webrtc.RTPCodecCapability, trackId string
 	}
 	track, err := webrtc.NewTrackLocalStaticRTP(*c, trackId, streamId)
 	if err != nil {
-		golog.Error(err.Error())
+		logger.Errorf(err.Error())
 
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (this *SimplePeer) ReplaceTrack(oldTrack webrtc.TrackLocal, newTrack webrtc
 		err := sender.ReplaceTrack(newTrack)
 		return err
 	} else {
-		golog.Errorf(webrtc2.ERR_TRACK_NOT_ADDED)
+		logger.Errorf(webrtc2.ERR_TRACK_NOT_ADDED)
 	}
 
 	return nil
@@ -226,12 +226,12 @@ func (this *SimplePeer) echo(track *webrtc.TrackRemote) error {
 	c := track.Codec().RTPCodecCapability
 	trackLocal, err := this.CreateTrack(&c, track.ID(), track.StreamID())
 	if err != nil {
-		golog.Error(err.Error())
+		logger.Errorf(err.Error())
 		return err
 	}
 	sender, err := this.AddTrack(trackLocal)
 	if err != nil {
-		golog.Error(err.Error())
+		logger.Errorf(err.Error())
 		return err
 	}
 	for {
@@ -265,7 +265,7 @@ func (this *SimplePeer) forward(track *webrtc.TrackRemote, trackId string) error
 	for {
 		i, _, err := track.Read(rtpBuf)
 		if err != nil {
-			golog.Error(err.Error())
+			logger.Errorf(err.Error())
 			return err
 		}
 		sender := this.GetSender(trackId)
@@ -285,7 +285,7 @@ func (this *SimplePeer) Write(sender *webrtc.RTPSender, buf []byte) error {
 		// ErrClosedPipe means we don't have any subscribers, this is ok if no peers have connected yet
 		_, err := outputTrack.Write(buf)
 		if err != nil && !errors.Is(err, io.ErrClosedPipe) {
-			golog.Error(err.Error())
+			logger.Errorf(err.Error())
 
 			return err
 		}
@@ -301,7 +301,7 @@ func (this *SimplePeer) Write(sender *webrtc.RTPSender, buf []byte) error {
 func (this *SimplePeer) ReadRTP(track *webrtc.TrackRemote) (*rtp.Packet, error) {
 	packet, _, err := track.ReadRTP()
 	if err != nil {
-		golog.Error(err.Error())
+		logger.Errorf(err.Error())
 
 		return nil, err
 	}
@@ -315,7 +315,7 @@ func (this *SimplePeer) WriteRTP(sender *webrtc.RTPSender, packet *rtp.Packet) e
 		// ErrClosedPipe means we don't have any subscribers, this is ok if no peers have connected yet
 		err := outputTrack.WriteRTP(packet)
 		if err != nil && !errors.Is(err, io.ErrClosedPipe) {
-			golog.Error(err.Error())
+			logger.Errorf(err.Error())
 
 			return err
 		}

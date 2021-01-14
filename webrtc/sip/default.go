@@ -2,7 +2,7 @@ package sip
 
 import (
 	"github.com/curltech/go-colla-core/config"
-	"github.com/kataras/golog"
+	"github.com/curltech/go-colla-core/logger"
 
 	"github.com/curltech/go-colla-node/webrtc/sip/softphone"
 	"github.com/pion/sdp/v2"
@@ -18,7 +18,7 @@ var (
 
 func start() {
 	if host == "" || port == "" || password == "" {
-		golog.Error("-host -port and -password are required")
+		logger.Errorf("-host -port and -password are required")
 
 		return
 	}
@@ -34,7 +34,7 @@ func start() {
 
 	conn.OnOK(func(okBody string) {
 		answer := okBody + "a=mid:0\r\n"
-		golog.Infof("%v", answer)
+		logger.Infof("%v", answer)
 	})
 	offer := ""
 	conn.Invite(extension, rewriteSDP(offer))

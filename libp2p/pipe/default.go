@@ -3,7 +3,7 @@ package pipe
 import (
 	"bufio"
 	"github.com/curltech/go-colla-core/config"
-	"github.com/kataras/golog"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/libp2p/go-libp2p-core/network"
 	"net"
 	"sync"
@@ -66,12 +66,12 @@ func (pipe *Pipe) Read() []byte {
 	var readTimeout = config.Libp2pParams.ReadTimeout
 	pipe.stream.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(readTimeout)))
 	data, err = pipe.rw.ReadBytes('\n')
-	golog.Infof("Read data length:%v", len(data))
+	logger.Infof("Read data length:%v", len(data))
 	if err != nil {
 		// 判断是不是超时
 		if netErr, ok := err.(net.Error); ok {
 			if netErr.Timeout() {
-				golog.Errorf("ReadMessage timeout remote: %v\n", pipe.stream.ID())
+				logger.Errorf("ReadMessage timeout remote: %v\n", pipe.stream.ID())
 			}
 		}
 	} else {
@@ -79,7 +79,7 @@ func (pipe *Pipe) Read() []byte {
 		if data != nil && pipe.handler != nil {
 			data, err = pipe.handler(data, pipe)
 			if err != nil {
-				golog.Errorf("Error pipe.handler")
+				logger.Errorf("Error pipe.handler")
 			}
 		}
 
@@ -110,22 +110,22 @@ func (pipe *Pipe) Write(data []byte, sync bool) (*Pipe, <-chan []byte, error) {
 	data = append(data, '\n')
 	streamId := pipe.stream.ID()
 	connId := pipe.stream.Conn().ID()
-	golog.Infof("streamId:%v, connId:%v", streamId, connId)
+	logger.Infof("streamId:%v, connId:%v", streamId, connId)
 	_, err = pipe.stream.Write(data)
 	if err != nil {
-		golog.Errorf("Error writing to buffer")
+		logger.Errorf("Error writing to buffer")
 
 		return pipe, nil, err
 	}
 	//err = pipe.rw.WriteByte('\n')
 	//if err != nil {
-	//	golog.Errorf("Error writing \n to buffer")
+	//	logger.Errorf("Error writing \n to buffer")
 	//
 	//	return pipe, nil, err
 	//}
 	err = pipe.rw.Flush()
 	if err != nil {
-		golog.Errorf("Error Flush to buffer")
+		logger.Errorf("Error Flush to buffer")
 
 		return pipe, nil, err
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/crypto/std"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/global"
@@ -14,7 +15,6 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/kataras/golog"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
 	"strings"
@@ -32,7 +32,7 @@ var ConnectAction connectAction
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
 func (this *connectAction) PCReceive(chainMessage *msg.PCChainMessage) (interface{}, error) {
-	golog.Infof("Receive %v message", this.MsgType)
+	logger.Infof("Receive %v message", this.MsgType)
 	peerClient := chainMessage.MessagePayload.Payload.(*entity.PeerClient)
 	err := service1.ValidatePC(chainMessage.MessagePayload)
 	if err != nil {
@@ -80,7 +80,7 @@ func (this *connectAction) PCReceive(chainMessage *msg.PCChainMessage) (interfac
 			pcArr := make([]*entity.PeerClient, 0)
 			err = message.TextUnmarshal(string(recvdVal.Val), &pcArr)
 			if err != nil {
-				golog.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
 				return msgtype.ERROR, err
 			}
 			for _, pc := range pcArr {
@@ -111,12 +111,12 @@ func (this *connectAction) PCReceive(chainMessage *msg.PCChainMessage) (interfac
 			pcArr := make([]*entity.PeerClient, 0)
 			err = message.TextUnmarshal(string(recvdVal.Val), &pcArr)
 			if err != nil {
-				golog.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
 				return msgtype.ERROR, err
 			}
 			err = service1.PutLocalPCs(pcArr)
 			if err != nil {
-				golog.Errorf("failed to PutLocalPCs PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Errorf("failed to PutLocalPCs PeerClient value: %v, err: %v", recvdVal.Val, err)
 				return msgtype.ERROR, err
 			}
 		}
@@ -251,7 +251,7 @@ func (this *connectAction) PCReceive(chainMessage *msg.PCChainMessage) (interfac
 			ctx, cancel := context.WithCancel(global.Global.Context)
 			defer cancel()
 			defer wg.Done()
-			golog.Infof("ClosestPeers-PeerId: %v", p.Pretty())
+			logger.Infof("ClosestPeers-PeerId: %v", p.Pretty())
 			routing.PublishQueryEvent(ctx, &routing.QueryEvent{
 				Type: routing.Value,
 				ID:   p,
@@ -259,17 +259,17 @@ func (this *connectAction) PCReceive(chainMessage *msg.PCChainMessage) (interfac
 			k := ns.GetPeerEndpointKey(p.Pretty())
 			recvdVals, err := dht.PeerEndpointDHT.GetValues(k, config.Libp2pParams.Nvals)
 			if err != nil {
-				golog.Errorf("failed to GetValues by PeerEndpoint key: %v, err: %v", k, err)
+				logger.Errorf("failed to GetValues by PeerEndpoint key: %v, err: %v", k, err)
 			} else {
 				for _, recvdVal := range recvdVals {
 					entities := make([]*entity.PeerEndpoint, 0)
 					err = message.TextUnmarshal(string(recvdVal.Val), &entities)
 					if err != nil {
-						golog.Errorf("failed to TextUnmarshal PeerEndpoint value: %v, err: %v", recvdVal.Val, err)
+						logger.Errorf("failed to TextUnmarshal PeerEndpoint value: %v, err: %v", recvdVal.Val, err)
 					} else {
 						if len(entities) > 0 {
 							peer := entities[0]
-							golog.Infof("PeerEndpoint: %v", peer.PeerId+"-"+peer.DiscoveryAddress)
+							logger.Infof("PeerEndpoint: %v", peer.PeerId+"-"+peer.DiscoveryAddress)
 							peers = append(peers, peer)
 						}
 					}
@@ -286,7 +286,7 @@ func (this *connectAction) PCReceive(chainMessage *msg.PCChainMessage) (interfac
 处理返回消息
 */
 func (this *connectAction) PCResponse(chainMessage *msg.PCChainMessage) error {
-	golog.Infof("Response %v message:%v", this.MsgType, chainMessage)
+	logger.Infof("Response %v message:%v", this.MsgType, chainMessage)
 
 	return nil
 }
