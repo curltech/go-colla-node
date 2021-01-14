@@ -2,7 +2,6 @@ package action
 
 import (
 	"context"
-	"github.com/curltech/go-colla-biz/app/websocket"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/crypto/std"
 	"github.com/curltech/go-colla-core/util/message"
@@ -16,7 +15,6 @@ import (
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 	"github.com/kataras/golog"
-	ws "github.com/kataras/iris/v12/websocket"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
 	"strings"
@@ -52,24 +50,24 @@ func (this *connectAction) PCReceive(chainMessage *msg.PCChainMessage) (interfac
 	signature := peerClient.Signature
 	signatureData := peerClient.SignatureData
 	expireDate := peerClient.ExpireDate
-	connectionPool := websocket.ConnectionPool
-	connectionIndex := websocket.ConnectionIndex
+	//connectionPool := websocket.ConnectionPool
+	//connectionIndex := websocket.ConnectionIndex
 
 	// 更新连接池connectionPool & connectionIndex
-	_, ok := connectionPool[connectSessionId]
-	if ok {
-		idMap, ok := connectionIndex[peerId]
-		if !ok {
-			connectionIndex[peerId] = map[string]string{connectSessionId: clientId}
-		} else {
-			_, ok := idMap[connectSessionId]
-			if !ok {
-				idMap[connectSessionId] = clientId
-			}
-		}
-	}
+	//_, ok := connectionPool[connectSessionId]
+	//if ok {
+	//	idMap, ok := connectionIndex[peerId]
+	//	if !ok {
+	//		connectionIndex[peerId] = map[string]string{connectSessionId: clientId}
+	//	} else {
+	//		_, ok := idMap[connectSessionId]
+	//		if !ok {
+	//			idMap[connectSessionId] = clientId
+	//		}
+	//	}
+	//}
 
-	// 返回peerClient信息
+	//返回peerClient信息
 	key := ns.GetPeerClientKey(peerId)
 	var pcs []*entity.PeerClient
 	if config.Libp2pParams.FaultTolerantLevel == 0 {
@@ -183,33 +181,33 @@ func (this *connectAction) PCReceive(chainMessage *msg.PCChainMessage) (interfac
 					payload["clientId"] = clientId
 					wcm.Payload = &payload
 					if pc.ConnectPeerId == global.Global.MyselfPeer.PeerId {
-						targetPeerId := pc.PeerId
-						connectSessionId := pc.ConnectSessionId
-						connectionPool := websocket.ConnectionPool
-						connectionIndex := websocket.ConnectionIndex
-						idMap, ok := connectionIndex[targetPeerId]
-						if ok {
-							_, ok1 := idMap[connectSessionId]
-							if ok1 {
-								conn, ok2 := connectionPool[connectSessionId]
-								if ok2 {
-									response := service1.InitPCResponse(pc, msgtype.WEBSOCKET)
-									response.MessagePayload.Payload = wcm
-									response, err := handler.EncryptPC(response)
-									if err != nil {
-										return nil, err
-									}
-									data, err := message.Marshal(response)
-									if err != nil {
-										return nil, err
-									}
-									message := ws.Message{
-										Body: data,
-									}
-									conn.Write(message)
-								}
-							}
-						}
+						//targetPeerId := pc.PeerId
+						//connectSessionId := pc.ConnectSessionId
+						//connectionPool := websocket.ConnectionPool
+						//connectionIndex := websocket.ConnectionIndex
+						//idMap, ok := connectionIndex[targetPeerId]
+						//if ok {
+						//	_, ok1 := idMap[connectSessionId]
+						//	if ok1 {
+						//		conn, ok2 := connectionPool[connectSessionId]
+						//		if ok2 {
+						//			response := service1.InitPCResponse(pc, msgtype.WEBSOCKET)
+						//			response.MessagePayload.Payload = wcm
+						//			response, err := handler.EncryptPC(response)
+						//			if err != nil {
+						//				return nil, err
+						//			}
+						//			data, err := message.Marshal(response)
+						//			if err != nil {
+						//				return nil, err
+						//			}
+						//			message := ws.Message{
+						//				Body: data,
+						//			}
+						//			conn.Write(message)
+						//		}
+						//	}
+						//}
 					} else {
 						cm := msg.ChainMessage{}
 						cm.Payload = wcm

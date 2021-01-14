@@ -2,7 +2,7 @@ package sender
 
 import (
 	"errors"
-	"github.com/curltech/go-colla-biz/app/websocket"
+	//"github.com/curltech/go-colla-biz/app/websocket"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/global"
@@ -80,7 +80,7 @@ func send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 		}
 	} else {
 		if targetConnectSessionId != "" {
-			websocket.SendRaw(targetConnectSessionId, data)
+			//websocket.SendRaw(targetConnectSessionId, data)
 		} else {
 			return msg, errors.New("NoConnectSessionId")
 		}

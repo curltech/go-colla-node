@@ -1,7 +1,7 @@
 package action
 
 import (
-	"github.com/curltech/go-colla-biz/app/websocket"
+	//"github.com/curltech/go-colla-biz/app/websocket"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/dht"
@@ -14,7 +14,6 @@ import (
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 	"github.com/kataras/golog"
-	ws "github.com/kataras/iris/v12/websocket"
 	"strings"
 )
 
@@ -95,33 +94,33 @@ func (this *websocketAction) PCReceive(chainMessage *msg.PCChainMessage) (interf
 					processedPeerIds[peerIdClientId] = true
 					connectPeerId := peerClient.ConnectPeerId
 					if connectPeerId == global.Global.MyselfPeer.PeerId {
-						targetPeerId := peerClient.PeerId
-						connectSessionId := peerClient.ConnectSessionId
-						connectionPool := websocket.ConnectionPool
-						connectionIndex := websocket.ConnectionIndex
-						idMap, ok := connectionIndex[targetPeerId]
-						if ok {
-							_, ok1 := idMap[connectSessionId]
-							if ok1 {
-								conn, ok2 := connectionPool[connectSessionId]
-								if ok2 {
-									response := service1.InitPCResponse(peerClient, msgtype.WEBSOCKET)
-									response.MessagePayload.Payload = wcm
-									response, err := handler.EncryptPC(response)
-									if err != nil {
-										return nil, err
-									}
-									data, err := message.Marshal(response)
-									if err != nil {
-										return nil, err
-									}
-									message := ws.Message{
-										Body: data,
-									}
-									conn.Write(message)
-								}
-							}
-						}
+						//targetPeerId := peerClient.PeerId
+						//connectSessionId := peerClient.ConnectSessionId
+						//connectionPool := websocket.ConnectionPool
+						//connectionIndex := websocket.ConnectionIndex
+						//idMap, ok := connectionIndex[targetPeerId]
+						//if ok {
+						//	_, ok1 := idMap[connectSessionId]
+						//	if ok1 {
+						//		conn, ok2 := connectionPool[connectSessionId]
+						//		if ok2 {
+						//			response := service1.InitPCResponse(peerClient, msgtype.WEBSOCKET)
+						//			response.MessagePayload.Payload = wcm
+						//			response, err := handler.EncryptPC(response)
+						//			if err != nil {
+						//				return nil, err
+						//			}
+						//			data, err := message.Marshal(response)
+						//			if err != nil {
+						//				return nil, err
+						//			}
+						//			message := ws.Message{
+						//				Body: data,
+						//			}
+						//			conn.Write(message)
+						//		}
+						//	}
+						//}
 					} else {
 						cm := msg.ChainMessage{}
 						wcm.TargetPeerClient = peerClient
