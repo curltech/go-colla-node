@@ -151,7 +151,7 @@ func Start() error {
 		} else {
 			// 没有域名，使用自己生成的证书
 			if config.ProxyParams.Mode == "tls" {
-				logger.Infof("Proxying calls from http://%s to %s started!", config.ProxyParams.Address, toURL)
+				logger.Infof("Proxying calls from https://%s to %s started!", config.ProxyParams.Address, toURL)
 				err = http.ListenAndServeTLS(config.ProxyParams.Address, config.TlsParams.Cert, config.TlsParams.Key, mux)
 				if err == nil {
 					logger.Errorf("%v", err.Error())
