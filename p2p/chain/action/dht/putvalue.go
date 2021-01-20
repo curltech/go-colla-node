@@ -77,7 +77,7 @@ func (this *putValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainM
 		response = handler.Error(chainMessage.MessageType, err)
 	}
 	if response == nil {
-		response = handler.Response(chainMessage.MessageType, msgtype.OK)
+		response = handler.Ok(chainMessage.MessageType)
 	}
 
 	return response, nil
