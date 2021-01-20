@@ -56,10 +56,9 @@ func (this *pingAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessa
 		}
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
-		} else {
-			if response == nil {
-				response = handler.Response(chainMessage.MessageType, msgtype.OK)
-			}
+		}
+		if response == nil {
+			response = handler.Ok(chainMessage.MessageType)
 		}
 	}
 	return response, nil
