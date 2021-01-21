@@ -8,8 +8,10 @@ require (
 	github.com/curltech/go-colla-core v0.0.1
 	github.com/emersion/go-imap v1.0.6
 	github.com/emersion/go-imap-idle v0.0.0-20201224103203-6f42b9020098
+	github.com/emersion/go-message v0.13.0
 	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21
 	github.com/emersion/go-smtp v0.14.0
+	github.com/foxcpp/maddy v0.4.3
 	github.com/gogo/protobuf v1.3.1
 	github.com/google/uuid v1.1.2
 	github.com/gorilla/websocket v1.4.2
