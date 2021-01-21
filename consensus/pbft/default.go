@@ -6,6 +6,8 @@ import (
 	"github.com/curltech/go-colla-core/cache"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/consensus/pbft/action"
+	"github.com/curltech/go-colla-node/libp2p/dht"
+	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/p2p/chain/entity"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	service2 "github.com/curltech/go-colla-node/p2p/chain/service"
@@ -13,12 +15,14 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
+	"github.com/libp2p/go-libp2p-core/peer"
+	kb "github.com/libp2p/go-libp2p-kbucket"
 	"time"
 )
 
 var MemCache = cache.NewMemCache("pbft", 0, 0)
 
-func getCacheKey(log *entity.PbftConsensusLog) string {
+func getLogCacheKey(log *entity.PbftConsensusLog) string {
 	key := fmt.Sprintf("%v:%v:%v:%v:%v:%v:%v", log.PrimaryPeerId, log.BlockId, log.TxSequenceId, log.SliceNumber, log.PrimarySequenceId, log.PeerId, log.Status)
 	return key
 }
@@ -65,8 +69,6 @@ func ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error)
 		return nil, errors.New("NoMyselfPeer")
 	}
 
-	// 选择副节点，并存入块中
-
 	/**
 	 * 交易校验通过，主节点进入预准备状态，记录日志
 	 */
@@ -90,10 +92,10 @@ func ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error)
 	log.CreateTimestamp = time.Now()
 	log.TransactionAmount = dataBlock.TransactionAmount
 	service2.GetPbftConsensusLogService().Insert(log)
-	key := getCacheKey(log)
+	key := getLogCacheKey(log)
 	MemCache.SetDefault(key, log)
 
-	consensusPeers := make([]*entity1.PeerEndpoint, 0)
+	consensusPeers := chooseConsensusPeer()
 	/**
 	 * 发送CONSENSUS_PREPREPARED给副节点，告知主节点的状态
 	 */
@@ -108,4 +110,15 @@ func ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error)
 		Payload: dataBlock, PayloadType: handler.PayloadType_DataBlock}
 
 	return response, nil
+}
+
+func nearestConsensusPeer() []peer.ID {
+	id := kb.ConvertKey(global.Global.PeerId.String())
+	ids := dht.PeerEndpointDHT.RoutingTable.NearestPeers(id, 10)
+
+	return ids
+}
+
+func chooseConsensusPeer() []*entity1.PeerEndpoint {
+	return service.GetPeerEndpointService().GetRand(10)
 }

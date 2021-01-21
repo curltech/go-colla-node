@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/curltech/go-colla-core/container"
+	entity2 "github.com/curltech/go-colla-core/entity"
 	"github.com/curltech/go-colla-core/service"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/dht"
@@ -127,4 +128,16 @@ func (this *PeerEndpointService) PutValue(peerEndpoint *entity.PeerEndpoint) err
 	err = dht.PeerEndpointDHT.PutValue(key, value)
 
 	return err
+}
+
+func (this *PeerEndpointService) GetRand(limit int) []*entity.PeerEndpoint {
+	peerEndpoints := make([]*entity.PeerEndpoint, 0)
+	peerEndpoint := &entity.PeerEndpoint{}
+	peerEndpoint.Status = entity2.EntityStatus_Effective
+	err := this.Find(&peerEndpoints, peerEndpoint, "", 0, limit, "")
+	if err == nil {
+		return peerEndpoints
+	}
+
+	return nil
 }
