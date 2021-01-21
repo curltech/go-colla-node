@@ -33,8 +33,8 @@ type cmNotifee MonitorConnMgr
 // count exceeds the high watermark, a trim may be triggered.
 func (nn *cmNotifee) Connected(n network.Network, c network.Conn) {
 	nn.BasicConnMgr.Notifee().Connected(n, c)
-	id := c.RemotePeer()
-	logger.Infof("New Connected! %v", id.Pretty())
+	peerId := c.RemotePeer().Pretty()
+	logger.Infof("New Connected! %v", peerId)
 }
 
 // Disconnected is called by notifiers to inform that an existing connection has been closed or terminated.
@@ -44,7 +44,7 @@ func (nn *cmNotifee) Disconnected(n network.Network, c network.Conn) {
 	peerId := c.RemotePeer().Pretty()
 	addr := c.RemoteMultiaddr().String()
 	logger.Infof("New Disconnected! %v, addr:%v", peerId, addr)
-	handler.GetPipePool().Disconnect(c.RemotePeer().Pretty(), c.ID())
+	handler.GetPipePool().Disconnect(peerId, c.ID())
 }
 
 // Listen is no-op in this implementation.
