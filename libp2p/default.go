@@ -451,12 +451,24 @@ func upsertMyselfPeer(priv libp2pcrypto.PrivKey, myself *entity.MyselfPeer) (nee
 	id := myself.Id
 
 	if config.ServerParams.ExternalAddr == "" {
-		panic("NoHttpServerExternalAddr")
+		logger.Errorf("NoHttpServerExternalAddr")
 	}
 	if config.ServerParams.ExternalPort == "" {
-		panic("NoHttpServerExternalPort")
+		logger.Errorf("NoHttpServerExternalPort")
 	}
-	discoveryAddress := config.ServerParams.ExternalAddr + ":" + config.ServerParams.ExternalPort
+	var discoveryAddress string = ""
+	//discoveryAddress = config.ServerParams.ExternalAddr + ":" + config.ServerParams.ExternalPort
+	addr := config.Libp2pParams.ExternalAddr
+	if addr == "" {
+		logger.Errorf("Server Addr(External IP) not defined, Peers might not be able to resolve this node if behind NAT\n")
+	} else {
+		wssMultiAddr, wssErr := ma.NewMultiaddr(fmt.Sprintf(global.DefaultDnsWssAddrFormat, addr, config.Libp2pParams.ExternalWssPort))
+		if wssErr != nil {
+			logger.Errorf("Error creating wssMultiAddr: %v\n", wssErr)
+		} else if wssMultiAddr != nil {
+			discoveryAddress = fmt.Sprintf(global.GeneralP2pAddrFormat, wssMultiAddr.String(), myself.PeerId)
+		}
+	}
 
 	if id == 0 { //新的
 		needUpdate = true
