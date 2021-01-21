@@ -34,7 +34,8 @@ type cmNotifee MonitorConnMgr
 func (nn *cmNotifee) Connected(n network.Network, c network.Conn) {
 	nn.BasicConnMgr.Notifee().Connected(n, c)
 	peerId := c.RemotePeer().Pretty()
-	logger.Infof("New Connected! %v", peerId)
+	addr := c.RemoteMultiaddr().String()
+	logger.Infof("New Connected! %v, addr:%v", peerId, addr)
 }
 
 // Disconnected is called by notifiers to inform that an existing connection has been closed or terminated.
@@ -69,5 +70,6 @@ func (nn *cmNotifee) OpenedStream(n network.Network, s network.Stream) {
 func (nn *cmNotifee) ClosedStream(n network.Network, s network.Stream) {
 	nn.BasicConnMgr.Notifee().ClosedStream(n, s)
 	logger.Infof("New ClosedStream! %v %v", s.ID(), s.Protocol())
-	handler.GetPipePool().Close(s.Conn().RemotePeer().Pretty(), string(s.Protocol()), s.Conn().ID(), s.ID())
+	peerId := s.Conn().RemotePeer().Pretty()
+	handler.GetPipePool().Close(peerId, string(s.Protocol()), s.Conn().ID(), s.ID())
 }
