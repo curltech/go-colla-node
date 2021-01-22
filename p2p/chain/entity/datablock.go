@@ -110,6 +110,8 @@ type DataBlock struct {
 	PrimaryPeerId    string `xorm:"varchar(255)" json:"primaryPeerId,omitempty"`
 	PrimaryPublicKey string `xorm:"varchar(1024)" json:"primaryPublicKey,omitempty"`
 	PrimaryAddress   string `xorm:"varchar(255)" json:"primaryAddress,omitempty"`
+
+	PeerIds string `xorm:"varchar(255)" json:",omitempty"`
 }
 
 func (DataBlock) TableName() string {

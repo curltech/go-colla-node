@@ -36,7 +36,7 @@ type PbftConsensusLog struct {
 	ResponseStatus string `xorm:"varchar(255)" json:",omitempty"`
 
 	TransactionAmount float64
-	PeerLocations     string `xorm:"varchar(255)" json:",omitempty"`
+	PeerIds           string `xorm:"varchar(255)" json:",omitempty"`
 }
 
 func (PbftConsensusLog) TableName() string {

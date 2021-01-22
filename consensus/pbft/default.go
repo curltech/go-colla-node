@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/curltech/go-colla-core/cache"
 	"github.com/curltech/go-colla-core/logger"
+	"github.com/curltech/go-colla-core/util/message"
+	"github.com/curltech/go-colla-core/util/reflect"
 	"github.com/curltech/go-colla-node/consensus/pbft/action"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/global"
@@ -121,4 +123,114 @@ func nearestConsensusPeer() []peer.ID {
 
 func chooseConsensusPeer() []*entity1.PeerEndpoint {
 	return service.GetPeerEndpointService().GetRand(10)
+}
+
+func ReceivePreprepared(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+	logger.Infof("receive:%v", chainMessage)
+	dataBlock := chainMessage.Payload.(*entity.DataBlock)
+	var response *msg.ChainMessage = nil
+	if dataBlock == nil {
+		return nil, errors.New("NoPayload")
+	}
+	/**
+	 * 主节点的属性
+	 */
+	myselfPeer := service.GetMyselfPeerService().GetFromCache()
+	if myselfPeer.Id == 0 {
+		return nil, errors.New("NoMyselfPeer")
+	}
+	/**
+	 * 通过检查PbftConsensusLogEO日志判断是否该接受还是拒绝
+	 */
+	primaryPeerId := dataBlock.PrimaryPeerId
+	/**
+	 * 发送节点必须是主节点
+	 */
+	if primaryPeerId != chainMessage.SrcPeerId {
+		return nil, errors.New("SendPrepreparedMustPrimaryPeer")
+	}
+	/**
+	 * 主节点是不会有CONSENSUS_PREPREPARED记录的
+	 */
+	if primaryPeerId == myselfPeer.PeerId {
+		return nil, errors.New("PrepreparedInPrimaryPeer")
+	}
+	payloadHash := dataBlock.PayloadHash
+	primarySequenceId := dataBlock.PrimarySequenceId
+	blockId := dataBlock.BlockId
+	txSequenceId := dataBlock.TxSequenceId
+	sliceNumber := dataBlock.SliceNumber
+	status := msgtype.CONSENSUS_PBFT_PREPREPARED
+	log := &entity.PbftConsensusLog{}
+	log.PrimaryPeerId = primaryPeerId
+	log.BlockId = blockId
+	log.TxSequenceId = txSequenceId
+	log.SliceNumber = sliceNumber
+	log.PrimarySequenceId = primarySequenceId
+	log.PeerId = myselfPeer.PeerId
+	log.Status = status
+
+	key := getLogCacheKey(log)
+	l, found := MemCache.Get(key)
+	if found {
+		cacheLog := l.(*entity.PbftConsensusLog)
+		existPayloadHash := cacheLog.PayloadHash
+		if payloadHash != existPayloadHash {
+			// 记录坏行为的次数
+			// go service.GetPeerEndpointService().Update()
+			return nil, errors.New("ErrorPayloadHash")
+		}
+	} else {
+		service2.GetDataBlockService().Save(dataBlock)
+		// 每个副节点记录自己的Preprepared消息
+		log.ClientPeerId = dataBlock.PeerId
+		log.ClientAddress = dataBlock.Address
+		log.ClientPublicKey = dataBlock.PublicKey
+		log.PayloadHash = dataBlock.PayloadHash
+		log.Address = myselfPeer.Address
+		log.PublicKey = myselfPeer.PeerPublicKey
+		log.PrimaryPeerId = dataBlock.PrimaryPeerId
+		log.PrimaryAddress = dataBlock.PrimaryAddress
+		log.PrimaryPublicKey = dataBlock.PrimaryPublicKey
+		t := time.Now()
+		log.StatusDate = &t
+		log.PeerIds = dataBlock.PeerIds
+		log.TransactionAmount = dataBlock.TransactionAmount
+		service2.GetPbftConsensusLogService().Insert(log)
+		MemCache.SetDefault(key, log)
+
+		/**
+		 * 准备CONSENSUS_PREPARED状态的消息
+		 */
+		l := reflect.New(log)
+		log = l.(*entity.PbftConsensusLog)
+		log.Status = msgtype.CONSENSUS_PBFT_PREPARED
+		/**
+		 * 发送CONSENSUS_PREPARED给副节点
+		 *
+		 * 如果接受，则生成prepare消息进行广播
+		 *
+		 * 备份节点发出PREPARE信息表示该节点同意主节点在view v中将编号n分配给请求m，
+		 *
+		 * 不发即表示不同意
+		 *
+		 */
+		consensusPeers := make([]string, 0)
+		message.TextUnmarshal(dataBlock.PeerIds, &consensusPeers)
+		if consensusPeers != nil && len(consensusPeers) > 2 {
+			for _, id := range consensusPeers {
+				if myselfPeer.PeerId == id {
+					continue
+				}
+				go action.PreparedAction.Prepared(id, log, "")
+			}
+		} else {
+			logger.Errorf("LessPeerLocation")
+			return nil, errors.New("LessPeerLocation")
+		}
+	}
+	response = &msg.ChainMessage{MessageType: msgtype.CONSENSUS_PBFT_PREPREPARED, TargetPeerId: chainMessage.SrcPeerId,
+		Payload: dataBlock, PayloadType: handler.PayloadType_DataBlock}
+
+	return response, nil
 }
