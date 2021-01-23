@@ -49,7 +49,7 @@ func send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 		否则，转发到下一步节点
 		*/
 		if targetPeerId != "" && targetConnectSessionId != "" && targetConnectPeerId != "" && global.IsMyself(targetConnectPeerId) {
-			p := handler.GetPipePool().GetResponsePipe(connectPeerId, targetConnectSessionId)
+			p := handler.GetPipePool().GetResponsePipe(targetPeerId, targetConnectSessionId)
 			if p != nil {
 				_, _, err = p.Write(data, false)
 				if err != nil {
