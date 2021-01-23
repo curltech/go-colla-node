@@ -67,7 +67,6 @@ func (this *PipePool) GetResponsePipe(peerId string, connectSessionId string) *p
 	peerId = GetAddrInfo(peerId)
 	key := peerId + ":" + connectSessionId
 	p, ok := this.responsePool[key]
-	//ok = false
 	if ok {
 		return p
 	} else {
