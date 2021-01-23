@@ -234,3 +234,321 @@ func ReceivePreprepared(chainMessage *msg.ChainMessage) (*msg.ChainMessage, erro
 
 	return response, nil
 }
+
+/**
+ * 节点接收其他节点的prepared消息，消息的payload为PbftConsensusLogEO
+ *
+ * 主节点会收到副节点发的prepared消息，等于commitNumber即可
+ *
+ * 副节点只会收到副节点的prepared消息，等于commitNumber-1即可
+ *
+ * 计算准备好的节点数目，满足以上条件，表示准备好，向其他节点发送提交消息
+ *
+ * 主节点和副本节点收到PREPARE消息，需要进行以下交验：
+ *
+ * a. 副本节点PREPARE消息签名是否正确。
+ *
+ * b. 当前副本节点是否已经收到了同一视图v下的n。
+ *
+ * c. n是否在区间[h, H]内。
+ *
+ * d. d是否和当前已收到PRE-PPREPARE中的d相同
+ *
+ * 非法请求丢弃。如果副本节点i收到了2f+1个验证通过的PREPARE消息，则向其他节点包括主节点发送一条<COMMIT, v, n, d, i>消息，v,
+ * n, d, i与上述PREPARE消息内容相同。<COMMIT, v, n, d, i>进行副本节点i的签名。记录COMMIT消息到日志中，用于View
+ * Change过程中恢复未完成的请求操作。记录其他副本节点发送的PREPARE消息到log中。
+ */
+func ReceivePrepared(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+	// 本节点是主副节点都会收到
+	logger.Infof("receive:%v", chainMessage)
+	messageLog := chainMessage.Payload.(*entity.PbftConsensusLog)
+	var response *msg.ChainMessage = nil
+	if messageLog == nil {
+		return nil, errors.New("NoPayload")
+	}
+	/**
+	 * 主节点的属性
+	 */
+	myselfPeer := service.GetMyselfPeerService().GetFromCache()
+	if myselfPeer.Id == 0 {
+		return nil, errors.New("NoMyselfPeer")
+	}
+	myPeerId := myselfPeer.PeerId
+	/**
+	* 通过检查PbftConsensusLogEO日志判断是否该接受还是拒绝
+	 */
+	primaryPeerId := messageLog.PrimaryPeerId
+	payloadHash := messageLog.PayloadHash
+	primarySequenceId := messageLog.PrimarySequenceId
+	blockId := messageLog.BlockId
+	txSequenceId := messageLog.TxSequenceId
+	sliceNumber := messageLog.SliceNumber
+	/**
+	* 检查准备消息来源
+	 */
+	status := msgtype.CONSENSUS_PBFT_PREPARED
+	peerId := messageLog.PeerId
+	if peerId == primaryPeerId {
+		logger.Errorf("%v", messageLog)
+		return nil, errors.New("SendPrimaryPreparedMessage")
+	}
+	if peerId == myPeerId {
+		logger.Errorf("%v", messageLog)
+		return nil, errors.New("SendMyselfMessage")
+	}
+	/**
+	 * 检查自己是否记录了消息中的节点的准备消息
+	 */
+	log := &entity.PbftConsensusLog{}
+	log.PrimaryPeerId = primaryPeerId
+	log.BlockId = blockId
+	log.TxSequenceId = txSequenceId
+	log.SliceNumber = sliceNumber
+	log.PrimarySequenceId = primarySequenceId
+	log.PeerId = peerId
+	log.Status = status
+	log.ClientPeerId = messageLog.ClientPeerId
+	log.ClientAddress = messageLog.ClientAddress
+	log.ClientPublicKey = messageLog.ClientPublicKey
+	key := getLogCacheKey(log)
+	var cacheLog *entity.PbftConsensusLog
+	l, found := MemCache.Get(key)
+	if found {
+		cacheLog = l.(*entity.PbftConsensusLog)
+	}
+
+	// 已经记录了准备消息，重复收到，检查hash
+	if cacheLog != nil {
+		existPayloadHash := cacheLog.PayloadHash
+		if payloadHash != existPayloadHash {
+			//go service.GetPeerEndpointService().modifyBadCount()
+			return nil, errors.New("ErrorPayloadHash")
+		} else {
+			// 记录其他节点发来了Prepared消息，每个节点不会记录自己的Prepared消息
+			messageLog.Id = 0
+			messageLog.Status = status
+			service2.GetPbftConsensusLogService().Insert(messageLog)
+			MemCache.SetDefault(key, messageLog)
+		}
+	}
+	/**
+	 * 通过检查PbftConsensusLogEO日志判断是否所有的节点包括自己都处于prepared状态
+	 * 也就是说本节点已经知道所有的节点都发出了prepared通知 如果是则本节点处于prepared certificate状态，
+	 * 最终，每个节点都会收到其他节点的prepared状态通知
+	 */
+	consensusPeers := make([]string, 0)
+	message.TextUnmarshal(messageLog.PeerIds, &consensusPeers)
+	if consensusPeers != nil && len(consensusPeers) > 2 {
+		count := 1
+		for _, id := range consensusPeers {
+			log.PeerId = id
+			key = getLogCacheKey(log)
+			l, found = MemCache.Get(key)
+			if found {
+				cacheLog = l.(*entity.PbftConsensusLog)
+			}
+			if cacheLog != nil {
+				count++
+			}
+		}
+		f := len(consensusPeers) / 3
+		logger.Infof("findCountBy current status:%v;count:%v", status, count)
+		if count > 2*f {
+			log = &entity.PbftConsensusLog{}
+			log.PrimaryPeerId = primaryPeerId
+			log.BlockId = blockId
+			log.TxSequenceId = txSequenceId
+			log.SliceNumber = sliceNumber
+			log.PrimarySequenceId = primarySequenceId
+			log.PeerId = myPeerId
+			log.Status = msgtype.CONSENSUS_PBFT_COMMITED
+			key = getLogCacheKey(log)
+			l, found = MemCache.Get(key)
+			if found {
+				cacheLog = l.(*entity.PbftConsensusLog)
+			}
+			if cacheLog == nil {
+				messageLog = reflect.New(messageLog).(*entity.PbftConsensusLog)
+				messageLog.PeerId = myPeerId
+				messageLog.Status = msgtype.CONSENSUS_PBFT_COMMITED
+				key = getLogCacheKey(messageLog)
+				MemCache.SetDefault(key, messageLog)
+
+				for _, id := range consensusPeers {
+					/**
+					 * 如果接受，则生成prepare消息进行广播
+					 *
+					 * 备份节点发出PREPARE信息表示该节点同意主节点在view v中将编号n分配给请求m，
+					 *
+					 * 不发即表示不同意
+					 */
+					if myPeerId == id {
+						continue
+					}
+					go action.CommitedAction.Commited(id, log, "")
+				}
+			}
+
+		}
+	} else {
+		logger.Errorf("LessPeerLocation")
+		return nil, errors.New("LessPeerLocation")
+	}
+	response = &msg.ChainMessage{MessageType: msgtype.CONSENSUS_PBFT_PREPARED, TargetPeerId: chainMessage.SrcPeerId,
+		Payload: messageLog, PayloadType: handler.PayloadType_PbftConsensusLog}
+
+	return response, nil
+}
+
+/**
+ * 节点接收其他节点的commit消息，消息的payload为PbftConsensusLogEO
+ *
+ * 节点会收到节点发的commit消息，等于commitNumber即可
+ *
+ * 计算commit的节点数目，满足以上条件，表示可以commit，直接向客户端发送提交成功消息
+ *
+ * 主节点和副本节点收到COMMIT消息，需要进行以下交验：
+ *
+ * a. 副本节点COMMIT消息签名是否正确。
+ *
+ * b. 当前副本节点是否已经收到了同一视图v下的n。
+ *
+ * c. d与m的摘要是否一致。
+ *
+ * d. n是否在区间[h, H]内。
+ *
+ * 非法请求丢弃。如果副本节点i收到了2f+1个验证通过的COMMIT消息，说明当前网络中的大部分节点已经达成共识，运行客户端的请求操作o，并返回<REPLY,
+ * v, t, c, i,
+ * r>给客户端，r：是请求操作结果，客户端如果收到f+1个相同的REPLY消息，说明客户端发起的请求已经达成全网共识，否则客户端需要判断是否重新发送请求给主节点。记录其他副本节点发送的COMMIT消息到log中。
+ */
+func ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+	// 本节点是主副节点都会收到
+	logger.Infof("receive:%v", chainMessage)
+	messageLog := chainMessage.Payload.(*entity.PbftConsensusLog)
+	var response *msg.ChainMessage = nil
+	if messageLog == nil {
+		return nil, errors.New("NoPayload")
+	}
+	/**
+	 * 主节点的属性
+	 */
+	myselfPeer := service.GetMyselfPeerService().GetFromCache()
+	if myselfPeer.Id == 0 {
+		return nil, errors.New("NoMyselfPeer")
+	}
+	myPeerId := myselfPeer.PeerId
+	/**
+	 * 通过检查PbftConsensusLogEO日志判断是否该接受还是拒绝
+	 */
+	primaryPeerId := messageLog.PrimaryPeerId
+	payloadHash := messageLog.PayloadHash
+	primarySequenceId := messageLog.PrimarySequenceId
+	blockId := messageLog.BlockId
+	txSequenceId := messageLog.TxSequenceId
+	sliceNumber := messageLog.SliceNumber
+	/**
+	 * 检查自己是否重复收到CONSENSUS_COMMITED消息
+	 */
+	status := msgtype.CONSENSUS_PBFT_COMMITED
+	peerId := messageLog.PeerId
+	if peerId == myPeerId {
+		logger.Errorf("%v", messageLog)
+		return nil, errors.New("SendMyselfMessage")
+	}
+
+	log := &entity.PbftConsensusLog{}
+	log.PrimaryPeerId = primaryPeerId
+	log.BlockId = blockId
+	log.TxSequenceId = txSequenceId
+	log.SliceNumber = sliceNumber
+	log.PrimarySequenceId = primarySequenceId
+	log.PeerId = peerId
+	log.Status = status
+	key := getLogCacheKey(log)
+	var cacheLog *entity.PbftConsensusLog
+	l, found := MemCache.Get(key)
+	if found {
+		cacheLog = l.(*entity.PbftConsensusLog)
+	}
+	// 已经记录了提交消息，重复收到，检查hash
+	if cacheLog != nil {
+		existPayloadHash := cacheLog.PayloadHash
+		if payloadHash != existPayloadHash {
+			//go service.GetPeerEndpointService().modifyBadCount()
+
+			return nil, errors.New("ErrorPayloadHash")
+		}
+	} else {
+		// 记录其他节点发来了Commited消息，每个节点不会记录自己的Commited消息
+		messageLog.Id = 0
+		messageLog.Status = status
+		service2.GetPbftConsensusLogService().Insert(messageLog)
+		MemCache.SetDefault(key, messageLog)
+	}
+
+	/**
+	 * 通过检查PbftConsensusLogEO日志判断是否所有的节点包括自己都处于Commited状态
+	 * 也就是说本节点已经知道所有的节点都发出了Commited通知 如果是则本节点处于Commited certificate状态，
+	 * 最终，每个节点都会收到其他节点的Commited状态通知
+	 */
+	consensusPeers := make([]string, 0)
+	message.TextUnmarshal(messageLog.PeerIds, &consensusPeers)
+	if consensusPeers != nil && len(consensusPeers) > 2 {
+		count := 1
+		for _, id := range consensusPeers {
+			log.PeerId = id
+			key = getLogCacheKey(log)
+			l, found = MemCache.Get(key)
+			if found {
+				cacheLog = l.(*entity.PbftConsensusLog)
+			}
+			if cacheLog != nil {
+				count++
+			}
+		}
+		f := len(consensusPeers) / 3
+		logger.Infof("findCountBy current status:%v;count:%v", status, count)
+		if count > 2*f {
+			/**
+			 * 数据块记录有效
+			 */
+			var dataBlock *entity.DataBlock
+			//dataBlock = service2.GetDataBlockService().GetCachedDataBlock(blockId, txSequenceId, sliceNumber)
+			if dataBlock == nil {
+				var dbs []*entity.DataBlock
+				//dbs = service2.GetDataBlockService().ListByBlockIds(blockId, txSequenceId, 1,sliceNumber, nil)
+				if dbs != nil && len(dbs) > 0 {
+					dataBlock = dbs[0]
+				}
+			}
+			if dataBlock != nil {
+				status = dataBlock.Status
+				if "Effective" != status {
+					dataBlock.Status = "Effective"
+					service2.GetDataBlockService().Update(dataBlock, nil, "")
+				}
+			}
+
+			/**
+			 * 异步返回客户端reply
+			 */
+			messageLog = reflect.New(messageLog).(*entity.PbftConsensusLog)
+			messageLog.Status = msgtype.CONSENSUS_PBFT_REPLY
+			if dataBlock.PeerId != myPeerId {
+				//go service.GetPeerEndpointService().modifyBadCount(-1)
+				go action.ReplyAction.Reply(dataBlock.PeerId, messageLog, "")
+			} else {
+				logger.Warnf("SameSrcAndTargetPeer")
+			}
+		} else {
+			return nil, errors.New("NoDataBlockInCache")
+		}
+	} else {
+		logger.Errorf("LessPeerLocation")
+		return nil, errors.New("LessPeerLocation")
+	}
+	response = &msg.ChainMessage{MessageType: msgtype.CONSENSUS_PBFT_COMMITED, TargetPeerId: chainMessage.SrcPeerId,
+		Payload: messageLog, PayloadType: handler.PayloadType_PbftConsensusLog}
+
+	return response, nil
+}
