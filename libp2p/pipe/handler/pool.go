@@ -54,10 +54,9 @@ func (this *PipePool) Connect(p *pipe.Pipe) {
 
 		key = peerId + ":" + string(p.GetStream().Protocol())
 		_, ok = this.requestPool[key]
-		if ok {
-			// oldPipe.Close()
+		if !ok {
+			this.requestPool[key] = p
 		}
-		this.requestPool[key] = p
 	}
 }
 
