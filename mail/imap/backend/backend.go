@@ -3,54 +3,29 @@ package backend
 
 import (
 	"errors"
-	"time"
+	"github.com/curltech/go-colla-node/mail/imap/service"
+	backend2 "github.com/emersion/go-imap/backend"
 
 	"github.com/emersion/go-imap"
-	"github.com/emersion/go-imap/backend"
 )
 
 type Backend struct {
-	users map[string]*User
 }
 
-func (be *Backend) Login(_ *imap.ConnInfo, username, password string) (backend.User, error) {
-	user, ok := be.users[username]
-	if ok && user.password == password {
-		return user, nil
-	}
+var backend = &Backend{}
 
-	return nil, errors.New("Bad username or password")
+func GetBackend() *Backend {
+	return backend
 }
 
-func New() *Backend {
-	user := &User{username: "username", password: "password"}
-
-	body := "From: contact@example.org\r\n" +
-		"To: contact@example.org\r\n" +
-		"Subject: A little message, just for you\r\n" +
-		"Date: Wed, 11 May 2016 14:31:59 +0000\r\n" +
-		"Message-ID: <0000000@localhost/>\r\n" +
-		"Content-Type: text/plain\r\n" +
-		"\r\n" +
-		"Hi there :)"
-
-	user.mailboxes = map[string]*Mailbox{
-		"INBOX": {
-			name: "INBOX",
-			user: user,
-			Messages: []*Message{
-				{
-					Uid:   6,
-					Date:  time.Now(),
-					Flags: []string{"\\Seen"},
-					Size:  uint32(len(body)),
-					Body:  []byte(body),
-				},
-			},
-		},
+func (be *Backend) Login(connInfo *imap.ConnInfo, username, password string) (backend2.User, error) {
+	account := &MailAccount{}
+	account.Name = username
+	account.Password = password
+	found := service.GetMailAccountService().Get(account, false, "", "")
+	if found {
+		return account, nil
 	}
 
-	return &Backend{
-		users: map[string]*User{user.username: user},
-	}
+	return nil, errors.New("Bad name or password")
 }

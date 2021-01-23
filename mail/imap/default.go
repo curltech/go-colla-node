@@ -2,18 +2,18 @@ package imap
 
 import (
 	"github.com/curltech/go-colla-core/logger"
+	"github.com/curltech/go-colla-node/mail/imap/dbbackend"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-sasl"
 	"log"
 
 	"github.com/emersion/go-imap-idle"
-	"github.com/emersion/go-imap/backend/memory"
 	"github.com/emersion/go-imap/server"
 )
 
 func Start() {
 	// Create a memory backend
-	be := memory.New()
+	be := backend.GetBackend()
 
 	// Create a new server
 	s := server.New(be)

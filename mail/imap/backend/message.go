@@ -3,34 +3,30 @@ package backend
 import (
 	"bufio"
 	"bytes"
-	"io"
-	"time"
-
+	"github.com/curltech/go-colla-node/mail/imap/entity"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/backend/backendutil"
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-message/textproto"
+	"io"
+	"strings"
 )
 
-type Message struct {
-	Uid   uint32
-	Date  time.Time
-	Size  uint32
-	Flags []string
-	Body  []byte
+type MailMessage struct {
+	entity.MailMessage
 }
 
-func (m *Message) entity() (*message.Entity, error) {
+func (m *MailMessage) entity() (*message.Entity, error) {
 	return message.Read(bytes.NewReader(m.Body))
 }
 
-func (m *Message) headerAndBody() (textproto.Header, io.Reader, error) {
+func (m *MailMessage) headerAndBody() (textproto.Header, io.Reader, error) {
 	body := bufio.NewReader(bytes.NewReader(m.Body))
 	hdr, err := textproto.ReadHeader(body)
 	return hdr, body, err
 }
 
-func (m *Message) Fetch(seqNum uint32, items []imap.FetchItem) (*imap.Message, error) {
+func (m *MailMessage) Fetch(seqNum uint32, items []imap.FetchItem) (*imap.Message, error) {
 	fetched := imap.NewMessage(seqNum, items)
 	for _, item := range items {
 		switch item {
@@ -41,13 +37,13 @@ func (m *Message) Fetch(seqNum uint32, items []imap.FetchItem) (*imap.Message, e
 			hdr, body, _ := m.headerAndBody()
 			fetched.BodyStructure, _ = backendutil.FetchBodyStructure(hdr, body, item == imap.FetchBodyStructure)
 		case imap.FetchFlags:
-			fetched.Flags = m.Flags
+			fetched.Flags = strings.Split(m.Flag, ",")
 		case imap.FetchInternalDate:
-			fetched.InternalDate = m.Date
+			fetched.InternalDate = *m.CreateDate
 		case imap.FetchRFC822Size:
-			fetched.Size = m.Size
+			fetched.Size = uint32(m.Size)
 		case imap.FetchUid:
-			fetched.Uid = m.Uid
+			fetched.Uid = uint32(m.Id)
 		default:
 			section, err := imap.ParseBodySectionName(item)
 			if err != nil {
@@ -68,7 +64,7 @@ func (m *Message) Fetch(seqNum uint32, items []imap.FetchItem) (*imap.Message, e
 	return fetched, nil
 }
 
-func (m *Message) Match(seqNum uint32, c *imap.SearchCriteria) (bool, error) {
+func (m *MailMessage) Match(seqNum uint32, c *imap.SearchCriteria) (bool, error) {
 	e, _ := m.entity()
-	return backendutil.Match(e, seqNum, m.Uid, m.Date, m.Flags, c)
+	return backendutil.Match(e, seqNum, uint32(m.Id), *m.CreateDate, strings.Split(m.Flag, ","), c)
 }
