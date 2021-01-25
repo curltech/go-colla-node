@@ -3,13 +3,12 @@ package backend
 import (
 	"bufio"
 	"bytes"
-	"github.com/curltech/go-colla-node/mail/imap/entity"
+	"github.com/curltech/go-colla-node/mail/entity"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/backend/backendutil"
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-message/textproto"
 	"io"
-	"strings"
 )
 
 type MailMessage struct {
@@ -37,7 +36,7 @@ func (m *MailMessage) Fetch(seqNum uint32, items []imap.FetchItem) (*imap.Messag
 			hdr, body, _ := m.headerAndBody()
 			fetched.BodyStructure, _ = backendutil.FetchBodyStructure(hdr, body, item == imap.FetchBodyStructure)
 		case imap.FetchFlags:
-			fetched.Flags = strings.Split(m.Flag, ",")
+			fetched.Flags = m.mergeFlag()
 		case imap.FetchInternalDate:
 			fetched.InternalDate = *m.CreateDate
 		case imap.FetchRFC822Size:
@@ -64,7 +63,50 @@ func (m *MailMessage) Fetch(seqNum uint32, items []imap.FetchItem) (*imap.Messag
 	return fetched, nil
 }
 
+func (m *MailMessage) mergeFlag() []string {
+	flags := make([]string, 0)
+	if m.AnsweredFlag != "" {
+		flags = append(flags, imap.AnsweredFlag)
+	}
+	if m.DeletedFlag != "" {
+		flags = append(flags, imap.DeletedFlag)
+	}
+	if m.FlaggedFlag != "" {
+		flags = append(flags, imap.FlaggedFlag)
+	}
+	if m.RecentFlag != "" {
+		flags = append(flags, imap.RecentFlag)
+	}
+	if m.SeenFlag != "" {
+		flags = append(flags, imap.SeenFlag)
+	}
+	if m.DraftFlag != "" {
+		flags = append(flags, imap.DraftFlag)
+	}
+
+	return flags
+}
+
+func (m *MailMessage) splitFlag(flags []string) {
+	for _, flag := range flags {
+		switch flag {
+		case imap.AnsweredFlag:
+			m.AnsweredFlag = imap.AnsweredFlag
+		case imap.DeletedFlag:
+			m.DeletedFlag = imap.DeletedFlag
+		case imap.FlaggedFlag:
+			m.FlaggedFlag = imap.FlaggedFlag
+		case imap.RecentFlag:
+			m.RecentFlag = imap.RecentFlag
+		case imap.SeenFlag:
+			m.SeenFlag = imap.SeenFlag
+		case imap.DraftFlag:
+			m.DraftFlag = imap.DraftFlag
+		}
+	}
+}
+
 func (m *MailMessage) Match(seqNum uint32, c *imap.SearchCriteria) (bool, error) {
 	e, _ := m.entity()
-	return backendutil.Match(e, seqNum, uint32(m.Id), *m.CreateDate, strings.Split(m.Flag, ","), c)
+	return backendutil.Match(e, seqNum, uint32(m.Id), *m.CreateDate, m.mergeFlag(), c)
 }

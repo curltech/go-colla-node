@@ -40,12 +40,12 @@ func (this *PipePool) Connect(p *pipe.Pipe) {
 		oldConn, ok := this.connectionPool[key]
 		if ok {
 			if conn != oldConn {
-				golog.Infof("----------resetConn: v%", key)
+				logger.Infof("----------resetConn: v%", key)
 				oldConn.Close()
 				this.connectionPool[key] = conn
 			}
 		} else {
-			golog.Infof("----------newConn: %v", key)
+			logger.Infof("----------newConn: %v", key)
 			this.connectionPool[key] = conn
 		}
 
@@ -199,7 +199,7 @@ func (this *PipePool) Disconnect(peerId string, connectSessionId string) {
 	key := peerId + ":" + connectSessionId
 	_, ok := this.connectionPool[key]
 	if ok {
-		golog.Infof("----------deleteConn: %v", key)
+		logger.Infof("----------deleteConn: %v", key)
 		delete(this.connectionPool, key)
 	}
 }

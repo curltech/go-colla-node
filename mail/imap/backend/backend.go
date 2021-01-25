@@ -3,7 +3,7 @@ package backend
 
 import (
 	"errors"
-	"github.com/curltech/go-colla-node/mail/imap/service"
+	"github.com/curltech/go-colla-node/mail/service"
 	backend2 "github.com/emersion/go-imap/backend"
 
 	"github.com/emersion/go-imap"

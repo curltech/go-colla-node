@@ -2,7 +2,8 @@ package backend
 
 import (
 	"errors"
-	"github.com/curltech/go-colla-node/mail/imap/entity"
+	"github.com/curltech/go-colla-node/mail/entity"
+	"github.com/curltech/go-colla-node/mail/service"
 	"io/ioutil"
 	"strings"
 	"time"
@@ -15,8 +16,6 @@ var Delimiter = "/"
 
 type Mailbox struct {
 	entity.MailBox
-	Messages []*MailMessage
-	account  *MailAccount
 }
 
 func (mbox *Mailbox) Name() string {
@@ -31,24 +30,17 @@ func (mbox *Mailbox) Info() (*imap.MailboxInfo, error) {
 	return info, nil
 }
 
-func (mbox *Mailbox) uidNext() uint32 {
-	var uid uint32
-	for _, msg := range mbox.Messages {
-		if uint32(msg.Id) > uid {
-			uid = uint32(msg.Id)
-		}
-	}
-	uid++
+func (mbox *Mailbox) uidNext() uint64 {
+	var uid uint64 = service.GetMailMessageService().GetSeq()
+
 	return uid
 }
 
 func (mbox *Mailbox) flags() []string {
 	flagsMap := make(map[string]bool)
-	for _, msg := range mbox.Messages {
-		for _, f := range strings.Split(msg.Flag, ",") {
-			if !flagsMap[f] {
-				flagsMap[f] = true
-			}
+	for _, f := range strings.Split(mbox.Flag, ",") {
+		if !flagsMap[f] {
+			flagsMap[f] = true
 		}
 	}
 
@@ -60,22 +52,7 @@ func (mbox *Mailbox) flags() []string {
 }
 
 func (mbox *Mailbox) unseenSeqNum() uint32 {
-	for i, msg := range mbox.Messages {
-		seqNum := uint32(i + 1)
-
-		seen := false
-		for _, flag := range strings.Split(msg.Flag, ",") {
-			if flag == imap.SeenFlag {
-				seen = true
-				break
-			}
-		}
-
-		if !seen {
-			return seqNum
-		}
-	}
-	return 0
+	return mbox.UnseenSeqNum
 }
 
 func (mbox *Mailbox) Status(items []imap.StatusItem) (*imap.MailboxStatus, error) {
@@ -87,7 +64,7 @@ func (mbox *Mailbox) Status(items []imap.StatusItem) (*imap.MailboxStatus, error
 	for _, name := range items {
 		switch name {
 		case imap.StatusMessages:
-			status.Messages = uint32(len(mbox.Messages))
+			status.Messages = mbox.MessageNum
 		case imap.StatusUidNext:
 			status.UidNext = uint32(mbox.uidNext())
 		case imap.StatusUidValidity:
@@ -114,25 +91,23 @@ func (mbox *Mailbox) Check() error {
 func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.FetchItem, ch chan<- *imap.Message) error {
 	defer close(ch)
 
-	for i, msg := range mbox.Messages {
-		seqNum := uint32(i + 1)
+	for _, seq := range seqSet.Set {
+		mailMessages := make([]*entity.MailMessage, 0)
+		condiBean := &entity.MailMessage{}
+		condiBean.BoxName = mbox.BoxName
+		err := service.GetMailMessageService().Find(mailMessages, condiBean, "", 0, 0, "Id>=? and Id<=?", seq.Start, seq.Stop)
+		if err == nil {
+			for _, mailMessage := range mailMessages {
+				msg := MailMessage{}
+				msg.MailMessage = *mailMessage
+				m, err := msg.Fetch(uint32(msg.Id), items)
+				if err != nil {
+					continue
+				}
 
-		var id uint32
-		if uid {
-			id = uint32(msg.Id)
-		} else {
-			id = seqNum
+				ch <- m
+			}
 		}
-		if !seqSet.Contains(uint32(id)) {
-			continue
-		}
-
-		m, err := msg.Fetch(uint32(seqNum), items)
-		if err != nil {
-			continue
-		}
-
-		ch <- m
 	}
 
 	return nil
@@ -140,21 +115,21 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 
 func (mbox *Mailbox) SearchMessages(uid bool, criteria *imap.SearchCriteria) ([]uint32, error) {
 	var ids []uint32
-	for i, msg := range mbox.Messages {
-		seqNum := uint32(i + 1)
-
-		ok, err := msg.Match(seqNum, criteria)
-		if err != nil || !ok {
-			continue
+	mailMessages := make([]*entity.MailMessage, 0)
+	condiBean := &entity.MailMessage{}
+	condiBean.BoxName = mbox.BoxName
+	err := service.GetMailMessageService().Find(mailMessages, condiBean, "", 0, 0, "")
+	if err == nil {
+		for _, mailMessage := range mailMessages {
+			msg := MailMessage{}
+			msg.MailMessage = *mailMessage
+			id := uint32(msg.Id)
+			ok, err := msg.Match(id, criteria)
+			if err != nil || !ok {
+				continue
+			}
+			ids = append(ids, id)
 		}
-
-		var id uint32
-		if uid {
-			id = uint32(msg.Id)
-		} else {
-			id = seqNum
-		}
-		ids = append(ids, id)
 	}
 	return ids, nil
 }
@@ -173,71 +148,70 @@ func (mbox *Mailbox) CreateMessage(flags []string, date time.Time, body imap.Lit
 	m.Id = uint64(mbox.uidNext())
 	m.CreateDate = &date
 	m.Size = uint64(len(b))
-	m.Flag = strings.Join(flags, ",")
+	m.splitFlag(flags)
 	m.Body = b
-	mbox.Messages = append(mbox.Messages, m)
+	m.BoxName = mbox.BoxName
+	service.GetMailMessageService().Insert(m)
+
 	return nil
 }
 
 func (mbox *Mailbox) UpdateMessagesFlags(uid bool, seqset *imap.SeqSet, op imap.FlagsOp, flags []string) error {
-	for i, msg := range mbox.Messages {
-		var id uint32
-		if uid {
-			id = uint32(msg.Id)
-		} else {
-			id = uint32(i + 1)
+	for _, seq := range seqset.Set {
+		mailMessages := make([]*entity.MailMessage, 0)
+		condiBean := &entity.MailMessage{}
+		condiBean.BoxName = mbox.BoxName
+		err := service.GetMailMessageService().Find(mailMessages, condiBean, "", 0, 0, "Id>=? and Id<=?", seq.Start, seq.Stop)
+		if err == nil {
+			for _, mailMessage := range mailMessages {
+				msg := MailMessage{}
+				msg.MailMessage = *mailMessage
+				rs := backendutil.UpdateFlags(msg.mergeFlag(), op, flags)
+				msg.splitFlag(rs)
+				service.GetMailMessageService().Update(mailMessage, nil, "")
+			}
 		}
-		if !seqset.Contains(id) {
-			continue
-		}
-
-		msg.Flag = strings.Join(backendutil.UpdateFlags(strings.Split(msg.Flag, ","), op, flags), ",")
 	}
 
 	return nil
 }
 
+/**
+拷贝满足条件的消息到另一个收件箱
+*/
 func (mbox *Mailbox) CopyMessages(uid bool, seqset *imap.SeqSet, destName string) error {
-	dest, ok := mbox.account.Mailboxes[destName]
+	mailbox := &Mailbox{}
+	mailbox.BoxName = destName
+	ok := service.GetMailBoxService().Get(mailbox, false, "", "")
 	if !ok {
 		return errors.New("ErrNoSuchMailbox")
 	}
 
-	for i, msg := range mbox.Messages {
-		var id uint32
-		if uid {
-			id = uint32(msg.Id)
-		} else {
-			id = uint32(i + 1)
+	for _, seq := range seqset.Set {
+		mailMessages := make([]*entity.MailMessage, 0)
+		condiBean := &entity.MailMessage{}
+		condiBean.BoxName = mbox.BoxName
+		err := service.GetMailMessageService().Find(mailMessages, condiBean, "", 0, 0, "Id>=? and Id<=?", seq.Start, seq.Stop)
+		if err == nil {
+			for _, mailMessage := range mailMessages {
+				mailMessage.Id = mbox.uidNext()
+				mailMessage.BoxName = destName
+				service.GetMailMessageService().Insert(mailMessage)
+			}
 		}
-		if !seqset.Contains(id) {
-			continue
-		}
-
-		msgCopy := *msg
-		msgCopy.Id = uint64(dest.uidNext())
-		dest.Messages = append(dest.Messages, &msgCopy)
 	}
 
 	return nil
 }
 
+/**
+删除有删除标志的信息
+*/
 func (mbox *Mailbox) Expunge() error {
-	for i := len(mbox.Messages) - 1; i >= 0; i-- {
-		msg := mbox.Messages[i]
-
-		deleted := false
-		for _, flag := range strings.Split(msg.Flag, ",") {
-			if flag == imap.DeletedFlag {
-				deleted = true
-				break
-			}
-		}
-
-		if deleted {
-			mbox.Messages = append(mbox.Messages[:i], mbox.Messages[i+1:]...)
-		}
-	}
+	msg := entity.MailMessage{}
+	msg.BoxName = mbox.BoxName
+	msg.DeletedFlag = imap.DeletedFlag
+	service.GetMailMessageService().Delete(msg, "")
 
 	return nil
 }

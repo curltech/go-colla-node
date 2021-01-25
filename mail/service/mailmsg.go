@@ -3,7 +3,7 @@ package service
 import (
 	"github.com/curltech/go-colla-core/service"
 	"github.com/curltech/go-colla-core/util/message"
-	"github.com/curltech/go-colla-node/mail/imap/entity"
+	"github.com/curltech/go-colla-node/mail/entity"
 )
 
 /**

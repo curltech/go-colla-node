@@ -2,10 +2,12 @@ package backend
 
 import (
 	"errors"
-	"github.com/curltech/go-colla-node/mail/imap/entity"
-	"github.com/curltech/go-colla-node/mail/imap/service"
+	"github.com/curltech/go-colla-node/mail/entity"
+	"github.com/curltech/go-colla-node/mail/service"
 	backend2 "github.com/emersion/go-imap/backend"
 )
+
+const Mailbox_Inbox = "INBOX"
 
 type MailAccount struct {
 	entity.MailAccount
@@ -15,6 +17,7 @@ type MailAccount struct {
 func (ma *MailAccount) ListMailboxes(subscribed bool) (mailboxes []backend2.Mailbox, err error) {
 	mailBoxes := make([]*Mailbox, 0)
 	condiBean := &Mailbox{}
+	condiBean.AccountName = ma.Name
 	condiBean.Subscribed = subscribed
 	err = service.GetMailBoxService().Find(&mailBoxes, condiBean, "", 0, 0, "")
 	if err != nil {
@@ -32,6 +35,7 @@ func (ma *MailAccount) ListMailboxes(subscribed bool) (mailboxes []backend2.Mail
 func (ma *MailAccount) GetMailbox(name string) (backend2.Mailbox, error) {
 	mailbox := &Mailbox{}
 	mailbox.BoxName = name
+	mailbox.AccountName = ma.Name
 	var err error
 	found := service.GetMailBoxService().Get(mailbox, false, "", "")
 	if found {
@@ -47,19 +51,21 @@ func (ma *MailAccount) CreateMailbox(name string) error {
 	if _, ok := ma.Mailboxes[name]; ok {
 		return errors.New("Mailbox already exists")
 	}
-	mailbox := &Mailbox{account: ma}
+	mailbox := &Mailbox{}
 	mailbox.BoxName = name
+	mailbox.AccountName = ma.Name
 	service.GetMailBoxService().Insert(mailbox)
 	ma.Mailboxes[name] = mailbox
 	return nil
 }
 
 func (ma *MailAccount) DeleteMailbox(name string) error {
-	if name == "INBOX" {
+	if name == Mailbox_Inbox {
 		return errors.New("Cannot delete INBOX")
 	}
 	mailbox := &Mailbox{}
 	mailbox.BoxName = name
+	mailbox.AccountName = ma.Name
 	service.GetMailBoxService().Delete(mailbox, "")
 	if _, ok := ma.Mailboxes[name]; !ok {
 		return errors.New("No such mailbox")
@@ -71,18 +77,19 @@ func (ma *MailAccount) DeleteMailbox(name string) error {
 }
 
 func (ma *MailAccount) RenameMailbox(existingName, newName string) error {
-	mbox, ok := ma.Mailboxes[existingName]
+	_, ok := ma.Mailboxes[existingName]
 	if !ok {
 		return errors.New("No such mailbox")
 	}
-	mailbox := &Mailbox{account: ma, Messages: mbox.Messages}
+	mailbox := &Mailbox{}
 	mailbox.BoxName = newName
+	mailbox.AccountName = ma.Name
 	ma.Mailboxes[newName] = mailbox
-	mbox.Messages = nil
 
-	if existingName != "INBOX" {
+	if existingName != Mailbox_Inbox {
 		mailbox = &Mailbox{}
 		mailbox.BoxName = existingName
+		mailbox.AccountName = ma.Name
 		service.GetMailBoxService().Delete(mailbox, "")
 		delete(ma.Mailboxes, existingName)
 	}

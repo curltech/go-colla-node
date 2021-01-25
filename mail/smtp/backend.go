@@ -2,6 +2,8 @@ package smtp
 
 import (
 	"errors"
+	"github.com/curltech/go-colla-node/mail/entity"
+	"github.com/curltech/go-colla-node/mail/service"
 	"github.com/emersion/go-smtp"
 )
 
@@ -10,9 +12,14 @@ type Backend struct{}
 
 // Login handles a login command with username and password.
 func (bkd *Backend) Login(state *smtp.ConnectionState, username, password string) (smtp.Session, error) {
-	if username != "username" || password != "password" {
-		return nil, errors.New("Invalid username or password")
+	account := &entity.MailAccount{}
+	account.Name = username
+	account.Password = password
+	found := service.GetMailAccountService().Get(account, false, "", "")
+	if !found {
+		return nil, errors.New("Bad name or password")
 	}
+
 	return &Session{}, nil
 }
 
