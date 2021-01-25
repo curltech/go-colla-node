@@ -14,6 +14,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/protocol"
 	ma "github.com/multiformats/go-multiaddr"
 	"sync"
+	"time"
 )
 
 type PipePool struct {
@@ -27,6 +28,12 @@ var pipePool = &PipePool{connectionPool: make(map[string]network.Conn), requestP
 
 func GetPipePool() *PipePool {
 	return pipePool
+}
+
+func (this *PipePool) GetConnectionPool(peerId string, connectSessionId string) (network.Conn, bool) {
+	key := peerId + ":" + connectSessionId
+	conn, ok := this.connectionPool[key]
+	return conn, ok
 }
 
 func (this *PipePool) Connect(p *pipe.Pipe) {
@@ -168,20 +175,6 @@ func (this *PipePool) Close(peerId string, protocolId string, connectSessionId s
 	if ok {
 		if p.GetStream().ID() == streamId {
 			delete(this.responsePool, key)
-			peerClients, err := service.GetLocalPCs(ns.PeerClient_KeyKind, peerId, "", "")
-			if err != nil {
-				logger.Errorf("failed to GetLocalPCs by peerId: %v", peerId)
-				return
-			}
-			if len(peerClients) > 0 {
-				for _, peerClient := range peerClients {
-					if peerClient.ConnectSessionId == connectSessionId {
-						peerClient.ActiveStatus = entity.ActiveStatus_Down
-						service.PutPCs(peerClient)
-						break
-					}
-				}
-			}
 		}
 	}
 	key = peerId + ":" + protocolId
@@ -201,5 +194,25 @@ func (this *PipePool) Disconnect(peerId string, connectSessionId string) {
 	if ok {
 		logger.Infof("----------deleteConn: %v", key)
 		delete(this.connectionPool, key)
+		// 更新信息
+		peerClients, err := service.GetLocalPCs(ns.PeerClient_KeyKind, peerId, "", "")
+		if err != nil {
+			logger.Errorf("failed to GetLocalPCs by peerId: %v, err: %v", peerId, err)
+		} else {
+			if len(peerClients) > 0 {
+				for _, peerClient := range peerClients {
+					if peerClient.ConnectSessionId == connectSessionId {
+						currentTime := time.Now()
+						peerClient.LastAccessTime = &currentTime
+						peerClient.ActiveStatus = entity.ActiveStatus_Down
+						err = service.PutPCs(peerClient)
+						if err != nil {
+							logger.Errorf("failed to PutPCs, peerId: %v, err: %v", peerId, err)
+						}
+						break
+					}
+				}
+			}
+		}
 	}
 }
