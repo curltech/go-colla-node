@@ -2,22 +2,22 @@ package dht
 
 import (
 	"context"
-	handler2 "curltech.io/camsi/camsi-core/libp2p/pipe/handler"
-	"curltech.io/camsi/camsi-core/config"
-	"curltech.io/camsi/camsi-core/crypto/std"
-	"curltech.io/camsi/camsi-core/libp2p/dht"
-	"curltech.io/camsi/camsi-core/libp2p/global"
-	"curltech.io/camsi/camsi-core/libp2p/ns"
-	"curltech.io/camsi/camsi-core/p2p/chain/action"
-	"curltech.io/camsi/camsi-core/p2p/chain/handler"
-	service1 "curltech.io/camsi/camsi-core/p2p/chain/service"
-	"curltech.io/camsi/camsi-core/p2p/dht/entity"
-	"curltech.io/camsi/camsi-core/p2p/dht/service"
-	"curltech.io/camsi/camsi-core/p2p/msg"
-	"curltech.io/camsi/camsi-core/p2p/msgtype"
-	"curltech.io/camsi/camsi-core/util/message"
+	"github.com/curltech/go-colla-node/config"
+	"github.com/curltech/go-colla-node/crypto/std"
+	"github.com/curltech/go-colla-node/libp2p/dht"
+	"github.com/curltech/go-colla-node/libp2p/global"
+	"github.com/curltech/go-colla-node/libp2p/ns"
+	handler2 "github.com/curltech/go-colla-node/libp2p/pipe/handler"
+	"github.com/curltech/go-colla-node/p2p/chain/action"
+	"github.com/curltech/go-colla-node/p2p/chain/handler"
+	service1 "github.com/curltech/go-colla-node/p2p/chain/service"
+	"github.com/curltech/go-colla-node/p2p/dht/entity"
+	"github.com/curltech/go-colla-node/p2p/dht/service"
+	"github.com/curltech/go-colla-node/p2p/msg"
+	"github.com/curltech/go-colla-node/p2p/msgtype"
+	"github.com/curltech/go-colla-node/util/message"
 	"errors"
-	"github.com/kataras/golog"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
 	"strings"
@@ -70,7 +70,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 			pcArr := make([]*entity.PeerClient, 0)
 			err = message.TextUnmarshal(string(recvdVal.Val), &pcArr)
 			if err != nil {
-				golog.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
 			}
@@ -105,13 +105,13 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 			pcArr := make([]*entity.PeerClient, 0)
 			err = message.TextUnmarshal(string(recvdVal.Val), &pcArr)
 			if err != nil {
-				golog.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
 			}
 			err = service1.PutLocalPCs(pcArr)
 			if err != nil {
-				golog.Errorf("failed to PutLocalPCs PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Errorf("failed to PutLocalPCs PeerClient value: %v, err: %v", recvdVal.Val, err)
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
 			}
@@ -222,7 +222,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 	// 添加最近节点
 	pchan, err := dht.PeerEndpointDHT.GetClosestPeers(key)
 	if err != nil {
-		golog.Errorf("failed to GetClosestPeers by key: %v, err: %v", key, err)
+		logger.Errorf("failed to GetClosestPeers by key: %v, err: %v", key, err)
 	} else {
 		wg := sync.WaitGroup{}
 		for p := range pchan {
@@ -231,7 +231,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 				ctx, cancel := context.WithCancel(global.Global.Context)
 				defer cancel()
 				defer wg.Done()
-				golog.Infof("ClosestPeers-PeerId: %v", p.Pretty())
+				logger.Infof("ClosestPeers-PeerId: %v", p.Pretty())
 				routing.PublishQueryEvent(ctx, &routing.QueryEvent{
 					Type: routing.Value,
 					ID:   p,
@@ -239,17 +239,17 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 				k := ns.GetPeerEndpointKey(p.Pretty())
 				recvdVals, err := dht.PeerEndpointDHT.GetValues(k, config.Libp2pParams.Nvals)
 				if err != nil {
-					golog.Errorf("failed to GetValues by PeerEndpoint key: %v, err: %v", k, err)
+					logger.Errorf("failed to GetValues by PeerEndpoint key: %v, err: %v", k, err)
 				} else {
 					for _, recvdVal := range recvdVals {
 						entities := make([]*entity.PeerEndpoint, 0)
 						err = message.TextUnmarshal(string(recvdVal.Val), &entities)
 						if err != nil {
-							golog.Errorf("failed to TextUnmarshal PeerEndpoint value: %v, err: %v", recvdVal.Val, err)
+							logger.Errorf("failed to TextUnmarshal PeerEndpoint value: %v, err: %v", recvdVal.Val, err)
 						} else {
 							if len(entities) > 0 {
 								peer := entities[0]
-								golog.Infof("PeerEndpoint: %v", peer.PeerId+"-"+peer.DiscoveryAddress)
+								logger.Infof("PeerEndpoint: %v", peer.PeerId+"-"+peer.DiscoveryAddress)
 								peers = append(peers, peer)
 							}
 						}
