@@ -180,11 +180,9 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 					payload["clientId"] = clientId
 					wcm.Payload = &payload
 					if pc.ConnectPeerId == global.Global.MyselfPeer.DiscoveryAddress {
-						targetPeerId := pc.PeerId
-						connectSessionId := pc.ConnectSessionId
-						_, ok := handler2.GetPipePool().GetConnectionPool(targetPeerId, connectSessionId)
+						_, ok := handler2.GetPipePool().GetConnectionPool(pc.PeerId, pc.ConnectSessionId)
 						if ok {
-							ChatAction.Chat("", handler.PayloadType_WebsocketChainMessage, wcm, targetPeerId)
+							ChatAction.Chat("", handler.PayloadType_WebsocketChainMessage, wcm, pc.PeerId)
 						}
 					} else {
 						cm := msg.ChainMessage{}
