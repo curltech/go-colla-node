@@ -184,7 +184,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 						connectSessionId := pc.ConnectSessionId
 						_, ok := handler2.GetPipePool().GetConnectionPool(targetPeerId, connectSessionId)
 						if ok {
-							ChatAction.Chat("", handler.PayloadClass_WebsocketChainMessage, wcm, targetPeerId)
+							ChatAction.Chat("", handler.PayloadType_WebsocketChainMessage, wcm, targetPeerId)
 						}
 					} else {
 						cm := msg.ChainMessage{}
