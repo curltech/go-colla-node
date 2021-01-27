@@ -12,12 +12,7 @@ import (
 )
 
 func authHandler(username string, realm string, srcAddr net.Addr) ([]byte, bool) {
-	//cred := strings.SplitN(username, "=", 2)
-	//user, err := service.GetUserService().Auth(cred[0], cred[1])
-	//if err == nil {
-	//	return []byte(user.UserId), true
-	//}
-	return nil, false
+	return []byte(username), true
 }
 
 func Start() {
