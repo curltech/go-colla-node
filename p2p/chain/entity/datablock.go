@@ -75,23 +75,16 @@ type DataBlock struct {
 	/**
 	 * 分片hash汇总到交易，交易汇总到块hash
 	 */
-	StateHash    string `xorm:"varchar(255)" json:"stateHash,omitempty"`
-	TxSequenceId uint64 `xorm:"notnull" json:"txSequenceId"`
-	/**
-	 * ChainTransaction记录的总数
-	 */
-	TransactionSize   uint64              `json:"transactionSize,omitempty"`
-	ChainTransactions []*ChainTransaction `xorm:"-" json:"chainTransactions,omitempty"`
-	TransactionKeys   []*TransactionKey   `xorm:"-" json:"transactionKeys,omitempty"`
+	StateHash       string            `xorm:"varchar(255)" json:"stateHash,omitempty"`
+	TransactionKeys []*TransactionKey `xorm:"-" json:"transactionKeys,omitempty"`
 	// 共识可能会引入的一些可选的元数据
 	Metadata string `xorm:"varchar(255)" json:"metadata,omitempty"`
 	MimeType string `xorm:"varchar(255)" json:"mimeType,omitempty"`
 
 	// 由区块提议者填充的时间戳
-	CreateTimestamp      uint64  `json:"createTimestamp,omitempty"`
-	CreateTimestampNanos uint64  `json:"createTimestampNanos,omitempty"`
-	ExpireDate           int64   `json:"expireDate,omitempty"`
-	TransactionAmount    float64 `json:"transactionAmount"`
+	CreateTimestamp   uint64  `json:"createTimestamp,omitempty"`
+	ExpireDate        int64   `json:"expireDate,omitempty"`
+	TransactionAmount float64 `json:"transactionAmount"`
 
 	// 请求的排好序的序号
 	PrimarySequenceId uint64 `json:"primarySequenceId,omitempty"`

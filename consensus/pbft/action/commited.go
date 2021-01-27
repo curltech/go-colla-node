@@ -45,5 +45,4 @@ func (this *commitedAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainM
 func init() {
 	CommitedAction = commitedAction{}
 	CommitedAction.MsgType = msgtype.CONSENSUS_PBFT_COMMITED
-	handler.RegistChainMessageHandler(msgtype.CONSENSUS_PBFT_COMMITED, CommitedAction.Send, CommitedAction.Receive, CommitedAction.Response)
 }

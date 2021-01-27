@@ -45,5 +45,4 @@ func (this *replyAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMess
 func init() {
 	ReplyAction = replyAction{}
 	ReplyAction.MsgType = msgtype.CONSENSUS_PBFT_REPLY
-	handler.RegistChainMessageHandler(msgtype.CONSENSUS_PBFT_REPLY, ReplyAction.Send, ReplyAction.Receive, ReplyAction.Response)
 }

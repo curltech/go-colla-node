@@ -45,5 +45,4 @@ func (this *prepreparedAction) Receive(chainMessage *msg.ChainMessage) (*msg.Cha
 func init() {
 	PrepreparedAction = prepreparedAction{}
 	PrepreparedAction.MsgType = msgtype.CONSENSUS_PBFT_PREPREPARED
-	handler.RegistChainMessageHandler(msgtype.CONSENSUS_PBFT_PREPREPARED, PrepreparedAction.Send, PrepreparedAction.Receive, PrepreparedAction.Response)
 }
