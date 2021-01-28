@@ -107,11 +107,11 @@ func GetPublicKey(targetPeerId string) (*crypto.Key, error) {
 }
 
 const (
-	PayloadType_PeerClient       = "peerClient"
-	PayloadType_PeerEndpoint     = "peerEndpoint"
-	PayloadType_ChainApp         = "chainApp"
-	PayloadType_DataBlock        = "dataBlock"
-	PayloadType_PbftConsensusLog = "pbftConsensusLog"
+	PayloadType_PeerClient   = "peerClient"
+	PayloadType_PeerEndpoint = "peerEndpoint"
+	PayloadType_ChainApp     = "chainApp"
+	PayloadType_DataBlock    = "dataBlock"
+	PayloadType_ConsensusLog = "consensusLog"
 
 	PayloadType_PeerClients   = "peerClients"
 	PayloadType_PeerEndpoints = "peerEndpoints"

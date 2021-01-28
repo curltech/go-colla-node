@@ -2,6 +2,7 @@ package consensus
 
 import (
 	"errors"
+	"fmt"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/p2p/chain/entity"
@@ -11,10 +12,25 @@ import (
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/libp2p/go-libp2p-core/peer"
 	kb "github.com/libp2p/go-libp2p-kbucket"
+	"github.com/patrickmn/go-cache"
 	"time"
 )
 
-func NearestConsensusPeer() []peer.ID {
+type Consensus struct {
+	MemCache *cache.Cache
+}
+
+func (this *Consensus) GetLogCacheKey(log *entity.ConsensusLog) string {
+	key := fmt.Sprintf("%v:%v:%v:%v:%v:%v", log.PrimaryPeerId, log.BlockId, log.SliceNumber, log.PrimarySequenceId, log.PeerId, log.Status)
+	return key
+}
+
+func (this *Consensus) GetDataBlockCacheKey(blockId string, sliceNumber uint64) string {
+	key := fmt.Sprintf("%v:%v", blockId, sliceNumber)
+	return key
+}
+
+func (this *Consensus) NearestConsensusPeer() []peer.ID {
 	id := kb.ConvertKey(global.Global.PeerId.String())
 	ids := dht.PeerEndpointDHT.RoutingTable.NearestPeers(id, 10)
 
@@ -24,7 +40,7 @@ func NearestConsensusPeer() []peer.ID {
 /**
 主节点挑选副节点
 */
-func ChooseConsensusPeer() []string {
+func (this *Consensus) ChooseConsensusPeer() []string {
 	peerIds := make([]string, 0)
 	peerEndpoints := service.GetPeerEndpointService().GetRand(10)
 	for _, consensusPeer := range peerEndpoints {
@@ -34,7 +50,7 @@ func ChooseConsensusPeer() []string {
 	return peerIds
 }
 
-func CreateConsensusLog(chainMessage *msg.ChainMessage, dataBlock *entity.DataBlock, myselfPeer *entity1.MyselfPeer, status string) *entity.ConsensusLog {
+func (this *Consensus) CreateConsensusLog(chainMessage *msg.ChainMessage, dataBlock *entity.DataBlock, myselfPeer *entity1.MyselfPeer, status string) *entity.ConsensusLog {
 	log := &entity.ConsensusLog{}
 	log.BlockId = dataBlock.BlockId
 	log.SliceNumber = dataBlock.SliceNumber
@@ -58,7 +74,7 @@ func CreateConsensusLog(chainMessage *msg.ChainMessage, dataBlock *entity.DataBl
 	return log
 }
 
-func GetDataBlock(chainMessage *msg.ChainMessage) (*entity.DataBlock, error) {
+func (this *Consensus) GetDataBlock(chainMessage *msg.ChainMessage) (*entity.DataBlock, error) {
 	var dataBlock *entity.DataBlock
 	if chainMessage.Payload != nil {
 		var ok bool
@@ -73,7 +89,7 @@ func GetDataBlock(chainMessage *msg.ChainMessage) (*entity.DataBlock, error) {
 	return dataBlock, nil
 }
 
-func GetConsensusLog(chainMessage *msg.ChainMessage) (*entity.ConsensusLog, error) {
+func (this *Consensus) GetConsensusLog(chainMessage *msg.ChainMessage) (*entity.ConsensusLog, error) {
 	var messageLog *entity.ConsensusLog
 	if chainMessage.Payload != nil {
 		var ok bool

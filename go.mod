@@ -82,6 +82,7 @@ require (
 	github.com/mumushuiding/util v0.0.0-20201102083322-920f049820a2 // indirect
 	github.com/nats-io/nats-server/v2 v2.1.8 // indirect
 	github.com/panjf2000/gnet v1.3.0
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pion/ion v0.4.6 // indirect
 	github.com/pion/ion-avp v0.0.0-20200628194531-b7b82b17ae83 // indirect
 	github.com/pion/ion-examples v0.0.0-20201119070420-9b701768e6d9 // indirect
