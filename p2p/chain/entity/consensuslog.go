@@ -4,7 +4,7 @@ import (
 	"github.com/curltech/go-colla-core/entity"
 )
 
-type PbftConsensusLog struct {
+type ConsensusLog struct {
 	entity.StatusEntity `xorm:"extends"`
 	// 主节点
 	PrimaryPeerId string `xorm:"varchar(255)" json:",omitempty"`
@@ -34,10 +34,10 @@ type PbftConsensusLog struct {
 	PeerIds           string `xorm:"varchar(255)" json:",omitempty"`
 }
 
-func (PbftConsensusLog) TableName() string {
-	return "blc_pbftconsensuslog"
+func (ConsensusLog) TableName() string {
+	return "blc_consensuslog"
 }
 
-func (PbftConsensusLog) IdName() string {
+func (ConsensusLog) IdName() string {
 	return entity.FieldName_Id
 }
