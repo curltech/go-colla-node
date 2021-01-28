@@ -475,5 +475,5 @@ func init() {
 	handler.RegistChainMessageHandler(msgtype.CONSENSUS_RAFT_PREPREPARED, action.ConsensusAction.Send, raftConsensus.ReceivePreprepared, action.ConsensusAction.Response)
 	handler.RegistChainMessageHandler(msgtype.CONSENSUS_RAFT_PREPARED, action.ConsensusAction.Send, raftConsensus.ReceivePrepared, action.ConsensusAction.Response)
 	handler.RegistChainMessageHandler(msgtype.CONSENSUS_RAFT_COMMITED, action.ConsensusAction.Send, raftConsensus.ReceiveCommited, action.ConsensusAction.Response)
-	handler.RegistChainMessageHandler(msgtype.CONSENSUS_RAFT_REPLY, action.ConsensusAction.Send, raftConsensus.ReceiveCommited, action.ConsensusAction.Response)
+	handler.RegistChainMessageHandler(msgtype.CONSENSUS_RAFT_REPLY, action.ConsensusAction.Send, raftConsensus.ReceiveReply, action.ConsensusAction.Response)
 }
