@@ -50,8 +50,6 @@ func (this *RaftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*ms
 	}
 	if dataBlock.PrimaryPeerId == "" {
 		dataBlock.PrimaryPeerId = myselfPeer.PeerId
-		dataBlock.PrimaryAddress = myselfPeer.Address
-		dataBlock.PrimaryPublicKey = myselfPeer.PublicKey
 	} else {
 		if dataBlock.PrimaryPeerId != myselfPeer.PeerId {
 			return nil, errors.New("MustPrimaryPeer")
@@ -61,7 +59,7 @@ func (this *RaftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*ms
 	/**
 	 * 交易校验通过，主节点进入预准备状态，记录日志
 	 */
-	log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PREPREPARED)
+	log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_RAFT_PREPREPARED)
 	key := this.GetLogCacheKey(log)
 	MemCache.SetDefault(key, log)
 	key = this.GetDataBlockCacheKey(dataBlock.BlockId, dataBlock.SliceNumber)
@@ -78,7 +76,7 @@ func (this *RaftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*ms
 				continue
 			}
 			// 封装消息，异步发送
-			go action.ConsensusAction.ConsensusDataBlock(peerId, msgtype.CONSENSUS_PREPREPARED, dataBlock, "")
+			go action.ConsensusAction.ConsensusDataBlock(peerId, msgtype.CONSENSUS_RAFT_PREPREPARED, dataBlock, "")
 		}
 	} else {
 		logger.Errorf("LessPeerLocation")
@@ -133,7 +131,7 @@ func (this *RaftConsensus) ReceivePreprepared(chainMessage *msg.ChainMessage) (*
 	log.SliceNumber = sliceNumber
 	log.PrimarySequenceId = primarySequenceId
 	log.PeerId = myselfPeer.PeerId
-	log.Status = msgtype.CONSENSUS_PREPREPARED
+	log.Status = msgtype.CONSENSUS_RAFT_PREPREPARED
 
 	key := this.GetLogCacheKey(log)
 	l, found := MemCache.Get(key)
@@ -150,11 +148,11 @@ func (this *RaftConsensus) ReceivePreprepared(chainMessage *msg.ChainMessage) (*
 	}
 	//service2.GetDataBlockService().Save(dataBlock)
 	// 每个副节点记录自己的Preprepared消息
-	log = this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PREPREPARED)
+	log = this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_RAFT_PREPREPARED)
 	/**
 	 * 准备CONSENSUS_PREPARED状态的消息
 	 */
-	log.Status = msgtype.CONSENSUS_PREPARED
+	log.Status = msgtype.CONSENSUS_RAFT_PREPARED
 	key = this.GetLogCacheKey(log)
 	MemCache.SetDefault(key, log)
 	key = this.GetDataBlockCacheKey(dataBlock.BlockId, dataBlock.SliceNumber)
@@ -162,7 +160,7 @@ func (this *RaftConsensus) ReceivePreprepared(chainMessage *msg.ChainMessage) (*
 	/**
 	 * 发送CONSENSUS_PREPARED给leader，表示准备完成，这里与pbft的差异是只发给leader，不需要发给每个follow
 	 */
-	go action.ConsensusAction.ConsensusLog(log.PrimaryPeerId, msgtype.CONSENSUS_PREPARED, log, "")
+	go action.ConsensusAction.ConsensusLog(log.PrimaryPeerId, msgtype.CONSENSUS_RAFT_PREPARED, log, "")
 
 	return nil, nil
 }
@@ -216,7 +214,7 @@ func (this *RaftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg
 	} else {
 		// 记录其他节点发来了Prepared消息，每个节点不会记录自己的Prepared消息
 		messageLog.Id = 0
-		messageLog.Status = msgtype.CONSENSUS_PREPARED
+		messageLog.Status = msgtype.CONSENSUS_RAFT_PREPARED
 		service2.GetConsensusLogService().Insert(messageLog)
 		MemCache.SetDefault(key, messageLog)
 	}
@@ -239,7 +237,7 @@ func (this *RaftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg
 		log.SliceNumber = messageLog.SliceNumber
 		log.PrimarySequenceId = messageLog.PrimarySequenceId
 		log.PeerId = peerId
-		log.Status = msgtype.CONSENSUS_PREPARED
+		log.Status = msgtype.CONSENSUS_RAFT_PREPARED
 		count := 1
 		for _, id := range peerIds {
 			log.PeerId = id
@@ -253,11 +251,11 @@ func (this *RaftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg
 			}
 		}
 		f := len(peerIds) / 3
-		logger.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_PREPARED, count)
+		logger.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_RAFT_PREPARED, count)
 		// 收到足够的数目
 		if count > 2*f {
 			log.PeerId = myPeerId
-			log.Status = msgtype.CONSENSUS_COMMITED
+			log.Status = msgtype.CONSENSUS_RAFT_COMMITED
 			log.Address = myselfPeer.Address
 			log.PublicKey = myselfPeer.PublicKey
 			MemCache.SetDefault(key, log)
@@ -265,7 +263,7 @@ func (this *RaftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg
 				if myPeerId == id {
 					continue
 				}
-				go action.ConsensusAction.ConsensusLog(id, msgtype.CONSENSUS_COMMITED, log, "")
+				go action.ConsensusAction.ConsensusLog(id, msgtype.CONSENSUS_RAFT_COMMITED, log, "")
 			}
 			//保存dataBlock
 		}
@@ -314,7 +312,7 @@ func (this *RaftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg
 	log.SliceNumber = messageLog.SliceNumber
 	log.PrimarySequenceId = messageLog.PrimarySequenceId
 	log.PeerId = peerId
-	log.Status = msgtype.CONSENSUS_COMMITED
+	log.Status = msgtype.CONSENSUS_RAFT_COMMITED
 	key := this.GetLogCacheKey(log)
 	var cacheLog *entity.ConsensusLog
 	l, found := MemCache.Get(key)
@@ -332,7 +330,7 @@ func (this *RaftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg
 	} else {
 		// 记录其他节点发来了Commited消息，每个节点不会记录自己的Commited消息
 		messageLog.Id = 0
-		messageLog.Status = msgtype.CONSENSUS_COMMITED
+		messageLog.Status = msgtype.CONSENSUS_RAFT_COMMITED
 		service2.GetConsensusLogService().Insert(messageLog)
 		MemCache.SetDefault(key, messageLog)
 	}
@@ -353,13 +351,13 @@ func (this *RaftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg
 	/**
 	 * 异步返回leader reply
 	 */
-	log.Status = msgtype.CONSENSUS_REPLY
+	log.Status = msgtype.CONSENSUS_RAFT_REPLY
 	if dataBlock.PeerId != myPeerId {
 		//go service.GetPeerEndpointService().modifyBadCount(-1)
 		log.PublicKey = myselfPeer.PublicKey
 		log.Address = myselfPeer.Address
 		log.ClientPeerId = messageLog.ClientPeerId
-		go action.ConsensusAction.ConsensusLog(dataBlock.PrimaryPeerId, msgtype.CONSENSUS_REPLY, log, "")
+		go action.ConsensusAction.ConsensusLog(dataBlock.PrimaryPeerId, msgtype.CONSENSUS_RAFT_REPLY, log, "")
 	} else {
 		logger.Warnf("SameSrcAndTargetPeer")
 	}
@@ -416,7 +414,7 @@ func (this *RaftConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Ch
 	} else {
 		// 记录其他节点发来了Prepared消息，每个节点不会记录自己的Prepared消息
 		messageLog.Id = 0
-		messageLog.Status = msgtype.CONSENSUS_PREPARED
+		messageLog.Status = msgtype.CONSENSUS_RAFT_PREPARED
 		service2.GetConsensusLogService().Insert(messageLog)
 		MemCache.SetDefault(key, messageLog)
 	}
@@ -439,7 +437,7 @@ func (this *RaftConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Ch
 		log.SliceNumber = messageLog.SliceNumber
 		log.PrimarySequenceId = messageLog.PrimarySequenceId
 		log.PeerId = peerId
-		log.Status = msgtype.CONSENSUS_PREPARED
+		log.Status = msgtype.CONSENSUS_RAFT_PREPARED
 		count := 1
 		for _, id := range peerIds {
 			log.PeerId = id
@@ -453,15 +451,13 @@ func (this *RaftConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Ch
 			}
 		}
 		f := len(peerIds) / 3
-		logger.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_PREPARED, count)
+		logger.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_RAFT_PREPARED, count)
 		// 收到足够的数目
 		if count > 2*f {
 			log.PeerId = myPeerId
-			log.Status = msgtype.CONSENSUS_COMMITED
-			log.Address = myselfPeer.Address
-			log.PublicKey = myselfPeer.PublicKey
+			log.Status = msgtype.CONSENSUS_RAFT_REPLY
 			MemCache.SetDefault(key, log)
-			go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_COMMITED, log, "")
+			go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_RAFT_REPLY, log, "")
 			//保存dataBlock
 		}
 	} else {
