@@ -2,8 +2,8 @@ package dht
 
 import (
 	"context"
-	"github.com/curltech/go-colla-node/config"
-	"github.com/curltech/go-colla-node/crypto/std"
+	"github.com/curltech/go-colla-core/config"
+	"github.com/curltech/go-colla-core/crypto/std"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/ns"
@@ -13,7 +13,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/curltech/go-colla-node/util/message"
+	"github.com/curltech/go-colla-core/util/message"
 	"errors"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/libp2p/go-libp2p-core/peer"
