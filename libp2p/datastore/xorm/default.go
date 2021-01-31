@@ -198,7 +198,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 							peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
 							peerTransaction.TargetPeerType = dhtentity.PeerType_PeerEndpoint
 							peerTransaction.BlockId = obsolete.BlockId
-							peerTransaction.TxSequenceId = obsolete.TxSequenceId
+							//peerTransaction.TxSequenceId = obsolete.TxSequenceId
 							peerTransaction.SliceNumber = obsolete.SliceNumber
 							peerTransaction.BusinessNumber = obsolete.BusinessNumber
 							peerTransaction.TransactionTime = &currentTime
@@ -268,7 +268,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 					if p.SliceSize < oldp.SliceSize {
 						condition, _ := req.Service.NewEntity(nil)
 						reflect.SetValue(condition, req.Keyname, keyvalue)
-						reflect.SetValue(condition, "TxSequenceId", p.TxSequenceId)
+						//reflect.SetValue(condition, "TxSequenceId", p.TxSequenceId)
 						results, _ := req.Service.NewEntities(nil)
 						req.Service.Find(results, condition, "", 0, 0, "")
 						if len(*results.(*[]*chainentity.DataBlock)) > 0 {
@@ -287,7 +287,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 								peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
 								peerTransaction.TargetPeerType = dhtentity.PeerType_PeerEndpoint
 								peerTransaction.BlockId = obsolete.BlockId
-								peerTransaction.TxSequenceId = obsolete.TxSequenceId
+								//peerTransaction.TxSequenceId = obsolete.TxSequenceId
 								peerTransaction.SliceNumber = obsolete.SliceNumber
 								peerTransaction.BusinessNumber = obsolete.BusinessNumber
 								peerTransaction.TransactionTime = &currentTime
@@ -380,7 +380,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 					peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
 					peerTransaction.TargetPeerType = dhtentity.PeerType_PeerEndpoint
 					peerTransaction.BlockId = p.BlockId
-					peerTransaction.TxSequenceId = p.TxSequenceId
+					//peerTransaction.TxSequenceId = p.TxSequenceId
 					peerTransaction.SliceNumber = p.SliceNumber
 					peerTransaction.BusinessNumber = p.BusinessNumber
 					peerTransaction.TransactionTime = &currentTime
