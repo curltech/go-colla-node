@@ -7,10 +7,8 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/ns"
-	handler2 "github.com/curltech/go-colla-node/libp2p/pipe/handler"
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
-	service1 "github.com/curltech/go-colla-node/p2p/chain/service"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
@@ -80,7 +78,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 		}
 	} else if config.Libp2pParams.FaultTolerantLevel == 1 {
 		// 查询删除local历史记录
-		locals, err := service1.GetLocalPCs(ns.PeerClient_KeyKind, peerId, "", "")
+		locals, err := service.GetPeerClientService().GetLocals(ns.PeerClient_KeyKind, peerId, "", "")
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
 			return response, nil
@@ -95,7 +93,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 			return response, nil
 		}
 		// 恢复local历史记录
-		err = service1.PutLocalPCs(locals)
+		err = service.GetPeerClientService().PutLocals(locals)
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
 			return response, nil
@@ -109,7 +107,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
 			}
-			err = service1.PutLocalPCs(pcArr)
+			err = service.GetPeerClientService().PutLocals(pcArr)
 			if err != nil {
 				logger.Errorf("failed to PutLocalPCs PeerClient value: %v, err: %v", recvdVal.Val, err)
 				response = handler.Error(chainMessage.MessageType, err)
@@ -117,7 +115,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 			}
 		}
 		// 再次查询local历史记录
-		pcs, err = service1.GetLocalPCs(ns.PeerClient_KeyKind, peerId, "", "")
+		pcs, err = service.GetPeerClientService().GetLocals(ns.PeerClient_KeyKind, peerId, "", "")
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
 			return response, nil
@@ -143,7 +141,8 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 				pc.ExpireDate = expireDate
 				pc.Mobile = std.EncodeBase64(std.Hash(pc.Mobile, "sha3_256"))
 				pc.PublicKey = peerClient.PublicKey // 可能resetKey
-				err := service1.PutPCs(pc)
+				pc.LastUpdateTime = peerClient.LastUpdateTime
+				err := service.GetPeerClientService().PutValues(pc)
 				if err != nil {
 					response = handler.Error(chainMessage.MessageType, err)
 					return response, nil
@@ -157,7 +156,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 		peerClient.LastAccessTime = &currentTime
 		peerClient.ActiveStatus = entity.ActiveStatus_Up
 		peerClient.Mobile = std.EncodeBase64(std.Hash(peerClient.Mobile, "sha3_256"))
-		err := service1.PutPCs(peerClient)
+		err := service.GetPeerClientService().PutValues(peerClient)
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
 			return response, nil
@@ -172,29 +171,13 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 			// 同种设备实例踢下线
 			if pc.ClientId != clientId {
 				if pc.ClientDevice == clientDevice && pc.ActiveStatus == entity.ActiveStatus_Up {
-					wcm := msg.WebsocketChainMessage{}
-					wcm.SrcPeerClient = peerClient
-					wcm.TargetPeerClient = pc
-					wcm.MessageType = msgtype.SOCKET_LOGOUT
-					payload := make(map[string]interface{}, 0)
-					payload["clientId"] = clientId
-					wcm.Payload = &payload
-					if pc.ConnectPeerId == global.Global.MyselfPeer.DiscoveryAddress {
-						_, ok := handler2.GetPipePool().GetConnectionPool(pc.PeerId, pc.ConnectSessionId)
-						if ok {
-							ChatAction.Chat("", handler.PayloadType_WebsocketChainMessage, wcm, pc.PeerId)
-						}
-					} else {
-						cm := msg.ChainMessage{}
-						cm.Payload = wcm
-						cm.ConnectPeerId = pc.ConnectPeerId
-						addrPort := strings.Split(pc.ConnectAddress, ":")
-						cm.ConnectAddress = addrPort[0]
-						cm.PayloadType = handler.PayloadType_WebsocketChainMessage
-						cm.MessageType = msgtype.PEERWEBSOCKET
-						cm.MessageDirect = msgtype.MsgDirect_Request
-						this.Send(&cm)
-					}
+					chat := make(map[string]interface{}, 0)
+					chat["type"] = msgtype.CHAT_LOGOUT
+					chat["srcClientId"] = peerClient.ClientId
+					chat["srcPeerId"] = peerClient.PeerId
+					chat["srcClientType"] = peerClient.ClientType
+					chat["createDate"] = &currentTime
+					go ChatAction.Chat("", handler.PayloadType_Map, chat, pc.PeerId, pc.ConnectSessionId)
 				}
 			}
 		}
