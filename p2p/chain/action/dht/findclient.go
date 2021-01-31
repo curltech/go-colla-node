@@ -9,7 +9,6 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
-	service1 "github.com/curltech/go-colla-node/p2p/chain/service"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
@@ -100,9 +99,9 @@ func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 		var locals []*entity.PeerClient
 		var err error
 		if len(peerId) > 0 {
-			locals, err = service1.GetLocalPCs(ns.PeerClient_KeyKind, peerId, "", "")
+			locals, err = service.GetPeerClientService().GetLocals(ns.PeerClient_KeyKind, peerId, "", "")
 		} else if len(mobileNumber) > 0 {
-			locals, err = service1.GetLocalPCs(ns.PeerClient_Mobile_KeyKind, "", mobileNumber, "")
+			locals, err = service.GetPeerClientService().GetLocals(ns.PeerClient_Mobile_KeyKind, "", mobileNumber, "")
 		}
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
@@ -121,7 +120,7 @@ func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			return response, nil
 		}
 		// 恢复local记录
-		err = service1.PutLocalPCs(locals)
+		err = service.GetPeerClientService().PutLocals(locals)
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
 			return response, nil
