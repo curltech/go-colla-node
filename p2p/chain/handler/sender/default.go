@@ -77,7 +77,7 @@ func send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 				}
 			} else {
 				//也许可以找targetPeerId最近的节点发送
-				logger.Error("InvalidConnectPeerId")
+				logger.Errorf("InvalidConnectPeerId")
 				return nil, errors.New("InvalidConnectPeerId")
 			}
 		}
