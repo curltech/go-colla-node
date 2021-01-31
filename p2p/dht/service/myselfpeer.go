@@ -5,10 +5,8 @@ import (
 	entity2 "github.com/curltech/go-colla-core/entity"
 	"github.com/curltech/go-colla-core/service"
 	"github.com/curltech/go-colla-core/util/message"
-	"sync"
-
-	//"github.com/curltech/go-colla-core/p2p"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
+	"sync"
 )
 
 /**
