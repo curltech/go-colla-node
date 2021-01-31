@@ -97,7 +97,7 @@ func GetLocalDBs(keyKind string, createPeerId string, blockId string, receiverPe
 				}
 			}
 			if ((len(receiverPeerId) == 0 && len(dataBlock.PayloadKey) == 0) || (len(receiverPeerId) > 0 && receivable == true)) &&
-				(txSequenceId > 0 && dataBlock.TxSequenceId == uint64(txSequenceId)) &&
+				(txSequenceId > 0/* && dataBlock.TxSequenceId == uint64(txSequenceId)*/) &&
 				(sliceNumber > 0 && dataBlock.SliceNumber == uint64(sliceNumber)) {
 				dbs = append(dbs, dataBlock)
 			}
