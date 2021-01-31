@@ -23,7 +23,7 @@ func HandleRaw(data []byte, p *pipe.Pipe) ([]byte, error) {
 	protocolID := stream.Protocol()
 	protocolMessageHandler, err := handler.GetProtocolMessageHandler(string(protocolID))
 	if err != nil {
-
+		logger.Errorf(err.Error())
 	}
 	//调用Receive函数或者Response函数处理
 	data, err = protocolMessageHandler.ReceiveHandler(data, p)
@@ -36,10 +36,6 @@ func HandleRaw(data []byte, p *pipe.Pipe) ([]byte, error) {
 	logger.Infof("read protocolID:%v", protocolID)
 
 	return data, nil
-}
-
-type Sender interface {
-	SendRaw(peerId string, address string, protocolId string, data []byte) ([]byte, error)
 }
 
 /**
@@ -61,28 +57,13 @@ func GetAddrInfo(peerId string) string {
 	return peerId
 }
 
-/**
-使用特定的协议，peerId和地址，利用原有的或者创建新的管道发送数据
-这里有个冲突，就是发送给定位器，peerId带地址，发送给PeerClient则没有地址，如果分成两个方法也许更好
-*/
-func SendRaw(peerId string, protocolId string, data []byte) ([]byte, error) {
-	peerId = GetAddrInfo(peerId)
-	pipe, err := GetPipePool().GetRequestPipe(peerId, protocolId)
-	if err != nil {
-		logger.Errorf("createPipe failure")
-
-		return nil, err
+func GetPeerId(peerId string) string {
+	ps := strings.Split(peerId, "/")
+	if len(ps) > 1 {
+		return ps[len(ps)-1]
 	}
 
-	logger.Infof("Write data length:%v", len(data))
-	pipe, _, err = pipe.Write(data, false)
-	if err != nil {
-		logger.Errorf("pipe.Write failure")
-
-		return nil, err
-	}
-
-	return data, nil
+	return peerId
 }
 
 /**
@@ -90,6 +71,6 @@ func SendRaw(peerId string, protocolId string, data []byte) ([]byte, error) {
 */
 func ProtocolStream(protocolID protocol.ID) {
 	global.Global.Host.SetStreamHandler(protocolID, func(stream network.Stream) {
-		CreatePipe(stream, msgtype.MsgDirect_Response)
+		GetPipePool().CreatePipe(stream, msgtype.MsgDirect_Response)
 	})
 }
