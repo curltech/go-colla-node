@@ -18,7 +18,6 @@ import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
-	"strings"
 	"sync"
 	"time"
 )
