@@ -8,7 +8,6 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-core/config"
-	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-core/logger"
 	"sync"
 	"errors"
@@ -97,22 +96,7 @@ func (this *PeerClientService) GetFromCache(peerId string) *entity.PeerClient {
 	return ptr.(*entity.PeerClient)
 }
 
-func (this *PeerClientService) Validate(messagePayload *msg.MessagePayload) error {
-	peerClient := messagePayload.Payload.(*entity.PeerClient)
-	if peerClient == nil {
-		return errors.New("NullPeerClient")
-	}
-	srcPeer := messagePayload.SrcPeer.(*entity.PeerClient)
-	srcPeerId := srcPeer.PeerId
-	senderPeerId := peerClient.PeerId
-	if senderPeerId != srcPeerId {
-		return errors.New("SenderAndSrcPeerPeerIdAreDifferent")
-	}
-	srcPublicKey := srcPeer.PublicKey
-	senderPublicKey := peerClient.PublicKey
-	if senderPublicKey != srcPublicKey {
-		return errors.New("SenderAndSrcPeerPublicKeyAreDifferent")
-	}
+func (this *PeerClientService) Validate(peerClient *entity.PeerClient) error {
 	expireDate := peerClient.ExpireDate
 	if expireDate == 0 {
 		return errors.New("Invalid expireDate")
