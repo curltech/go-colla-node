@@ -32,6 +32,7 @@ var ConnectAction connectAction
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
 func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+	logger.Infof("Receive %v message", this.MsgType)
 	var response *msg.ChainMessage = nil
 	v := chainMessage.Payload
 	peerClient, ok := v.(*entity.PeerClient)
