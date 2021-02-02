@@ -21,7 +21,6 @@ var FindPeerAction findPeerAction
 在chain目录下的采用自定义protocol "/chain"的方式自己实现的功能
 */
 func (this *findPeerAction) FindPeer(peerId string, payloadType string, data interface{}) (interface{}, error) {
-	logger.Infof("Receive %v message", this.MsgType)
 	chainMessage := msg.ChainMessage{}
 	chainMessage.Payload = data
 	chainMessage.ConnectPeerId = peerId
@@ -41,6 +40,7 @@ func (this *findPeerAction) FindPeer(peerId string, payloadType string, data int
 }
 
 func (this *findPeerAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+	logger.Infof("Receive %v message", this.MsgType)
 	v := chainMessage.Payload
 	id, ok := v.(string)
 	if !ok {
