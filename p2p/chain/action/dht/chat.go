@@ -20,7 +20,6 @@ var ChatAction chatAction
 在chain目录下的采用自定义protocol "/chain"的方式自己实现的功能
 */
 func (this *chatAction) Chat(peerId string, payloadType string, data interface{}, targetPeerId string, targetConnectSessionId string) (interface{}, error) {
-	logger.Infof("Receive %v message", this.MsgType)
 	chainMessage := msg.ChainMessage{}
 	chainMessage.TargetPeerId = targetPeerId
 	chainMessage.TargetConnectSessionId = targetConnectSessionId
@@ -42,6 +41,7 @@ func (this *chatAction) Chat(peerId string, payloadType string, data interface{}
 }
 
 func (this *chatAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+	logger.Infof("Receive %v message", this.MsgType)
 	go sender.RelaySend(chainMessage)
 	response := handler.Response(chainMessage.MessageType, time.Now())
 
