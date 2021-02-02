@@ -23,7 +23,6 @@ var PutValueAction putValueAction
 在chain目录下的采用自定义protocol "/chain"的方式自己实现的功能
 */
 func (this *putValueAction) PutValue(peerId string, payloadType string, data interface{}) (interface{}, error) {
-	logger.Infof("Receive %v message", this.MsgType)
 	chainMessage := msg.ChainMessage{}
 	chainMessage.Payload = data
 	chainMessage.ConnectPeerId = peerId
@@ -43,6 +42,7 @@ func (this *putValueAction) PutValue(peerId string, payloadType string, data int
 }
 
 func (this *putValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+	logger.Infof("Receive %v message", this.MsgType)
 	var response *msg.ChainMessage = nil
 	v := chainMessage.Payload
 	peerClient, ok := v.(*entity.PeerClient)
