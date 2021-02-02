@@ -32,7 +32,7 @@ func (this *findClientAction) FindClient(peerId string, targetPeerId string, mob
 	chainMessage.Payload = conditionBean
 	chainMessage.ConnectPeerId = peerId
 	chainMessage.PayloadType = handler.PayloadType_Map
-	chainMessage.MessageType = msgtype.TRANSFINDCLIENT
+	chainMessage.MessageType = msgtype.FINDCLIENT
 	chainMessage.MessageDirect = msgtype.MsgDirect_Request
 
 	response, err := this.Send(&chainMessage)
