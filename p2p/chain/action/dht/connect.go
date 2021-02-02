@@ -40,6 +40,11 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 		response = handler.Error(chainMessage.MessageType, errors.New("PayloadDataTypeError"))
 		return response, nil
 	}
+	err := service.GetPeerClientService().Validate(peerClient)
+	if err != nil {
+		response = handler.Error(chainMessage.MessageType, err)
+		return response, nil
+	}
 	peerClient.ConnectSessionId = chainMessage.ConnectSessionId
 
 	peerId := peerClient.PeerId
