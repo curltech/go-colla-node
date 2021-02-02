@@ -50,6 +50,7 @@ func (this *findClientAction) FindClient(peerId string, targetPeerId string, mob
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
 func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+	logger.Infof("Receive %v message", this.MsgType)
 	var response *msg.ChainMessage = nil
 	conditionBean, ok := chainMessage.Payload.(map[string]interface{})
 	if !ok {
