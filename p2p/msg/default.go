@@ -73,6 +73,7 @@ type ChainMessage struct {
 	 * 负载json的源peer的签名
 	 */
 	PayloadSignature string `json:",omitempty"`
+	PreviousPublicKeyPayloadSignature string `json:",omitempty"`
 	/**
 	 * 根据此字段来把TransportPayload对应的字节还原成Payload的对象，最简单的就是字符串
 	 * 也可以是一个复杂的结构，但是dht的数据结构（peerendpoint），通用网络块存储（datablock）一般不用这种方式操作
