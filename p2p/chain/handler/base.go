@@ -143,7 +143,11 @@ func Decrypt(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 			payloadSignature := std.DecodeBase64(msg.PayloadSignature)
 			pass := openpgp.Verify(srcPublicKey, data, payloadSignature)
 			if pass != true {
-				return nil, errors.New("PayloadVerifyFailure")
+				previousPublicKeyPayloadSignature := std.DecodeBase64(msg.PreviousPublicKeyPayloadSignature)
+				pass = openpgp.Verify(srcPublicKey, data, previousPublicKeyPayloadSignature)
+				if pass != true {
+					return nil, errors.New("PayloadVerifyFailure")
+				}
 			}
 		}
 		payloadKey := std.DecodeBase64(msg.PayloadKey)
