@@ -135,24 +135,20 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				p := entity.(*dhtentity.PeerClient)
 				// 校验Signature
 				if p.ExpireDate > 0 {
-					var stringPublicKey string
 					var signature []byte
 					if oldp.PublicKey == p.PublicKey {
-						stringPublicKey = p.PublicKey
 						signature = std.DecodeBase64(p.Signature)
 					} else {
-						stringPublicKey = oldp.PublicKey
 						signature = std.DecodeBase64(p.PreviousPublicKeySignature)
 					}
-					bytePublicKey := std.DecodeBase64(stringPublicKey)
-					publicKey, err := openpgp.LoadPublicKey(bytePublicKey)
+					publicKey, err := openpgp.LoadPublicKey(std.DecodeBase64(oldp.PublicKey))
 					if err != nil {
-						return errors.New(fmt.Sprintf("LoadPublicKeyFailure, peerId: %v, publicKey: %v", p.PeerId, stringPublicKey))
+						return errors.New(fmt.Sprintf("LoadPublicKeyFailure, peerId: %v, publicKey: %v", p.PeerId, oldp.PublicKey))
 					}
 					signatureData := strconv.FormatInt(p.ExpireDate, 10) + p.PeerId
 					pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
 					if pass != true {
-						return errors.New(fmt.Sprintf("PeerClientSignatureVerifyFailure, peerId: %v, publicKey: %v", p.PeerId, stringPublicKey))
+						return errors.New(fmt.Sprintf("PeerClientSignatureVerifyFailure, peerId: %v, publicKey: %v", p.PeerId, oldp.PublicKey))
 					}
 				}
 			} else if namespace == ns.DataBlock_Prefix || namespace == ns.DataBlock_Owner_Prefix {
@@ -228,17 +224,15 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				p := entity.(*dhtentity.PeerClient)
 				// 校验Signature
 				if p.ExpireDate > 0 {
-					stringPublicKey := p.PublicKey
-					bytePublicKey := std.DecodeBase64(stringPublicKey)
-					publicKey, err := openpgp.LoadPublicKey(bytePublicKey)
+					publicKey, err := openpgp.LoadPublicKey(std.DecodeBase64(p.PublicKey))
 					if err != nil {
-						return errors.New(fmt.Sprintf("LoadPublicKeyFailure, peerId: %v, publicKey: %v", p.PeerId, stringPublicKey))
+						return errors.New(fmt.Sprintf("LoadPublicKeyFailure, peerId: %v, publicKey: %v", p.PeerId, p.PublicKey))
 					}
 					signatureData := strconv.FormatInt(p.ExpireDate, 10) + p.PeerId
 					signature := std.DecodeBase64(p.Signature)
 					pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
 					if pass != true {
-						return errors.New(fmt.Sprintf("PeerClientSignatureVerifyFailure, peerId: %v, publicKey: %v", p.PeerId, stringPublicKey))
+						return errors.New(fmt.Sprintf("PeerClientSignatureVerifyFailure, peerId: %v, publicKey: %v", p.PeerId, p.PublicKey))
 					}
 				}
 			} else if namespace == ns.DataBlock_Prefix || namespace == ns.DataBlock_Owner_Prefix {
