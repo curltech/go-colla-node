@@ -40,9 +40,9 @@ func FindPeers(routingDiscovery *discovery.RoutingDiscovery) {
 		}
 		logger.Infof("Found peer:%v", peer)
 		logger.Infof("Connecting to:%v", peer)
-		_, err := handler.GetPipePool().GetRequestPipe(string(peer.ID), string(global.Global.ChainProtocolID))
-		if err != nil {
-			logger.Infof("GetRequestPipe failed:%v", err)
+		p := handler.GetPipePool().GetRequestPipe(string(peer.ID), string(global.Global.ChainProtocolID))
+		if p == nil {
+			logger.Infof("NoPipe, failed to connect to:%v", peer)
 			continue
 		}
 

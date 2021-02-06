@@ -35,7 +35,7 @@ func (nn *cmNotifee) Connected(n network.Network, c network.Conn) {
 	nn.BasicConnMgr.Notifee().Connected(n, c)
 	peerId := c.RemotePeer().Pretty()
 	addr := c.RemoteMultiaddr().String()
-	logger.Infof("New Connected! %v, addr:%v", peerId, addr)
+	logger.Infof("New Connected! %v %v, addr:%v", peerId, c.ID(), addr)
 }
 
 // Disconnected is called by notifiers to inform that an existing connection has been closed or terminated.
@@ -44,7 +44,7 @@ func (nn *cmNotifee) Disconnected(n network.Network, c network.Conn) {
 	nn.BasicConnMgr.Notifee().Disconnected(n, c)
 	peerId := c.RemotePeer().Pretty()
 	addr := c.RemoteMultiaddr().String()
-	logger.Infof("New Disconnected! %v, addr:%v", peerId, addr)
+	logger.Infof("New Disconnected! %v %v, addr:%v", peerId, c.ID(), addr)
 	handler.GetPipePool().Disconnect(peerId, c.ID())
 }
 
@@ -68,8 +68,8 @@ func (nn *cmNotifee) OpenedStream(n network.Network, s network.Stream) {
 
 // ClosedStream is no-op in this implementation.
 func (nn *cmNotifee) ClosedStream(n network.Network, s network.Stream) {
-	nn.BasicConnMgr.Notifee().ClosedStream(n, s)
-	logger.Infof("New ClosedStream! %v %v", s.ID(), s.Protocol())
 	peerId := s.Conn().RemotePeer().Pretty()
+	logger.Infof("New ClosedStream! %v %v %v", s.ID(), s.Protocol(), peerId)
+	nn.BasicConnMgr.Notifee().ClosedStream(n, s)
 	handler.GetPipePool().Close(peerId, string(s.Protocol()), s.Conn().ID(), s.ID())
 }

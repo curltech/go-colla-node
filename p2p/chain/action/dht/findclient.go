@@ -9,7 +9,6 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
-	service1 "github.com/curltech/go-colla-node/p2p/chain/service"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
@@ -33,7 +32,7 @@ func (this *findClientAction) FindClient(peerId string, targetPeerId string, mob
 	chainMessage.Payload = conditionBean
 	chainMessage.ConnectPeerId = peerId
 	chainMessage.PayloadType = handler.PayloadType_Map
-	chainMessage.MessageType = msgtype.TRANSFINDCLIENT
+	chainMessage.MessageType = msgtype.FINDCLIENT
 	chainMessage.MessageDirect = msgtype.MsgDirect_Request
 
 	response, err := this.Send(&chainMessage)
@@ -51,6 +50,7 @@ func (this *findClientAction) FindClient(peerId string, targetPeerId string, mob
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
 func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+	logger.Infof("Receive %v message", this.MsgType)
 	var response *msg.ChainMessage = nil
 	conditionBean, ok := chainMessage.Payload.(map[string]interface{})
 	if !ok {
@@ -100,9 +100,9 @@ func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 		var locals []*entity.PeerClient
 		var err error
 		if len(peerId) > 0 {
-			locals, err = service1.GetLocalPCs(ns.PeerClient_KeyKind, peerId, "", "")
+			locals, err = service.GetPeerClientService().GetLocals(ns.PeerClient_KeyKind, peerId, "", "")
 		} else if len(mobileNumber) > 0 {
-			locals, err = service1.GetLocalPCs(ns.PeerClient_Mobile_KeyKind, "", mobileNumber, "")
+			locals, err = service.GetPeerClientService().GetLocals(ns.PeerClient_Mobile_KeyKind, "", mobileNumber, "")
 		}
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
@@ -121,7 +121,7 @@ func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			return response, nil
 		}
 		// 恢复local记录
-		err = service1.PutLocalPCs(locals)
+		err = service.GetPeerClientService().PutLocals(locals)
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
 			return response, nil

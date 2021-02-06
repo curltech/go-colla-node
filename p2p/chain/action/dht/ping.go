@@ -25,7 +25,6 @@ Ping只是一个演示，适合点对点的通信，这种方式灵活度高，�
 chat就可以采用这种方式
 */
 func (this *pingAction) Ping(peerId string, targetPeerId string) (interface{}, error) {
-	logger.Infof("Receive %v message", this.MsgType)
 	chainMessage := msg.ChainMessage{}
 	chainMessage.TargetPeerId = targetPeerId
 	chainMessage.Payload = global.Global.MyselfPeer

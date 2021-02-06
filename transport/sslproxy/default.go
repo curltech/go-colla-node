@@ -146,15 +146,15 @@ func Start() error {
 			logger.Infof("Proxying calls from https://%s to %s with LetsEncrypt started!", config.ProxyParams.Address, toURL)
 			err = server.ListenAndServeTLS("", "")
 			if err != nil {
-				logger.Errorf("%v", err.Error())
+				logger.Errorf("failed to server.ListenAndServeTLS: %v", err.Error())
 			}
 		} else {
 			// 没有域名，使用自己生成的证书
 			if config.ProxyParams.Mode == "tls" {
 				logger.Infof("Proxying calls from https://%s to %s started!", config.ProxyParams.Address, toURL)
 				err = http.ListenAndServeTLS(config.ProxyParams.Address, config.TlsParams.Cert, config.TlsParams.Key, mux)
-				if err == nil {
-					logger.Errorf("%v", err.Error())
+				if err != nil {
+					logger.Errorf("failed to http.ListenAndServeTLS: %v", err.Error())
 				}
 			}
 		}
