@@ -107,7 +107,7 @@ func Bootstrap() error {
 			} else {
 				logger.Infof("Connection established with bootstrap node: %v", peerInfo)
 			}
-			_, err := dht.PingAction.Ping(peerId, "")
+			_, err := dht.PingAction.Ping(peerId, peerId)
 			if err != nil {
 				logger.Errorf("bootstrapPeerInfo %v failed to ping: %v", peerInfo, err)
 			} else {
