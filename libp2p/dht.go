@@ -7,6 +7,8 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/datastore/xorm"
 	dht2 "github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/ns"
+	"github.com/curltech/go-colla-node/p2p/chain/action/dht"
+	"github.com/curltech/go-colla-node/p2p/msgtype"
 	badger "github.com/ipfs/go-ds-badger2"
 	"github.com/ipfs/go-ds-flatfs"
 	"github.com/ipfs/go-ds-leveldb"
@@ -288,12 +290,12 @@ func routingTableFilter(dht *kaddht.IpfsDHT, conns []network.Conn) bool {
 func PeerAdded(id peer.ID) {
 	logger.Infof("PeerEndpointDHT.RoutingTable add peer: %v", id.Pretty())
 
-	//err := dht.PingAction.Ping(id.Pretty(), "")
-	//if err != nil {
-	//	logger.Errorf("failed to ping: %v, err: %v", id.Pretty(), err)
-	//} else {
-	//	logger.Infof("successfully ping: %v", id.Pretty())
-	//}
+	response, err := dht.PingAction.Ping(id.Pretty(), "")
+	if err == nil && response == msgtype.OK {
+		golog.Infof("successfully ping: %v", id.Pretty())
+	} else {
+		golog.Errorf("failed to ping: %v, err: %v", id.Pretty(), err)
+	}
 
 	dht2.PingPing(id)
 }
