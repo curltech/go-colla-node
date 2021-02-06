@@ -292,9 +292,9 @@ func PeerAdded(id peer.ID) {
 
 	response, err := dht.PingAction.Ping(id.Pretty(), "")
 	if err == nil && response == msgtype.OK {
-		golog.Infof("successfully ping: %v", id.Pretty())
+		logger.Infof("successfully ping: %v", id.Pretty())
 	} else {
-		golog.Errorf("failed to ping: %v, err: %v", id.Pretty(), err)
+		logger.Errorf("failed to ping: %v, err: %v", id.Pretty(), err)
 	}
 
 	dht2.PingPing(id)
