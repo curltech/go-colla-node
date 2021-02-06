@@ -290,7 +290,7 @@ func routingTableFilter(dht *kaddht.IpfsDHT, conns []network.Conn) bool {
 func PeerAdded(id peer.ID) {
 	logger.Infof("PeerEndpointDHT.RoutingTable add peer: %v", id.Pretty())
 
-	response, err := dht.PingAction.Ping(id.Pretty(), "")
+	response, err := dht.PingAction.Ping(id.Pretty(), id.Pretty())
 	if err == nil && response == msgtype.OK {
 		logger.Infof("successfully ping: %v", id.Pretty())
 	} else {
