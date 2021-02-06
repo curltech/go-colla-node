@@ -3,6 +3,7 @@ package raft
 import (
 	"errors"
 	"github.com/curltech/go-colla-core/cache"
+	"github.com/curltech/go-colla-core/config"
 	entity2 "github.com/curltech/go-colla-core/entity"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/consensus"
@@ -33,7 +34,7 @@ func GetStdConsensus() *StdConsensus {
 }
 
 /**
- * leader 收到消息请求，向每个follow发送preprepared消息，实现与pbft一样
+ * primary 收到消息请求，向每个follow发送commited消息
  *
  * @param chainMessage
  * @return
@@ -59,45 +60,47 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 		}
 	}
 
-	/**
-	 * 交易校验通过，主节点进入预准备状态，记录日志
-	 */
-	log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PREPREPARED)
-	key := this.GetLogCacheKey(log)
-	MemCache.SetDefault(key, log)
-	key = this.GetDataBlockCacheKey(dataBlock.BlockId, dataBlock.SliceNumber)
-	MemCache.SetDefault(key, dataBlock)
-
 	peerIds := this.ChooseConsensusPeer()
-	if peerIds != nil && len(peerIds) > 2 {
+	if peerIds != nil && len(peerIds) > 0 {
+		/**
+		 * 交易校验通过，主节点进入预准备状态，记录日志
+		 */
+		log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PREPREPARED)
+		logkey := this.GetLogCacheKey(log)
+		MemCache.SetDefault(logkey, log)
+		datakey := this.GetDataBlockCacheKey(dataBlock.BlockId, dataBlock.SliceNumber)
+		MemCache.SetDefault(datakey, dataBlock)
 		log.PeerIds = strings.Join(peerIds, ",")
 		/**
-		 * 发送CONSENSUS_PREPREPARED给副节点，告知主节点的状态
+		 * 发送CONSENSUS_COMMITED给副节点，告知主节点的状态
 		 */
 		for _, peerId := range peerIds {
 			if myselfPeer.PeerId == peerId {
 				continue
 			}
 			// 封装消息，异步发送
-			go action.ConsensusAction.ConsensusDataBlock(peerId, msgtype.CONSENSUS_PREPREPARED, dataBlock, "")
+			go action.ConsensusAction.ConsensusDataBlock(peerId, msgtype.CONSENSUS_COMMITED, dataBlock, "")
 		}
-	} else {
-		logger.Errorf("LessPeerLocation")
+		response := handler.Response(msgtype.CONSENSUS_PREPREPARED, msgtype.RESPONSE)
 
-		return nil, errors.New("LessPeerLocation")
+		return response, nil
+	} else {
+		service2.GetDataBlockService().Insert(dataBlock)
+		response := handler.Ok(msgtype.CONSENSUS_COMMITED)
+
+		return response, nil
 	}
 
 	return nil, nil
 }
 
 /**
- * follow收到commited消息，完成后，向leader发送reply消息，
- * 这里与pbft的差异是不用判断，完成后reply消息发送给leader，而不是发给客户端
+ * vice收到commited消息，完成后，向primary发送reply消息
  */
 func (this *StdConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
 	// 本节点是主副节点都会收到
 	logger.Infof("receive ReceiveCommited")
-	messageLog, err := this.GetConsensusLog(chainMessage)
+	dataBlock, err := this.GetDataBlock(chainMessage)
 	if err != nil {
 		return nil, err
 	}
@@ -108,74 +111,22 @@ func (this *StdConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.
 	if myselfPeer.Id == 0 {
 		return nil, errors.New("NoMyselfPeer")
 	}
-	myPeerId := myselfPeer.PeerId
-	/**
-	 * 通过检查PbftConsensusLogEO日志判断是否该接受还是拒绝
-	 */
-	peerId := messageLog.PeerId
-	if peerId == myPeerId {
-		logger.Errorf("%v", messageLog)
-		return nil, errors.New("SendMyselfMessage")
-	}
 
-	/**
-	 * 检查自己是否重复收到CONSENSUS_COMMITED消息
-	 */
-	log := &entity.ConsensusLog{}
-	log.PrimaryPeerId = messageLog.PrimaryPeerId
-	log.BlockId = messageLog.BlockId
-	log.SliceNumber = messageLog.SliceNumber
-	log.PrimarySequenceId = messageLog.PrimarySequenceId
-	log.PeerId = peerId
-	log.Status = msgtype.CONSENSUS_COMMITED
-	key := this.GetLogCacheKey(log)
-	var cacheLog *entity.ConsensusLog
-	l, found := MemCache.Get(key)
-	if found {
-		cacheLog = l.(*entity.ConsensusLog)
-	}
-	// 已经记录了提交消息，重复收到，检查hash
-	if cacheLog != nil {
-		existPayloadHash := cacheLog.PayloadHash
-		if messageLog.PayloadHash != existPayloadHash {
-			//go service.GetPeerEndpointService().modifyBadCount()
-
-			return nil, errors.New("ErrorPayloadHash")
-		}
-	} else {
-		// 记录其他节点发来了Commited消息，每个节点不会记录自己的Commited消息
-		messageLog.Id = 0
-		messageLog.Status = msgtype.CONSENSUS_COMMITED
-		service2.GetConsensusLogService().Insert(messageLog)
-		MemCache.SetDefault(key, messageLog)
-	}
+	log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_COMMITED)
 
 	/**
 	 * 数据块记录有效
 	 */
-	var dataBlock *entity.DataBlock
-	//dataBlock = service2.GetDataBlockService().GetCachedDataBlock(blockId, txSequenceId, sliceNumber)
+	//dataBlock = service2.GetDataBlockService().GetDataBlock(blockId, sliceNumber)
 	if dataBlock != nil {
-		status := dataBlock.Status
-		if entity2.EntityStatus_Effective != status {
-			dataBlock.Status = entity2.EntityStatus_Effective
-			service2.GetDataBlockService().Update(dataBlock, nil, "")
-		}
+		dataBlock.Status = entity2.EntityStatus_Effective
+		service2.GetDataBlockService().Insert(dataBlock)
 	}
 
 	/**
 	 * 异步返回leader reply
 	 */
-	log.Status = msgtype.CONSENSUS_REPLY
-	if dataBlock.PeerId != myPeerId {
-		//go service.GetPeerEndpointService().modifyBadCount(-1)
-		log.PublicKey = myselfPeer.PublicKey
-		log.Address = myselfPeer.Address
-		log.ClientPeerId = messageLog.ClientPeerId
-		go action.ConsensusAction.ConsensusLog(dataBlock.PrimaryPeerId, msgtype.CONSENSUS_REPLY, log, "")
-	} else {
-		logger.Warnf("SameSrcAndTargetPeer")
-	}
+	go action.ConsensusAction.ConsensusLog(dataBlock.PrimaryPeerId, msgtype.CONSENSUS_REPLY, log, "")
 
 	return nil, nil
 }
@@ -185,8 +136,6 @@ leader收到reply消息，判断完成后向客户就返回reply消息
 与pbft的差异是pbft在上一步就完成了向客户端发送reply
 */
 func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	// 本节点是主副节点都会收到
-	logger.Infof("receive ReceivePrepared")
 	messageLog, err := this.GetConsensusLog(chainMessage)
 	if err != nil {
 		return nil, err
@@ -229,7 +178,7 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 	} else {
 		// 记录其他节点发来了Prepared消息，每个节点不会记录自己的Prepared消息
 		messageLog.Id = 0
-		messageLog.Status = msgtype.CONSENSUS_PREPARED
+		messageLog.Status = msgtype.CONSENSUS_REPLY
 		service2.GetConsensusLogService().Insert(messageLog)
 		MemCache.SetDefault(key, messageLog)
 	}
@@ -245,14 +194,14 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 		dataBlock = d.(*entity.DataBlock)
 	}
 	peerIds := strings.Split(dataBlock.PeerIds, ",")
-	if peerIds != nil && len(peerIds) > 2 {
+	if peerIds != nil && len(peerIds) > 0 {
 		log := &entity.ConsensusLog{}
 		log.PrimaryPeerId = primaryPeerId
 		log.BlockId = messageLog.BlockId
 		log.SliceNumber = messageLog.SliceNumber
 		log.PrimarySequenceId = messageLog.PrimarySequenceId
 		log.PeerId = peerId
-		log.Status = msgtype.CONSENSUS_PREPARED
+		log.Status = msgtype.CONSENSUS_REPLY
 		count := 1
 		for _, id := range peerIds {
 			log.PeerId = id
@@ -265,19 +214,15 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 				count++
 			}
 		}
-		f := len(peerIds) / 3
-		logger.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_PREPARED, count)
+		logger.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_REPLY, count)
 		// 收到足够的数目
-		if count > 2*f {
+		if count > config.ConsensusParams.MinPeerNum {
+			//保存dataBlock
+			service2.GetDataBlockService().Insert(dataBlock)
 			log.PeerId = myPeerId
 			log.Status = msgtype.CONSENSUS_REPLY
-			MemCache.SetDefault(key, log)
 			go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_REPLY, log, "")
-			//保存dataBlock
 		}
-	} else {
-		logger.Errorf("LessPeerLocation")
-		return nil, errors.New("LessPeerLocation")
 	}
 
 	return nil, nil

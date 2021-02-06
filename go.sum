@@ -331,6 +331,10 @@ github.com/curltech/go-colla-core v0.0.1 h1:+r+LDzwfoiiL99rAUmREiMDi67/MngHEjcQM
 github.com/curltech/go-colla-core v0.0.1/go.mod h1:TFUCpRQywoJ49ecXVrrpnOUgI2se/k9A6OnWh5rxphA=
 github.com/curltech/go-colla-core v0.0.2 h1:p8zDcv/5gHxLmmnwN08lxpsmxwiQCXfCZznzrKUFZ18=
 github.com/curltech/go-colla-core v0.0.2/go.mod h1:+KsWQAowx1z0LLxFVT+RZdFjQYcoc1Je17g0MQxhKZ0=
+github.com/curltech/go-colla-core v0.0.3 h1:yrmFJM16B0QLrL+5BP/yhwumuNS2evGUDYjaM7RI6fE=
+github.com/curltech/go-colla-core v0.0.3/go.mod h1:+KsWQAowx1z0LLxFVT+RZdFjQYcoc1Je17g0MQxhKZ0=
+github.com/curltech/go-colla-core v0.0.4 h1:nBeCvHpxWKY9MqTvx2hoQNZXciDmAmjid33AtJb3jVw=
+github.com/curltech/go-colla-core v0.0.4/go.mod h1:+KsWQAowx1z0LLxFVT+RZdFjQYcoc1Je17g0MQxhKZ0=
 github.com/cznic/b v0.0.0-20181122101859-a26611c4d92d h1:SwD98825d6bdB+pEuTxWOXiSjBrHdOl/UVp75eI7JT8=
 github.com/cznic/b v0.0.0-20181122101859-a26611c4d92d/go.mod h1:URriBxXwVq5ijiJ12C7iIZqlA69nTlI+LgI6/pwftG8=
 github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548 h1:iwZdTE0PVqJCos1vaoKsclOGD3ADKpshg3SRtYBbwso=
@@ -451,6 +455,7 @@ github.com/emersion/go-milter v0.3.0/go.mod h1:ablHK0pbLB83kMFBznp/Rj8aV+Kc3jw8c
 github.com/emersion/go-milter v0.3.2/go.mod h1:ablHK0pbLB83kMFBznp/Rj8aV+Kc3jw8cxzzmCNLIOY=
 github.com/emersion/go-msgauth v0.6.3-0.20201124115313-816fefe10e5d h1:SDBI/aOUNK2Q0Fy9vcLkIuSypJmJzWzHZSlmKTPv55Q=
 github.com/emersion/go-msgauth v0.6.3-0.20201124115313-816fefe10e5d/go.mod h1:KPs+CkLjyikc4cJYdnJDYNV4yr3M//yrGZDx5C2RU6M=
+github.com/emersion/go-msgauth v0.6.4 h1:69HEY33ekSFk3gWGpK/W/Xo21c+j0nrrQTagUYdzUA8=
 github.com/emersion/go-msgauth v0.6.4/go.mod h1:/jbQISFJgtT12T8akRs20l+wI4HcyN/kWy7VRdHEAmA=
 github.com/emersion/go-sasl v0.0.0-20161116183048-7e096a0a6197/go.mod h1:G/dpzLu16WtQpBfQ/z3LYiYJn3ZhKSGWn83fyoyQe/k=
 github.com/emersion/go-sasl v0.0.0-20190520160400-47d427600317/go.mod h1:G/dpzLu16WtQpBfQ/z3LYiYJn3ZhKSGWn83fyoyQe/k=
