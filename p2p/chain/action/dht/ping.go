@@ -11,6 +11,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
+	"errors"
 )
 
 type pingAction struct {
@@ -38,7 +39,11 @@ func (this *pingAction) Ping(peerId string, targetPeerId string) (interface{}, e
 		return nil, err
 	}
 
-	return response.Payload, nil
+	if response.Payload == msgtype.OK {
+		return response.Payload, nil
+	} else {
+		return response.Payload, errors.New(response.Tip)
+	}
 }
 
 func (this *pingAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
