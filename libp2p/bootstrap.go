@@ -103,13 +103,13 @@ func Bootstrap() error {
 			}
 			logger.Infof("will connect %v", peerId)
 			if err := global.Global.Host.Connect(global.Global.Context, peerInfo); err != nil {
-				logger.Errorf("bootstrapPeerInfo %v failed to connect: %v", peerInfo, err)
+				logger.Errorf("Failed to connect to bootstrap node: %v, err: %v", peerInfo, err)
 			} else {
-				logger.Infof("Connection established with bootstrap node: %v", peerInfo)
+				logger.Infof("Successfully connect to bootstrap node: %v", peerInfo)
 			}
 			_, err := dht.PingAction.Ping(peerId, peerId)
 			if err != nil {
-				logger.Errorf("bootstrapPeerInfo %v failed to ping: %v", peerInfo, err)
+				logger.Errorf("Failed to ping bootstrap node: %v, err: %v", peerInfo, err)
 			} else {
 				logger.Infof("Successfully ping bootstrap node: %v", peerInfo)
 			}
