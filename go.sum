@@ -335,6 +335,8 @@ github.com/curltech/go-colla-core v0.0.3 h1:yrmFJM16B0QLrL+5BP/yhwumuNS2evGUDYja
 github.com/curltech/go-colla-core v0.0.3/go.mod h1:+KsWQAowx1z0LLxFVT+RZdFjQYcoc1Je17g0MQxhKZ0=
 github.com/curltech/go-colla-core v0.0.4 h1:nBeCvHpxWKY9MqTvx2hoQNZXciDmAmjid33AtJb3jVw=
 github.com/curltech/go-colla-core v0.0.4/go.mod h1:+KsWQAowx1z0LLxFVT+RZdFjQYcoc1Je17g0MQxhKZ0=
+github.com/curltech/go-colla-core v0.0.5 h1:VdNI3JIRH5pHA2jottOeA6gZLf2Hg/9ub0YiknYFcLs=
+github.com/curltech/go-colla-core v0.0.5/go.mod h1:+KsWQAowx1z0LLxFVT+RZdFjQYcoc1Je17g0MQxhKZ0=
 github.com/cznic/b v0.0.0-20181122101859-a26611c4d92d h1:SwD98825d6bdB+pEuTxWOXiSjBrHdOl/UVp75eI7JT8=
 github.com/cznic/b v0.0.0-20181122101859-a26611c4d92d/go.mod h1:URriBxXwVq5ijiJ12C7iIZqlA69nTlI+LgI6/pwftG8=
 github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548 h1:iwZdTE0PVqJCos1vaoKsclOGD3ADKpshg3SRtYBbwso=

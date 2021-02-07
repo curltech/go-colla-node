@@ -11,7 +11,7 @@ require (
 	github.com/casbin/casbin v1.9.1 // indirect
 	github.com/casbin/casbin/v2 v2.11.3 // indirect
 	github.com/casbin/xorm-adapter v1.0.0 // indirect
-	github.com/curltech/go-colla-core v0.0.4
+	github.com/curltech/go-colla-core v0.0.5
 	github.com/elazarl/goproxy v0.0.0-20201021153353-00ad82a08272 // indirect
 	github.com/emersion/go-imap v1.0.6
 	github.com/emersion/go-imap-idle v0.0.0-20201224103203-6f42b9020098

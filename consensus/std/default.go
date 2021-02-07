@@ -1,4 +1,4 @@
-package raft
+package std
 
 import (
 	"errors"
@@ -60,12 +60,15 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 		}
 	}
 
-	peerIds := this.ChooseConsensusPeer()
+	var peerIds []string
+	if config.ConsensusParams.StdMinPeerNum > 0 {
+		peerIds = this.ChooseConsensusPeer()
+	}
 	if peerIds != nil && len(peerIds) > 0 {
 		/**
 		 * 交易校验通过，主节点进入预准备状态，记录日志
 		 */
-		log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PREPREPARED)
+		log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PREPARED)
 		logkey := this.GetLogCacheKey(log)
 		MemCache.SetDefault(logkey, log)
 		datakey := this.GetDataBlockCacheKey(dataBlock.BlockId, dataBlock.SliceNumber)
@@ -81,12 +84,12 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 			// 封装消息，异步发送
 			go action.ConsensusAction.ConsensusDataBlock(peerId, msgtype.CONSENSUS_COMMITED, dataBlock, "")
 		}
-		response := handler.Response(msgtype.CONSENSUS_PREPREPARED, msgtype.RESPONSE)
+		response := handler.Response(msgtype.CONSENSUS_PREPARED, msgtype.RESPONSE)
 
 		return response, nil
 	} else {
 		service2.GetDataBlockService().Insert(dataBlock)
-		response := handler.Ok(msgtype.CONSENSUS_COMMITED)
+		response := handler.Ok(msgtype.CONSENSUS_REPLY)
 
 		return response, nil
 	}
@@ -179,13 +182,9 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 		// 记录其他节点发来了Prepared消息，每个节点不会记录自己的Prepared消息
 		messageLog.Id = 0
 		messageLog.Status = msgtype.CONSENSUS_REPLY
-		service2.GetConsensusLogService().Insert(messageLog)
 		MemCache.SetDefault(key, messageLog)
 	}
 	/**
-	 * 通过检查ConsensusLog日志判断是否所有的节点包括自己都处于prepared状态
-	 * 也就是说本节点已经知道所有的节点都发出了prepared通知 如果是则本节点处于prepared certificate状态，
-	 * 最终，每个节点都会收到其他节点的prepared状态通知
 	 */
 	key = this.GetDataBlockCacheKey(messageLog.BlockId, messageLog.SliceNumber)
 	var dataBlock *entity.DataBlock
@@ -216,7 +215,7 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 		}
 		logger.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_REPLY, count)
 		// 收到足够的数目
-		if count > config.ConsensusParams.MinPeerNum {
+		if count > config.ConsensusParams.StdMinPeerNum {
 			//保存dataBlock
 			service2.GetDataBlockService().Insert(dataBlock)
 			log.PeerId = myPeerId
