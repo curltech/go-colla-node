@@ -110,7 +110,8 @@ func RelaySend(chainMessage *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 		return send(chainMessage)
 	} else {
 		// 最终目标会话为空，先检查PeerClient是否有对应的目标，如果有，填写最终目标会话，设置下一步的目标
-		peerClients, err := service.GetPeerClientService().GetValues(chainMessage.TargetPeerId, "")
+		targetPeerId := handler.GetPeerId(chainMessage.TargetPeerId)
+		peerClients, err := service.GetPeerClientService().GetValues(targetPeerId, "")
 		if err == nil && len(peerClients) > 0 {
 			for _, peerClient := range peerClients {
 				// 如果PeerClient的连接节点是自己，下一步就是最终目标，将目标会话放入消息中
@@ -127,13 +128,15 @@ func RelaySend(chainMessage *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 			}
 			return chainMessage, nil
 		} else {
-			// 如果PeerClient不是最终目标，那么查找定位器节点是否是最终目标，如果是，下一步是定位器节点
-			connectPeerId, err := service.GetPeerEndpointService().FindPeer(chainMessage.TargetPeerId)
+			// 如果PeerClient不是最终目标，那么查找最终目标是否是定位器节点，如果是，下一步是定位器节点
+			connectPeerId, err := service.GetPeerEndpointService().FindPeer(targetPeerId)
 			if err != nil {
 				return nil, err
 			} else {
 				if connectPeerId != "" {
-					chainMessage.ConnectPeerId = connectPeerId
+					if chainMessage.ConnectPeerId == "" {
+						chainMessage.ConnectPeerId = chainMessage.TargetPeerId
+					}
 				} else {
 					targetConnectPeerId := chainMessage.TargetConnectPeerId
 					if targetConnectPeerId != "" {
