@@ -16,7 +16,7 @@ type BaseAction struct {
 主动发送消息
 */
 func (this *BaseAction) Send(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	logger.Infof("Send %v message", this.MsgType)
+	logger.Sugar.Infof("Send %v message", this.MsgType)
 	response, err := sender.Send(chainMessage)
 
 	return response, err
@@ -36,7 +36,7 @@ func (this *BaseAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessa
 处理返回消息
 */
 func (this *BaseAction) Response(chainMessage *msg.ChainMessage) error {
-	logger.Infof("Response %v message:%v", this.MsgType, chainMessage)
+	logger.Sugar.Infof("Response %v message:%v", this.MsgType, chainMessage)
 
 	return nil
 }

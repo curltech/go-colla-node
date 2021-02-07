@@ -11,7 +11,7 @@ require (
 	github.com/casbin/casbin v1.9.1 // indirect
 	github.com/casbin/casbin/v2 v2.11.3 // indirect
 	github.com/casbin/xorm-adapter v1.0.0 // indirect
-	github.com/curltech/go-colla-core v0.0.5
+	github.com/curltech/go-colla-core v0.0.7
 	github.com/elazarl/goproxy v0.0.0-20201021153353-00ad82a08272 // indirect
 	github.com/emersion/go-imap v1.0.6
 	github.com/emersion/go-imap-idle v0.0.0-20201224103203-6f42b9020098
@@ -42,9 +42,11 @@ require (
 	github.com/ipfs/go-ds-leveldb v0.4.2
 	github.com/ipfs/go-ds-redis v0.1.0
 	github.com/ipfs/go-ds-sql v0.2.0
-	github.com/ipfs/go-ipfs v0.7.0 // indirect
-	github.com/ipfs/go-ipfs-config v0.10.0 // indirect
+	github.com/ipfs/go-ipfs v0.7.0
+	github.com/ipfs/go-ipfs-config v0.10.0
+	github.com/ipfs/go-ipfs-files v0.0.8
 	github.com/ipfs/go-ipfs-util v0.0.2
+	github.com/ipfs/interface-go-ipfs-core v0.4.0
 	github.com/iris-contrib/middleware/casbin v0.0.0-20200913183508-5d1bed0e6ea4 // indirect
 	github.com/iris-contrib/middleware/cors v0.0.0-20201017024110-39b50ffeb885 // indirect
 	github.com/iris-contrib/middleware/jwt v0.0.0-20201115103636-07e8bced147f // indirect
@@ -68,6 +70,7 @@ require (
 	github.com/libp2p/go-libp2p-kbucket v0.4.7
 	github.com/libp2p/go-libp2p-mplex v0.2.4
 	github.com/libp2p/go-libp2p-noise v0.1.2
+	github.com/libp2p/go-libp2p-peerstore v0.2.6
 	github.com/libp2p/go-libp2p-pubsub v0.3.6
 	github.com/libp2p/go-libp2p-quic-transport v0.8.2
 	github.com/libp2p/go-libp2p-record v0.1.3

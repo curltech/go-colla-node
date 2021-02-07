@@ -1,6 +1,7 @@
 package dht
 
 import (
+	"errors"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/dht"
@@ -11,7 +12,6 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"errors"
 )
 
 type pingAction struct {
@@ -47,14 +47,14 @@ func (this *pingAction) Ping(peerId string, targetPeerId string) (interface{}, e
 }
 
 func (this *pingAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	logger.Infof("Receive %v message", this.MsgType)
+	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	var response *msg.ChainMessage = nil
 	if chainMessage.Payload != nil {
 		srcPeerEndpoint := chainMessage.Payload.(*entity.PeerEndpoint)
 		key := ns.GetPeerEndpointKey(srcPeerEndpoint.PeerId)
 		byteSrcPeerEndpoint, err := message.Marshal(srcPeerEndpoint)
 		if err != nil {
-			logger.Errorf("failed to Marshal SrcMyselfPeer, err: %v", err)
+			logger.Sugar.Errorf("failed to Marshal SrcMyselfPeer, err: %v", err)
 		} else {
 			err = dht.PeerEndpointDHT.PutLocal(key, byteSrcPeerEndpoint)
 		}

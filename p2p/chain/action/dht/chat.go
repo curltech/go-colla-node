@@ -41,7 +41,7 @@ func (this *chatAction) Chat(peerId string, payloadType string, data interface{}
 }
 
 func (this *chatAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	logger.Infof("Receive %v message", this.MsgType)
+	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	go sender.RelaySend(chainMessage)
 	response := handler.Response(chainMessage.MessageType, time.Now())
 

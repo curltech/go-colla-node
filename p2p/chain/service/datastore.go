@@ -69,19 +69,19 @@ func GetLocalDBs(keyKind string, createPeerId string, blockId string, receiverPe
 		}
 		key = ns.GetDataBlockKey(blockId)
 	} else {
-		logger.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
+		logger.Sugar.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
 		return nil, errors.New("InvalidDataBlockKeyKind")
 	}
 	rec, err := dht.PeerEndpointDHT.GetLocal(key)
 	if err != nil {
-		logger.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
+		logger.Sugar.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
 		return nil, err
 	}
 	if rec != nil {
 		dataBlocks := make([]*entity2.DataBlock, 0)
 		err = message.Unmarshal(rec.GetValue(), &dataBlocks)
 		if err != nil {
-			logger.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
+			logger.Sugar.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
 			return nil, err
 		}
 		dbs := make([]*entity2.DataBlock, 0)
@@ -97,7 +97,7 @@ func GetLocalDBs(keyKind string, createPeerId string, blockId string, receiverPe
 				}
 			}
 			if ((len(receiverPeerId) == 0 && len(dataBlock.PayloadKey) == 0) || (len(receiverPeerId) > 0 && receivable == true)) &&
-				(txSequenceId > 0/* && dataBlock.TxSequenceId == uint64(txSequenceId)*/) &&
+				(txSequenceId > 0 /* && dataBlock.TxSequenceId == uint64(txSequenceId)*/) &&
 				(sliceNumber > 0 && dataBlock.SliceNumber == uint64(sliceNumber)) {
 				dbs = append(dbs, dataBlock)
 			}
@@ -143,7 +143,7 @@ func PutDB(dataBlock *entity2.DataBlock, keyKind string) error {
 	} else if keyKind == ns.DataBlock_Owner_KeyKind {
 		key = ns.GetDataBlockOwnerKey(dataBlock.PeerId)
 	} else {
-		logger.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
+		logger.Sugar.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
 		return errors.New("InvalidDataBlockKeyKind")
 	}
 
@@ -169,19 +169,19 @@ func GetLocalPTs(keyKind string, srcPeerId string, targetPeerId string) ([]*enti
 		}
 		key = ns.GetPeerTransactionTargetKey(targetPeerId)
 	} else {
-		logger.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
+		logger.Sugar.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
 		return nil, errors.New("InvalidPeerTransactionKeyKind")
 	}
 	rec, err := dht.PeerEndpointDHT.GetLocal(key)
 	if err != nil {
-		logger.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
+		logger.Sugar.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
 		return nil, err
 	}
 	if rec != nil {
 		peerTransactions := make([]*entity2.PeerTransaction, 0)
 		err = message.Unmarshal(rec.GetValue(), &peerTransactions)
 		if err != nil {
-			logger.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
+			logger.Sugar.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
 			return nil, err
 		}
 		pts := make([]*entity2.PeerTransaction, 0)
@@ -229,7 +229,7 @@ func PutPT(peerTransaction *entity2.PeerTransaction, keyKind string) error {
 	} else if keyKind == ns.PeerTransaction_Target_KeyKind {
 		key = ns.GetPeerTransactionTargetKey(peerTransaction.TargetPeerId)
 	} else {
-		logger.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
+		logger.Sugar.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
 		return errors.New("InvalidPeerTransactionKeyKind")
 	}
 

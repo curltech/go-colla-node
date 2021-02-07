@@ -59,7 +59,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 	rec := new(recpb.Record)
 	err = proto.Unmarshal(value, rec)
 	if err != nil {
-		logger.Errorf("failed to unmarshal record from value", "key", key, "error", err)
+		logger.Sugar.Errorf("failed to unmarshal record from value", "key", key, "error", err)
 
 		return err
 	}
@@ -71,7 +71,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 	for _, entity := range entities {
 		keyvalue, err := reflect.GetValue(entity, req.Keyname)
 		if err != nil || keyvalue == nil {
-			logger.Errorf("NoKeyValue")
+			logger.Sugar.Errorf("NoKeyValue")
 			return errors.New("NoKeyValue")
 		}
 		old, _ := req.Service.NewEntity(nil)
@@ -79,45 +79,45 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 		if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix {
 			clientId, err := reflect.GetValue(entity, "ClientId")
 			if err != nil || clientId == nil {
-				logger.Errorf("NoClientId")
+				logger.Sugar.Errorf("NoClientId")
 				return errors.New("NoClientId")
 			}
 			reflect.SetValue(old, "ClientId", clientId)
 		} else if namespace == ns.DataBlock_Prefix || namespace == ns.DataBlock_Owner_Prefix {
 			txSequenceId, err := reflect.GetValue(entity, "TxSequenceId")
 			if err != nil || txSequenceId == 0 {
-				logger.Errorf("NoTxSequenceId")
+				logger.Sugar.Errorf("NoTxSequenceId")
 				return errors.New("NoTxSequenceId")
 			}
 			reflect.SetValue(old, "TxSequenceId", txSequenceId)
 			sliceNumber, err := reflect.GetValue(entity, "SliceNumber")
 			if err != nil || sliceNumber == 0 {
-				logger.Errorf("NoSliceNumber")
+				logger.Sugar.Errorf("NoSliceNumber")
 				return errors.New("NoSliceNumber")
 			}
 			reflect.SetValue(old, "SliceNumber", sliceNumber)
 		} else if namespace == ns.PeerTransaction_Src_Prefix || namespace == ns.PeerTransaction_Target_Prefix {
 			targetPeerId, err := reflect.GetValue(entity, "TargetPeerId")
 			if err != nil || targetPeerId == nil {
-				logger.Errorf("NoTargetPeerId")
+				logger.Sugar.Errorf("NoTargetPeerId")
 				return errors.New("NoTargetPeerId")
 			}
 			reflect.SetValue(old, "TargetPeerId", targetPeerId)
 			blockId, err := reflect.GetValue(entity, "BlockId")
 			if err != nil || blockId == nil {
-				logger.Errorf("NoBlockId")
+				logger.Sugar.Errorf("NoBlockId")
 				return errors.New("NoBlockId")
 			}
 			reflect.SetValue(old, "BlockId", blockId)
 			txSequenceId, err := reflect.GetValue(entity, "TxSequenceId")
 			if err != nil || txSequenceId == 0 {
-				logger.Errorf("NoTxSequenceId")
+				logger.Sugar.Errorf("NoTxSequenceId")
 				return errors.New("NoTxSequenceId")
 			}
 			reflect.SetValue(old, "TxSequenceId", txSequenceId)
 			sliceNumber, err := reflect.GetValue(entity, "SliceNumber")
 			if err != nil || sliceNumber == 0 {
-				logger.Errorf("NoSliceNumber")
+				logger.Sugar.Errorf("NoSliceNumber")
 				return errors.New("NoSliceNumber")
 			}
 			reflect.SetValue(old, "SliceNumber", sliceNumber)
@@ -170,12 +170,12 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 						// 删除TransactionKeys
 						transactionKeys := p.TransactionKeys
 						if err != nil || transactionKeys == nil {
-							logger.Errorf("NoTransactionKeys")
+							logger.Sugar.Errorf("NoTransactionKeys")
 							return errors.New("NoTransactionKeys")
 						}
 						req2, err := handler.NewPrefixRequest(ns.TransactionKey_Prefix)
 						if err != nil {
-							logger.Errorf("TransactionKeys-NewPrefixRequest-Failed")
+							logger.Sugar.Errorf("TransactionKeys-NewPrefixRequest-Failed")
 							return errors.New("TransactionKeys-NewPrefixRequest-Failed")
 						}
 						for _, transactionKey := range transactionKeys {
@@ -252,7 +252,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 
 		affected := req.Service.Upsert(entity)
 		if affected > 0 {
-			logger.Infof("%v:%v put successfully", req.Keyname, req.Keyvalue)
+			logger.Sugar.Infof("%v:%v put successfully", req.Keyname, req.Keyvalue)
 			if namespace == ns.DataBlock_Prefix || namespace == ns.DataBlock_Owner_Prefix {
 				oldp := old.(*chainentity.DataBlock)
 				p := entity.(*chainentity.DataBlock)
@@ -298,23 +298,23 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 					// 保存TransactionKeys
 					transactionKeys, err := reflect.GetValue(entity, "TransactionKeys")
 					if err != nil || transactionKeys == nil {
-						logger.Errorf("NoTransactionKeys")
+						logger.Sugar.Errorf("NoTransactionKeys")
 						return errors.New("NoTransactionKeys")
 					}
 					req2, err := handler.NewPrefixRequest(ns.TransactionKey_Prefix)
 					if err != nil {
-						logger.Errorf("TransactionKeys-NewPrefixRequest-Failed")
+						logger.Sugar.Errorf("TransactionKeys-NewPrefixRequest-Failed")
 						return errors.New("TransactionKeys-NewPrefixRequest-Failed")
 					}
 					for _, transactionKey := range transactionKeys.([]*chainentity.TransactionKey) {
 						blockId, err := reflect.GetValue(transactionKey, ns.TransactionKey_BlockId_KeyName)
 						if err != nil || blockId == nil {
-							logger.Errorf("NoBlockId")
+							logger.Sugar.Errorf("NoBlockId")
 							return errors.New("NoBlockId")
 						}
 						peerId, err := reflect.GetValue(transactionKey, ns.TransactionKey_PeerId_KeyName)
 						if err != nil || peerId == nil {
-							logger.Errorf("NoPeerId")
+							logger.Sugar.Errorf("NoPeerId")
 							return errors.New("NoPeerId")
 						}
 						old2, _ := req2.Service.NewEntity(nil)
@@ -333,9 +333,9 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 
 						affected2 := req2.Service.Upsert(transactionKey)
 						if affected2 > 0 {
-							logger.Infof("%v:%v put TransactionKeys successfully", req.Keyname, req.Keyvalue)
+							logger.Sugar.Infof("%v:%v put TransactionKeys successfully", req.Keyname, req.Keyvalue)
 						} else {
-							logger.Errorf("%v:%v upsert TransactionKeys fail", req.Keyname, req.Keyvalue)
+							logger.Sugar.Errorf("%v:%v upsert TransactionKeys fail", req.Keyname, req.Keyvalue)
 							return errors.New(fmt.Sprintf("%v:%v upsert TransactionKeys fail", req.Keyname, req.Keyvalue))
 						}
 					}
@@ -388,7 +388,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				}
 			}
 		} else {
-			logger.Errorf("%v:%v upsert fail", req.Keyname, req.Keyvalue)
+			logger.Sugar.Errorf("%v:%v upsert fail", req.Keyname, req.Keyvalue)
 			return errors.New(fmt.Sprintf("%v:%v upsert fail", req.Keyname, req.Keyvalue))
 		}
 	}
@@ -436,7 +436,7 @@ func (this *XormDatastore) Get(key datastore.Key) (value []byte, err error) {
 		}
 		req2, err := handler.NewPrefixRequest(ns.TransactionKey_Prefix)
 		if err != nil {
-			logger.Errorf("TransactionKeys-NewPrefixRequest-Failed")
+			logger.Sugar.Errorf("TransactionKeys-NewPrefixRequest-Failed")
 			return nil, errors.New("TransactionKeys-NewPrefixRequest-Failed")
 		}
 		for _, entity := range *entities.(*[]*chainentity.DataBlock) {
@@ -462,7 +462,7 @@ func (this *XormDatastore) Get(key datastore.Key) (value []byte, err error) {
 	rec.TimeReceived = util.FormatRFC3339(time.Now())
 	buf, err := proto.Marshal(rec)
 	if err != nil {
-		logger.Errorf("failed to marshal record from datastore", "key", key, "error", err)
+		logger.Sugar.Errorf("failed to marshal record from datastore", "key", key, "error", err)
 		return nil, err
 	}
 
@@ -546,9 +546,9 @@ func (this *XormDatastore) Delete(key datastore.Key) (err error) {
 	entities[0] = entity
 	affected := req.Service.Delete(entities, "")
 	if affected > 0 {
-		logger.Infof("%v:%v delete successfully", req.Keyname, req.Keyvalue)
+		logger.Sugar.Infof("%v:%v delete successfully", req.Keyname, req.Keyvalue)
 	} else {
-		logger.Errorf("%v:%v delete fail", req.Keyname, req.Keyvalue)
+		logger.Sugar.Errorf("%v:%v delete fail", req.Keyname, req.Keyvalue)
 		return errors.New("delete fail")
 	}
 
@@ -557,7 +557,7 @@ func (this *XormDatastore) Delete(key datastore.Key) (err error) {
 
 // Query implements Datastore.Query
 func (this *XormDatastore) Query(q dsq.Query) (dsq.Results, error) {
-	logger.Warnf("query trigger:%v:%v", q.Prefix, q.String())
+	logger.Sugar.Warnf("query trigger:%v:%v", q.Prefix, q.String())
 	return nil, nil
 }
 

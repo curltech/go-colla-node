@@ -71,7 +71,7 @@ func (this *PeerEntityDHT) GetClosestPeers(key string) (<-chan peer.ID, error) {
 }
 
 func (this *PeerEntityDHT) PutLocal(key string, value []byte, opts ...routing.Option) (err error) {
-	logger.Infof("putting value in local datastore by key %v", key)
+	logger.Sugar.Infof("putting value in local datastore by key %v", key)
 
 	// don't even allow local users to put bad values.
 	if err := this.DHT.Validator.Validate(key, value); err != nil {
@@ -93,7 +93,7 @@ func (this *PeerEntityDHT) PutLocal(key string, value []byte, opts ...routing.Op
 		}
 		if i != 0 {
 			//return fmt.Errorf("can't replace a newer value with an older value")
-			logger.Warnf("can't replace a newer value with an older value")
+			logger.Sugar.Warnf("can't replace a newer value with an older value")
 			return nil
 		}
 	}
@@ -102,7 +102,7 @@ func (this *PeerEntityDHT) PutLocal(key string, value []byte, opts ...routing.Op
 	rec.TimeReceived = u.FormatRFC3339(time.Now())
 	data, err := proto.Marshal(rec)
 	if err != nil {
-		logger.Errorf("failed to put marshal record for local put by key: %v, err: %v", key, err)
+		logger.Sugar.Errorf("failed to put marshal record for local put by key: %v, err: %v", key, err)
 		return err
 	}
 
@@ -120,10 +120,10 @@ func (this *PeerEntityDHT) PutValue(key string, value []byte, opts ...routing.Op
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Src_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Target_Prefix) == true {
 		if error != nil && error.Error() == "can't replace a newer value with an older value" {
-			logger.Warnf("can't replace a newer value with an older value")
+			logger.Sugar.Warnf("can't replace a newer value with an older value")
 			return nil
 		} else if error == kb.ErrLookupFailure {
-			logger.Warnf("failed to find any peer in table")
+			logger.Sugar.Warnf("failed to find any peer in table")
 			return nil
 		}
 	}
@@ -131,7 +131,7 @@ func (this *PeerEntityDHT) PutValue(key string, value []byte, opts ...routing.Op
 }
 
 func (this *PeerEntityDHT) GetLocal(key string) (*recpb.Record, error) {
-	logger.Infof("finding value in local datastore by key %v", key)
+	logger.Sugar.Infof("finding value in local datastore by key %v", key)
 
 	dsKey := ds.NewKey(base32.RawStdEncoding.EncodeToString([]byte(key)))
 	//buf, err := dht.datastore.Get(dskey)
@@ -140,27 +140,27 @@ func (this *PeerEntityDHT) GetLocal(key string) (*recpb.Record, error) {
 		return nil, nil
 	}
 	if err != nil {
-		logger.Errorf("error retrieving record from local datastore by key %v, err: %v", key, err)
+		logger.Sugar.Errorf("error retrieving record from local datastore by key %v, err: %v", key, err)
 		return nil, err
 	}
 	rec := new(recpb.Record)
 	err = proto.Unmarshal(buf, rec)
 	if err != nil {
 		// Bad data in datastore, log it but don't return an error, we'll just overwrite it
-		logger.Errorf("failed to unmarshal record from local datastore by key: %v, err: %v", key, err)
+		logger.Sugar.Errorf("failed to unmarshal record from local datastore by key: %v, err: %v", key, err)
 		return nil, nil
 	}
 	err = this.DHT.Validator.Validate(string(rec.GetKey()), rec.GetValue())
 	if err != nil {
 		// Invalid record in datastore, probably expired but don't return an error,
 		// we'll just overwrite it
-		logger.Infof("local record verify failed by key: %v, err: %v", rec.GetKey(), err)
+		logger.Sugar.Infof("local record verify failed by key: %v, err: %v", rec.GetKey(), err)
 		return nil, nil
 	}
 
 	// Double check the key. Can't hurt.
 	if rec != nil && string(rec.GetKey()) != key {
-		logger.Errorf("BUG: found a DHT record that didn't match it's key, expected: %v, got: %v", key, rec.GetKey())
+		logger.Sugar.Errorf("BUG: found a DHT record that didn't match it's key, expected: %v, got: %v", key, rec.GetKey())
 		return nil, nil
 
 	}
@@ -176,7 +176,7 @@ func (this *PeerEntityDHT) GetValue(key string, opts ...routing.Option) (_ []byt
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Src_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Target_Prefix) == true) &&
 		error == kb.ErrLookupFailure {
-		logger.Warnf("failed to find any peer in table")
+		logger.Sugar.Warnf("failed to find any peer in table")
 		return byteArr, nil
 	} else {
 		return byteArr, error
@@ -192,7 +192,7 @@ func (this *PeerEntityDHT) SearchValue(key string, opts ...routing.Option) (<-ch
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Src_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Target_Prefix) == true) &&
 		error == kb.ErrLookupFailure {
-		logger.Warnf("failed to find any peer in table")
+		logger.Sugar.Warnf("failed to find any peer in table")
 		return valChs, nil
 	} else {
 		return valChs, error
@@ -208,7 +208,7 @@ func (this *PeerEntityDHT) GetValues(key string, nvals int) (_ []dht.RecvdVal, e
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Src_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Target_Prefix) == true) &&
 		error == kb.ErrLookupFailure {
-		logger.Warnf("failed to find any peer in table")
+		logger.Sugar.Warnf("failed to find any peer in table")
 		return recvdVals, nil
 	} else {
 		return recvdVals, error

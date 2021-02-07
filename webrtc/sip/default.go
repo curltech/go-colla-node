@@ -18,7 +18,7 @@ var (
 
 func start() {
 	if host == "" || port == "" || password == "" {
-		logger.Errorf("-host -port and -password are required")
+		logger.Sugar.Errorf("-host -port and -password are required")
 
 		return
 	}
@@ -34,7 +34,7 @@ func start() {
 
 	conn.OnOK(func(okBody string) {
 		answer := okBody + "a=mid:0\r\n"
-		logger.Infof("%v", answer)
+		logger.Sugar.Infof("%v", answer)
 	})
 	offer := ""
 	conn.Invite(extension, rewriteSDP(offer))

@@ -53,13 +53,13 @@ func (this *ionSignalAction) Signal(peerId string, payloadType string, data inte
 }
 
 func (this *ionSignalAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	logger.Infof("Receive %v message", this.MsgType)
+	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	var err error
 	var response *msg.ChainMessage
 	if chainMessage.TargetPeerId != "" && global.IsMyself(chainMessage.TargetPeerId) {
 		signal := chainMessage.Payload.(map[string]interface{})
 		if this.receiver == nil {
-			logger.Errorf("NoReceiver")
+			logger.Sugar.Errorf("NoReceiver")
 			err = errors.New("NoReceiver")
 		} else {
 			netPeer := &p2p.NetPeer{TargetPeerId: chainMessage.SrcPeerId, ConnectPeerId: chainMessage.SrcConnectPeerId, ConnectSessionId: chainMessage.SrcConnectSessionId}

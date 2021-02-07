@@ -111,13 +111,13 @@ func (v PeerEndpointValidator) Select(key string, vals [][]byte) (int, error) {
 	currentEntity := entity.PeerEndpoint{}
 	err := message.Unmarshal(currentVal, &currentEntity)
 	if err != nil {
-		logger.Errorf("failed to unmarshal current record from value", "key", key, "error", err)
+		logger.Sugar.Errorf("failed to unmarshal current record from value", "key", key, "error", err)
 		return 1, err
 	}
 	existingEntities := make([]*entity.PeerEndpoint, 0)
 	err = message.Unmarshal(existingVal, &existingEntities)
 	if err != nil {
-		logger.Errorf("failed to unmarshal existing records from value", "key", key, "error", err)
+		logger.Sugar.Errorf("failed to unmarshal existing records from value", "key", key, "error", err)
 		return 1, err
 	}
 	for _, existingEntity := range existingEntities {
@@ -156,13 +156,13 @@ func (v PeerClientValidator) Select(key string, vals [][]byte) (int, error) {
 	currentEntity := entity.PeerClient{}
 	err := message.Unmarshal(currentVal, &currentEntity)
 	if err != nil {
-		logger.Errorf("failed to unmarshal current record from value", "key", key, "error", err)
+		logger.Sugar.Errorf("failed to unmarshal current record from value", "key", key, "error", err)
 		return 1, err
 	}
 	existingEntities := make([]*entity.PeerClient, 0)
 	err = message.Unmarshal(existingVal, &existingEntities)
 	if err != nil {
-		logger.Errorf("failed to unmarshal existing records from value", "key", key, "error", err)
+		logger.Sugar.Errorf("failed to unmarshal existing records from value", "key", key, "error", err)
 		return 1, err
 	}
 	for _, existingEntity := range existingEntities {
@@ -223,7 +223,7 @@ func (v DataBlockValidator) Validate(key string, value []byte) error {
 		p := entity2.DataBlock{}
 		err = message.Unmarshal(value, &p)
 		if err != nil {
-			logger.Errorf("failed to unmarshal record from value", "key", key, "error", err)
+			logger.Sugar.Errorf("failed to unmarshal record from value", "key", key, "error", err)
 			return err
 		}
 		entities = append(entities, &p)
@@ -235,7 +235,7 @@ func (v DataBlockValidator) Validate(key string, value []byte) error {
 			payloadHash := p.PayloadHash
 			hash := std.EncodeBase64(std.Hash(transportPayload, "sha3_256"))
 			if payloadHash != hash {
-				logger.Errorf("VerifyHashFailed", "key", key)
+				logger.Sugar.Errorf("VerifyHashFailed", "key", key)
 				return err
 			}
 		}
@@ -251,17 +251,17 @@ func (v DataBlockValidator) Select(key string, vals [][]byte) (int, error) {
 	currentEntity := entity2.DataBlock{}
 	err := message.Unmarshal(currentVal, &currentEntity)
 	if err != nil {
-		logger.Errorf("failed to unmarshal current record from value", "key", key, "error", err)
+		logger.Sugar.Errorf("failed to unmarshal current record from value", "key", key, "error", err)
 		return 1, err
 	}
 	existingEntities := make([]*entity2.DataBlock, 0)
 	err = message.Unmarshal(existingVal, &existingEntities)
 	if err != nil {
-		logger.Errorf("failed to unmarshal existing records from value", "key", key, "error", err)
+		logger.Sugar.Errorf("failed to unmarshal existing records from value", "key", key, "error", err)
 		return 1, err
 	}
 	for _, existingEntity := range existingEntities {
-		if existingEntity.BlockId == currentEntity.BlockId/* && existingEntity.TxSequenceId == currentEntity.TxSequenceId*/ &&
+		if existingEntity.BlockId == currentEntity.BlockId /* && existingEntity.TxSequenceId == currentEntity.TxSequenceId*/ &&
 			existingEntity.SliceNumber == currentEntity.SliceNumber && currentEntity.CreateTimestamp <= existingEntity.CreateTimestamp {
 			return 1, nil
 		}

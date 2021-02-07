@@ -91,7 +91,7 @@ func (this *WebrtcPeerPool) _create() IWebrtcPeer {
 func (this *WebrtcPeerPool) create(peerId string) IWebrtcPeer {
 	webrtcPeers, ok := this.webrtcPeers[peerId]
 	if ok {
-		logger.Errorf("webrtcPeer:%v is exist, will recreate new sender", peerId)
+		logger.Sugar.Errorf("webrtcPeer:%v is exist, will recreate new sender", peerId)
 	}
 	webrtcPeer := this._create()
 	webrtcPeer.Create(peerId, nil, true, nil, nil)
@@ -170,14 +170,14 @@ func (this *WebrtcPeerPool) Receive(netPeer *p2p.NetPeer, payload map[string]int
 	webrtcSignal := simplepeer.Transform(payload)
 	signalType := webrtcSignal.SignalType
 	if signalType != "" {
-		logger.Infof("webrtcPeer:%v receive signal type:%v", netPeer, signalType)
+		logger.Sugar.Infof("webrtcPeer:%v receive signal type:%v", netPeer, signalType)
 	}
 	var webrtcPeer IWebrtcPeer = nil
 	// 被动方创建WebrtcPeer，同peerId的连接从没有创建过，
 	// 被动创建连接，设置peerId和connectPeerId，connectSessionId
 	webrtcPeers, ok := this.webrtcPeers[netPeer.TargetPeerId]
 	if !ok {
-		logger.Infof("webrtcPeer:%v not exist, will create receiver", netPeer)
+		logger.Sugar.Infof("webrtcPeer:%v not exist, will create receiver", netPeer)
 		webrtcPeer = this._create()
 		webrtcPeer.Create(netPeer.TargetPeerId, nil, false, nil, webrtcSignal.Router)
 		webrtcPeer.SetPeer(netPeer.ConnectPeerId, netPeer.ConnectSessionId, "")
@@ -196,13 +196,13 @@ func (this *WebrtcPeerPool) Receive(netPeer *p2p.NetPeer, payload map[string]int
 					break
 				} else if p.ConnectPeerId == netPeer.ConnectPeerId && p.ConnectSessionId == netPeer.ConnectSessionId {
 					found = true
-					logger.Infof("webrtcPeer:+  + ' exist, connected:%v", netPeer, webrtcPeer.Connected())
+					logger.Sugar.Infof("webrtcPeer:+  + ' exist, connected:%v", netPeer, webrtcPeer.Connected())
 					break
 				}
 			}
 			// 没有匹配的连接被发现，说明有多个客户端实例回应，这时创建新的主动连接请求，尝试建立新的连接
 			if found == false {
-				logger.Infof("match webrtcPeer:%v not exist, will create sender", netPeer)
+				logger.Sugar.Infof("match webrtcPeer:%v not exist, will create sender", netPeer)
 				webrtcPeer = this._create()
 				webrtcPeer.Create(netPeer.TargetPeerId, nil, true, nil, webrtcSignal.Router)
 				webrtcPeer.SetPeer(netPeer.ConnectPeerId, netPeer.ConnectSessionId, "")
@@ -212,7 +212,7 @@ func (this *WebrtcPeerPool) Receive(netPeer *p2p.NetPeer, payload map[string]int
 		}
 	}
 	if webrtcPeer != nil {
-		logger.Infof("webrtcPeer signal data:%v", webrtcSignal)
+		logger.Sugar.Infof("webrtcPeer signal data:%v", webrtcSignal)
 		webrtcPeer.Signal(webrtcSignal)
 	}
 }

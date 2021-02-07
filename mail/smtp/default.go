@@ -12,7 +12,7 @@ import (
 
 func Start() {
 	if !config.SmtpServerParams.Enable {
-		logger.Errorf("smtp is not enable")
+		logger.Sugar.Errorf("smtp is not enable")
 		return
 	}
 
@@ -46,14 +46,14 @@ func Start() {
 	// Load the certificate and key
 	cer, err := tls.LoadX509KeyPair(config.TlsParams.Cert, config.TlsParams.Key)
 	if err != nil {
-		logger.Errorf(err.Error())
+		logger.Sugar.Errorf(err.Error())
 		return
 	}
 	// Configure the TLS support
 	smtpServer.TLSConfig = &tls.Config{Certificates: []tls.Certificate{cer}}
 
-	logger.Infof("Starting server at", smtpServer.Addr)
+	logger.Sugar.Infof("Starting server at", smtpServer.Addr)
 	if err := smtpServer.ListenAndServe(); err != nil {
-		logger.Errorf(err.Error())
+		logger.Sugar.Errorf(err.Error())
 	}
 }

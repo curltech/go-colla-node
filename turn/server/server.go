@@ -18,7 +18,7 @@ func authHandler(username string, realm string, srcAddr net.Addr) ([]byte, bool)
 func Start() {
 	host := config.TurnParams.Host
 	if len(host) == 0 {
-		logger.Errorf("'host' is required")
+		logger.Sugar.Errorf("'host' is required")
 	}
 	udpport := config.TurnParams.UdpPort
 	// Create a UDP listener to pass into pion/turn
@@ -26,12 +26,12 @@ func Start() {
 	// this allows us to add logging, storage or modify inbound/outbound traffic
 	packetConn, err := net.ListenPacket("udp4", host+":"+udpport)
 	if err != nil {
-		logger.Errorf("Failed to create TURN server listener: %s", err)
+		logger.Sugar.Errorf("Failed to create TURN server listener: %s", err)
 	}
 	tcpport := config.TurnParams.TcpPort
 	tcpListener, err := net.Listen("tcp4", host+":"+tcpport)
 	if err != nil {
-		logger.Errorf("Failed to create TURN server listener: %s", err)
+		logger.Sugar.Errorf("Failed to create TURN server listener: %s", err)
 	}
 	realm := config.TurnParams.Realm
 	// NewLongTermAuthHandler takes a pion.LeveledLogger. This allows you to intercept messages
@@ -40,7 +40,7 @@ func Start() {
 	publicIp := config.TurnParams.Ip
 	if len(publicIp) == 0 {
 		publicIp = host
-		logger.Errorf("'host' is required")
+		logger.Sugar.Errorf("'host' is required")
 	}
 	s, err := turn.NewServer(turn.ServerConfig{
 		Realm: realm,
@@ -71,7 +71,7 @@ func Start() {
 		},
 	})
 	if err != nil {
-		logger.Errorf("Failed to create TURN server: %s", err)
+		logger.Sugar.Errorf("Failed to create TURN server: %s", err)
 	}
 
 	// Block until user sends SIGINT or SIGTERM
@@ -80,7 +80,7 @@ func Start() {
 	<-sigs
 
 	if err = s.Close(); err != nil {
-		logger.Errorf("Failed to close TURN server: %s", err)
+		logger.Sugar.Errorf("Failed to close TURN server: %s", err)
 	}
 
 	//turn.GenerateLongTermCredentials(*authSecret, time.Minute)
@@ -99,7 +99,7 @@ func (s *stunLogger) WriteTo(p []byte, addr net.Addr) (n int, err error) {
 			return
 		}
 
-		logger.Infof("Outbound STUN: %s \n", msg.String())
+		logger.Sugar.Infof("Outbound STUN: %s \n", msg.String())
 	}
 
 	return
@@ -112,7 +112,7 @@ func (s *stunLogger) ReadFrom(p []byte) (n int, addr net.Addr, err error) {
 			return
 		}
 
-		logger.Infof("Inbound STUN: %s \n", msg.String())
+		logger.Sugar.Infof("Inbound STUN: %s \n", msg.String())
 	}
 
 	return

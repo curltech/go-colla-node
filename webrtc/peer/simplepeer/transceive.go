@@ -31,7 +31,7 @@ func (this *SimplePeer) detachOpen() error {
 	// Detach the data channel
 	raw, dErr := this.dataChannel.Detach()
 	if dErr != nil {
-		logger.Errorf(dErr.Error())
+		logger.Sugar.Errorf(dErr.Error())
 		return dErr
 	}
 
@@ -50,11 +50,11 @@ func readLoop(d io.Reader) {
 		buffer := make([]byte, MessageSize)
 		n, err := d.Read(buffer)
 		if err != nil {
-			logger.Infof("Datachannel closed; Exit the readloop:", err)
+			logger.Sugar.Infof("Datachannel closed; Exit the readloop:", err)
 			return
 		}
 
-		logger.Infof("Message from DataChannel: %s\n", string(buffer[:n]))
+		logger.Sugar.Infof("Message from DataChannel: %s\n", string(buffer[:n]))
 	}
 }
 
@@ -62,11 +62,11 @@ func readLoop(d io.Reader) {
 func writeLoop(d io.Writer) {
 	for range time.NewTicker(5 * time.Second).C {
 		message := "hello,胡劲松"
-		logger.Infof("Sending %s \n", message)
+		logger.Sugar.Infof("Sending %s \n", message)
 
 		_, err := d.Write([]byte(message))
 		if err != nil {
-			logger.Errorf(err.Error())
+			logger.Sugar.Errorf(err.Error())
 		}
 	}
 }

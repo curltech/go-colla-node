@@ -12,9 +12,9 @@ import (
 func PingPing(id peer.ID) error {
 	err := PeerEndpointDHT.Ping(id)
 	if err != nil {
-		logger.Errorf("failed to Ping:%v:%v", id, err)
+		logger.Sugar.Errorf("failed to Ping:%v:%v", id, err)
 	} else {
-		logger.Infof("successfully Ping:%v", id)
+		logger.Sugar.Infof("successfully Ping:%v", id)
 	}
 
 	return err
@@ -27,15 +27,15 @@ func pingPong(id peer.ID) (time.Duration, error) {
 		select {
 		case res := <-result:
 			if res.Error != nil {
-				logger.Errorf(res.Error.Error())
+				logger.Sugar.Errorf(res.Error.Error())
 				err = res.Error
 			} else {
-				logger.Infof("%v service Ping took: %v", id, res.RTT)
+				logger.Sugar.Infof("%v service Ping took: %v", id, res.RTT)
 
 				return res.RTT, nil
 			}
 		case <-time.After(time.Second * 4):
-			logger.Errorf("failed to service Ping, timeout")
+			logger.Sugar.Errorf("failed to service Ping, timeout")
 			err = errors.New("timeout")
 		}
 	}
@@ -46,15 +46,15 @@ func pingPong(id peer.ID) (time.Duration, error) {
 func connect(id peer.ID) (peer.AddrInfo, error) {
 	addr, err := PeerEndpointDHT.FindPeer(id)
 	if err != nil {
-		logger.Errorf("failed to FindPeer: %v, err: %v", id.Pretty(), err)
+		logger.Sugar.Errorf("failed to FindPeer: %v, err: %v", id.Pretty(), err)
 	} else {
-		logger.Infof("successfully FindPeer: %v", addr)
+		logger.Sugar.Infof("successfully FindPeer: %v", addr)
 	}
 	err = global.Global.Host.Connect(global.Global.Context, addr)
 	if err != nil {
-		logger.Errorf("failed to Connect: %v, err: %v", id.Pretty(), err)
+		logger.Sugar.Errorf("failed to Connect: %v, err: %v", id.Pretty(), err)
 	} else {
-		logger.Infof("successfully Connect: %v", id.Pretty())
+		logger.Sugar.Infof("successfully Connect: %v", id.Pretty())
 	}
 
 	return addr, err

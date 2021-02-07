@@ -70,7 +70,7 @@ func subLoop(sub *pubsub.Subscription) error {
 	for {
 		topicMsg, err := sub.Next(global.Global.Context)
 		if err != nil {
-			logger.Errorf("%v", err)
+			logger.Sugar.Errorf("%v", err)
 			continue
 		}
 		receiver.HandleChainMessage(topicMsg.Data, nil)

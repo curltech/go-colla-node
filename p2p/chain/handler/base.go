@@ -327,7 +327,7 @@ func DecryptPC(msg *msg1.PCChainMessage) (*msg1.PCChainMessage, error) {
 		err = message.TextUnmarshal(msg.MessagePayload.TransportPayload, payload)
 		msg.MessagePayload.Payload = payload
 	} else {
-		logger.Errorf("InvalidPayloadClass: %v", msg.MessagePayload.PayloadClass)
+		logger.Sugar.Errorf("InvalidPayloadClass: %v", msg.MessagePayload.PayloadClass)
 		err = errors.New("InvalidPayloadClass")
 	}
 	if err != nil {

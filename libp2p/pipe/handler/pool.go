@@ -5,8 +5,8 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/libp2p/pipe"
-	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
+	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -34,7 +34,7 @@ func (this *PipePool) GetResponsePipe(peerId string, connectSessionId string) *p
 	this.lock.Lock()
 	defer this.lock.Unlock()
 	key := peerId + ":" + connectSessionId
-	logger.Infof("GetResponsePipe-key: %v", key)
+	logger.Sugar.Infof("GetResponsePipe-key: %v", key)
 	p, ok := this.responsePool[key]
 	if ok {
 		return p
@@ -43,13 +43,13 @@ func (this *PipePool) GetResponsePipe(peerId string, connectSessionId string) *p
 		if ok {
 			stream, err := conn.NewStream()
 			if err != nil {
-				logger.Errorf(err.Error())
+				logger.Sugar.Errorf(err.Error())
 				return nil
 			}
 			stream.SetProtocol(global.Global.ChainProtocolID)
 			p, err := pipe.CreatePipe(stream, HandleRaw, msgtype.MsgDirect_Request)
 			if err != nil {
-				logger.Errorf(err.Error())
+				logger.Sugar.Errorf(err.Error())
 				return nil
 			}
 			if p != nil {
@@ -68,20 +68,20 @@ func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pip
 	this.lock.Lock()
 	defer this.lock.Unlock()
 	reqKey := GetPeerId(peerId) + ":" + protocolId
-	logger.Infof("GetRequestPipe-reqKey: %v", reqKey)
+	logger.Sugar.Infof("GetRequestPipe-reqKey: %v", reqKey)
 	p, ok := this.requestPool[reqKey]
 	if ok {
 		return p
 	} else {
 		addr, err := ma.NewMultiaddr(peerId)
 		if err != nil {
-			logger.Errorf(err.Error())
+			logger.Sugar.Errorf(err.Error())
 			return nil
 		}
 		// Extract the peer ID from the multiaddr.
 		info, err := peer.AddrInfoFromP2pAddr(addr)
 		if err != nil {
-			logger.Errorf(err.Error())
+			logger.Sugar.Errorf(err.Error())
 			return nil
 		}
 		// Add the destination's peer multiaddress in the peerstore.
@@ -92,7 +92,7 @@ func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pip
 		//peerId是带地址信息的/ip4/192.168.0.104/tcp/3721/p2p/12D3KooWPpZrX5bNEpJcHYFACTKkmMMxF39oU6Rm2WeK4rr8mRVp
 		stream, err := global.Global.Host.NewStream(global.Global.Context, info.ID, protocol.ID(protocolId))
 		if err != nil {
-			logger.Errorf("NewStream failed:%v", err)
+			logger.Sugar.Errorf("NewStream failed:%v", err)
 			return nil
 		} else {
 			/**
@@ -100,25 +100,25 @@ func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pip
 			*/
 			p, err := pipe.CreatePipe(stream, HandleRaw, msgtype.MsgDirect_Request)
 			if err != nil {
-				logger.Errorf(err.Error())
+				logger.Sugar.Errorf(err.Error())
 				return nil
 			}
 			if p != nil {
 				conn := p.GetStream().Conn()
 				if conn != nil {
 					peerId := conn.RemotePeer().Pretty()
-					logger.Infof("GetRequestPipe-remote peer: %v %v, steamId: %v", peerId, conn.ID(), stream.ID())
+					logger.Sugar.Infof("GetRequestPipe-remote peer: %v %v, steamId: %v", peerId, conn.ID(), stream.ID())
 					key := peerId + ":" + conn.ID()
-					logger.Infof("GetRequestPipe-key: %v", key)
+					logger.Sugar.Infof("GetRequestPipe-key: %v", key)
 					oldConn, ok := this.connectionPool[key]
 					if ok {
 						if conn != oldConn {
-							logger.Infof("----------GetRequestPipe-resetConn: v%", key)
+							logger.Sugar.Infof("----------GetRequestPipe-resetConn: v%", key)
 							oldConn.Close()
 							this.connectionPool[key] = conn
 						}
 					} else {
-						logger.Infof("----------GetRequestPipe-newConn: %v", key)
+						logger.Sugar.Infof("----------GetRequestPipe-newConn: %v", key)
 						this.connectionPool[key] = conn
 					}
 				}
@@ -133,28 +133,28 @@ func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pip
 func (this *PipePool) CreatePipe(stream network.Stream, direct string) *pipe.Pipe {
 	this.lock.Lock()
 	defer this.lock.Unlock()
-	logger.Infof("CreatePipe")
+	logger.Sugar.Infof("CreatePipe")
 	p, err := pipe.CreatePipe(stream, HandleRaw, direct)
 	if err != nil {
-		logger.Errorf(err.Error())
+		logger.Sugar.Errorf(err.Error())
 		return nil
 	}
 	if p != nil {
 		conn := p.GetStream().Conn()
 		if conn != nil {
 			peerId := conn.RemotePeer().Pretty()
-			logger.Infof("CreatePipe-remote peer: %v %v, steamId: %v", peerId, conn.ID(), stream.ID())
+			logger.Sugar.Infof("CreatePipe-remote peer: %v %v, steamId: %v", peerId, conn.ID(), stream.ID())
 			key := peerId + ":" + conn.ID()
-			logger.Infof("CreatePipe-key: %v", key)
+			logger.Sugar.Infof("CreatePipe-key: %v", key)
 			oldConn, ok := this.connectionPool[key]
 			if ok {
 				if conn != oldConn {
-					logger.Infof("----------CreatePipe-resetConn: v%", key)
+					logger.Sugar.Infof("----------CreatePipe-resetConn: v%", key)
 					oldConn.Close()
 					this.connectionPool[key] = conn
 				}
 			} else {
-				logger.Infof("----------CreatePipe-newConn: %v", key)
+				logger.Sugar.Infof("----------CreatePipe-newConn: %v", key)
 				this.connectionPool[key] = conn
 			}
 			_, ok = this.responsePool[key]
@@ -163,7 +163,7 @@ func (this *PipePool) CreatePipe(stream network.Stream, direct string) *pipe.Pip
 			}
 
 			reqKey := peerId + ":" + string(p.GetStream().Protocol())
-			logger.Infof("CreatePipe-reqKey: %v", reqKey)
+			logger.Sugar.Infof("CreatePipe-reqKey: %v", reqKey)
 			_, ok = this.requestPool[reqKey]
 			if !ok {
 				this.requestPool[reqKey] = p
@@ -178,7 +178,7 @@ func (this *PipePool) Close(peerId string, protocolId string, connectSessionId s
 	this.lock.Lock()
 	defer this.lock.Unlock()
 	key := peerId + ":" + connectSessionId
-	logger.Infof("Close-key: %v", key)
+	logger.Sugar.Infof("Close-key: %v", key)
 	p, ok := this.responsePool[key]
 	if ok {
 		if p.GetStream().ID() == streamId {
@@ -186,7 +186,7 @@ func (this *PipePool) Close(peerId string, protocolId string, connectSessionId s
 		}
 	}
 	reqKey := peerId + ":" + protocolId
-	logger.Infof("Close-reqKey: %v", reqKey)
+	logger.Sugar.Infof("Close-reqKey: %v", reqKey)
 	p, ok = this.requestPool[reqKey]
 	if ok {
 		if p.GetStream().ID() == streamId {
@@ -199,15 +199,15 @@ func (this *PipePool) Disconnect(peerId string, connectSessionId string) {
 	this.lock.Lock()
 	defer this.lock.Unlock()
 	key := peerId + ":" + connectSessionId
-	logger.Infof("Disconnect-key: %v", key)
+	logger.Sugar.Infof("Disconnect-key: %v", key)
 	_, ok := this.connectionPool[key]
 	if ok {
-		logger.Infof("----------deleteConn: %v", key)
+		logger.Sugar.Infof("----------deleteConn: %v", key)
 		delete(this.connectionPool, key)
 		// 更新信息
 		peerClients, err := service.GetPeerClientService().GetLocals(ns.PeerClient_KeyKind, peerId, "", "")
 		if err != nil {
-			logger.Errorf("failed to GetLocalPCs by peerId: %v, err: %v", peerId, err)
+			logger.Sugar.Errorf("failed to GetLocalPCs by peerId: %v, err: %v", peerId, err)
 		} else {
 			if len(peerClients) > 0 {
 				for _, peerClient := range peerClients {
@@ -217,7 +217,7 @@ func (this *PipePool) Disconnect(peerId string, connectSessionId string) {
 						peerClient.ActiveStatus = entity.ActiveStatus_Down
 						err = service.GetPeerClientService().PutValues(peerClient)
 						if err != nil {
-							logger.Errorf("failed to PutPCs, peerId: %v, err: %v", peerId, err)
+							logger.Sugar.Errorf("failed to PutPCs, peerId: %v, err: %v", peerId, err)
 						}
 						break
 					}

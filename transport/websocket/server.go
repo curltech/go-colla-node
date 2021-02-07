@@ -188,12 +188,12 @@ func (conn *Connection) loopRead() {
 			// 判断是不是超时
 			if netErr, ok := err.(net.Error); ok {
 				if netErr.Timeout() {
-					logger.Errorf("ReadMessage timeout remote: %v\n", conn.wsConnect.RemoteAddr())
+					logger.Sugar.Errorf("ReadMessage timeout remote: %v\n", conn.wsConnect.RemoteAddr())
 				}
 			}
 			// 其他错误，如果是 1001 和 1000 就不打印日志
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
-				logger.Errorf("ReadMessage other remote:%v error: %v \n", conn.wsConnect.RemoteAddr(), err)
+				logger.Sugar.Errorf("ReadMessage other remote:%v error: %v \n", conn.wsConnect.RemoteAddr(), err)
 			}
 			conn.Close()
 		} else {
@@ -234,7 +234,7 @@ func (conn *Connection) loopHeartbeat() {
 	for {
 		time.Sleep(time.Duration(heartbeatInterval) * time.Second)
 		if err := conn.Write(websocket.BinaryMessage, []byte("heartbeat from server")); err != nil {
-			logger.Errorf("heartbeat fail")
+			logger.Sugar.Errorf("heartbeat fail")
 			conn.Close()
 			break
 		}

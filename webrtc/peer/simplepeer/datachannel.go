@@ -48,7 +48,7 @@ func (this *SimplePeer) setupDataChannel(dataChannel *webrtc.DataChannel) {
 }
 
 func (this *SimplePeer) onChannelMessage(msg webrtc.DataChannelMessage) {
-	logger.Infof("DataChannel message receive")
+	logger.Sugar.Infof("DataChannel message receive")
 	if this.destroyed {
 		return
 	}
@@ -62,7 +62,7 @@ func (this *SimplePeer) onChannelBufferedAmountLow() {
 	if this.destroyed {
 		return
 	}
-	logger.Debugf("ending backpressure: bufferedAmount %d", this.dataChannel.BufferedAmount())
+	logger.Sugar.Debugf("ending backpressure: bufferedAmount %d", this.dataChannel.BufferedAmount())
 }
 
 func (this *SimplePeer) onChannelOpen() {
@@ -72,7 +72,7 @@ func (this *SimplePeer) onChannelOpen() {
 	}
 	this.connecting = false
 	this.connected = true
-	logger.Infof("connected")
+	logger.Sugar.Infof("connected")
 	/**
 	初始化数据的缓冲池
 	*/
@@ -86,7 +86,7 @@ func (this *SimplePeer) onChannelOpen() {
 数据通道关闭，关闭节点
 */
 func (this *SimplePeer) onChannelClose() {
-	logger.Infof("DataChannel close")
+	logger.Sugar.Infof("DataChannel close")
 	if this.destroyed {
 		return
 	}

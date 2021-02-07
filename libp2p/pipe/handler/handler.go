@@ -23,7 +23,7 @@ func HandleRaw(data []byte, p *pipe.Pipe) ([]byte, error) {
 	protocolID := stream.Protocol()
 	protocolMessageHandler, err := handler.GetProtocolMessageHandler(string(protocolID))
 	if err != nil {
-		logger.Errorf(err.Error())
+		logger.Sugar.Errorf(err.Error())
 	}
 	//调用Receive函数或者Response函数处理
 	data, err = protocolMessageHandler.ReceiveHandler(data, p)
@@ -32,8 +32,8 @@ func HandleRaw(data []byte, p *pipe.Pipe) ([]byte, error) {
 		p.Write(data, false)
 	}
 	p.Reset()
-	logger.Infof("read data:%v", string(data))
-	logger.Infof("read protocolID:%v", protocolID)
+	logger.Sugar.Infof("read data:%v", string(data))
+	logger.Sugar.Infof("read protocolID:%v", protocolID)
 
 	return data, nil
 }

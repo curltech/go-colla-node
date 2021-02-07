@@ -50,7 +50,7 @@ func (this *findClientAction) FindClient(peerId string, targetPeerId string, mob
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
 func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	logger.Infof("Receive %v message", this.MsgType)
+	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	var response *msg.ChainMessage = nil
 	conditionBean, ok := chainMessage.Payload.(map[string]interface{})
 	if !ok {
@@ -73,7 +73,7 @@ func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 	} else if len(mobileNumber) > 0 {
 		key = ns.GetPeerClientMobileKey(mobileNumber)
 	} else {
-		logger.Errorf("InvalidPeerClientKey")
+		logger.Sugar.Errorf("InvalidPeerClientKey")
 		response = handler.Error(chainMessage.MessageType, errors.New("InvalidPeerClientKey"))
 		return response, nil
 	}
@@ -87,7 +87,7 @@ func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			pcs := make([]*entity.PeerClient, 0)
 			err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
 			if err != nil {
-				logger.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Sugar.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
 			}
@@ -131,7 +131,7 @@ func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			pcs := make([]*entity.PeerClient, 0)
 			err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
 			if err != nil {
-				logger.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Sugar.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
 			}

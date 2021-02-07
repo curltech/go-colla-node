@@ -88,28 +88,28 @@ func p2pOptions() []libp2p.Option {
 	if config.Libp2pParams.EnableTls {
 		tlsOption := libp2p.Security(libp2ptls.ID, libp2ptls.New)
 		options = append(options, tlsOption)
-		logger.Infof("start tls option")
+		logger.Sugar.Infof("start tls option")
 	}
 
 	// support noise connections
 	if config.Libp2pParams.EnableNoise {
 		noiseOption := libp2p.Security(noise.ID, noise.New)
 		options = append(options, noiseOption)
-		logger.Infof("start noise option")
+		logger.Sugar.Infof("start noise option")
 	}
 
 	// support secio connections
 	if config.Libp2pParams.EnableSecio {
 		secioOption := libp2p.Security(secio.ID, secio.New)
 		options = append(options, secioOption)
-		logger.Infof("start secio option")
+		logger.Sugar.Infof("start secio option")
 	}
 
 	// support QUIC - experimental
 	if config.Libp2pParams.EnableQuic {
 		quicOption := libp2p.Transport(libp2pquic.NewTransport)
 		options = append(options, quicOption)
-		logger.Infof("start quic option")
+		logger.Sugar.Infof("start quic option")
 	}
 
 	// Let's prevent our peer from having too many
@@ -123,7 +123,7 @@ func p2pOptions() []libp2p.Option {
 	global.Global.ConnectionManager = monitorConnMgr
 	connectionManagerOption := libp2p.ConnectionManager(global.Global.ConnectionManager)
 	options = append(options, connectionManagerOption)
-	logger.Infof("start ConnectionManager option")
+	logger.Sugar.Infof("start ConnectionManager option")
 
 	//是否用缺省的ping服务
 	defaultPing, _ := config.GetBool("p2p.dht.defaultPing", true)
@@ -138,7 +138,7 @@ func p2pOptions() []libp2p.Option {
 	if config.Libp2pParams.EnableNatPortMap {
 		natPortMap := libp2p.NATPortMap()
 		options = append(options, natPortMap)
-		logger.Infof("start NATPortMap option")
+		logger.Sugar.Infof("start NATPortMap option")
 	}
 
 	// Attempt to open EnableNATService，实施回拨确认机制
@@ -146,32 +146,32 @@ func p2pOptions() []libp2p.Option {
 		enableNATService := libp2p.EnableNATService()
 		//libp2p.AutoNATServiceRateLimit()
 		options = append(options, enableNATService)
-		logger.Infof("start EnableNATService option")
+		logger.Sugar.Infof("start EnableNATService option")
 	}
 
 	//if config.Libp2pParams.NATManager {
 	//	natManager := libp2p.NATManager(nil)
 	//	options = append(options, natManager)
-	//	logger.Infof("start NATManager option")
+	//	logger.Sugar.Infof("start NATManager option")
 	//}
 
 	// Attempt to open ConnectionGater，控制连接的安全性
 	if config.Libp2pParams.ConnectionGater {
 		connectionGater := libp2p.ConnectionGater(nil)
 		options = append(options, connectionGater)
-		logger.Infof("start ConnectionGater option")
+		logger.Sugar.Infof("start ConnectionGater option")
 	}
 
 	if config.Libp2pParams.ForceReachabilityPublic {
 		forceReachabilityPublic := libp2p.ForceReachabilityPublic()
 		options = append(options, forceReachabilityPublic)
-		logger.Infof("start ForceReachabilityPublic option")
+		logger.Sugar.Infof("start ForceReachabilityPublic option")
 	}
 
 	if config.Libp2pParams.ForceReachabilityPrivate {
 		forceReachabilityPrivate := libp2p.ForceReachabilityPrivate()
 		options = append(options, forceReachabilityPrivate)
-		logger.Infof("start ForceReachabilityPrivate option")
+		logger.Sugar.Infof("start ForceReachabilityPrivate option")
 	}
 
 	// Let this host use the DHT to find other hosts
@@ -180,13 +180,13 @@ func p2pOptions() []libp2p.Option {
 			return global.Global.PeerEndpointDHT, nil
 		})
 		options = append(options, routing)
-		logger.Infof("start Routing option")
+		logger.Sugar.Infof("start Routing option")
 	}
 
 	if config.Libp2pParams.EnableRelay {
 		relay := libp2p.EnableRelay(relay.OptHop)
 		options = append(options, relay)
-		logger.Infof("start EnableRelay option")
+		logger.Sugar.Infof("start EnableRelay option")
 	}
 
 	// 1. When this libp2p node is configured to act as a relay "hop"
@@ -198,7 +198,7 @@ func p2pOptions() []libp2p.Option {
 	if config.Libp2pParams.EnableAutoRelay {
 		relay := libp2p.EnableAutoRelay()
 		options = append(options, relay)
-		logger.Infof("start EnableAutoRelay option")
+		logger.Sugar.Infof("start EnableAutoRelay option")
 	}
 
 	/**
@@ -209,18 +209,18 @@ func p2pOptions() []libp2p.Option {
 		var httpMultiAddr, wsMultiAddr ma.Multiaddr
 		var httpErr, wsErr error
 		if addr == "" {
-			logger.Errorf("Server Addr(External IP) not defined, Peers might not be able to resolve this node if behind NAT\n")
+			logger.Sugar.Errorf("Server Addr(External IP) not defined, Peers might not be able to resolve this node if behind NAT\n")
 		} else {
 			/**
 			这里应该支持多个，方便支持多种协议
 			*/
 			httpMultiAddr, httpErr = ma.NewMultiaddr(fmt.Sprintf(global.DefaultDnsAddrFormat, addr, config.Libp2pParams.ExternalPort))
 			if httpErr != nil {
-				logger.Errorf("Error creating httpMultiAddr: %v\n", httpErr)
+				logger.Sugar.Errorf("Error creating httpMultiAddr: %v\n", httpErr)
 			}
 			wsMultiAddr, wsErr = ma.NewMultiaddr(fmt.Sprintf(global.DefaultDnsWsAddrFormat, addr, config.Libp2pParams.ExternalWsPort))
 			if wsErr != nil {
-				logger.Errorf("Error creating wsMultiAddr: %v\n", wsErr)
+				logger.Sugar.Errorf("Error creating wsMultiAddr: %v\n", wsErr)
 			}
 			if httpErr == nil || wsErr == nil {
 				addressFactory := func(addrs []ma.Multiaddr) []ma.Multiaddr {
@@ -234,7 +234,7 @@ func p2pOptions() []libp2p.Option {
 				}
 				addressFactoryOption := libp2p.AddrsFactory(addressFactory)
 				options = append(options, addressFactoryOption)
-				logger.Infof("start addressFactory option")
+				logger.Sugar.Infof("start addressFactory option")
 			}
 		}
 	}
@@ -243,7 +243,7 @@ func p2pOptions() []libp2p.Option {
 	if config.Libp2pParams.EnableWebsocket {
 		wsOption := libp2p.Transport(ws.New)
 		options = append(options, wsOption)
-		logger.Infof("start EnableWebsocket option")
+		logger.Sugar.Infof("start EnableWebsocket option")
 	}
 
 	// support any other default transports (TCP)
@@ -263,7 +263,7 @@ func p2pOptions() []libp2p.Option {
 		)
 		wrOption := libp2p.Transport(transport)
 		options = append(options, wrOption)
-		logger.Infof("start EnableWebrtc option")
+		logger.Sugar.Infof("start EnableWebrtc option")
 	}
 
 	return options
@@ -340,13 +340,13 @@ func getMyselfPeer() (libp2pcrypto.PrivKey, *entity.MyselfPeer) {
 			panic(err)
 		}
 		myself.PeerPrivateKey = std.EncodeBase64(bs)
-		logger.Debugf("PeerPrivateKey length: %v", len(myself.PeerPrivateKey))
+		logger.Sugar.Debugf("PeerPrivateKey length: %v", len(myself.PeerPrivateKey))
 		bs, err = priv.GetPublic().Bytes()
 		if err != nil {
 			panic(err)
 		}
 		myself.PeerPublicKey = std.EncodeBase64(bs)
-		logger.Debugf("PeerPublicKey length: %v", len(myself.PeerPublicKey))
+		logger.Sugar.Debugf("PeerPublicKey length: %v", len(myself.PeerPublicKey))
 		/**
 		加密对应的密钥对openpgp
 		*/
@@ -354,13 +354,13 @@ func getMyselfPeer() (libp2pcrypto.PrivKey, *entity.MyselfPeer) {
 		privateKey := privKey.(*openpgpcrypto.Key)
 		myself.PrivateKey = std.EncodeBase64(openpgp.BytePrivateKey(privateKey, []byte(password)))
 		global.Global.PrivateKey = privateKey
-		logger.Debugf("PrivateKey length: %v", len(myself.PrivateKey))
+		logger.Sugar.Debugf("PrivateKey length: %v", len(myself.PrivateKey))
 
 		publicKey := openpgp.GetPublicKey(privateKey)
 		global.Global.PublicKey = publicKey
 		bs = openpgp.BytePublicKey(publicKey)
 		myself.PublicKey = std.EncodeBase64(bs)
-		logger.Debugf("PublicKey length: %v", len(myself.PublicKey))
+		logger.Sugar.Debugf("PublicKey length: %v", len(myself.PublicKey))
 
 		myself.SecurityContext, _ = message.TextMarshal(crypto.SecurityContext{
 			Protocol:    crypto.Protocol_openpgp,
@@ -395,14 +395,14 @@ func Start() {
 	//if config.Libp2pParams.EnableWebrtcStar {
 	//	//starOption := webrtcstar.StarTransportOption(global.Global.PeerPrivateKey.GetPublic())
 	//	//options = append(options, starOption...)
-	//	logger.Infof("start EnableWebrtcStar option")
+	//	logger.Sugar.Infof("start EnableWebrtcStar option")
 	//}
 
 	global.Global.Host, err = libp2p.New(global.Global.Context, options...)
 	if err != nil {
 		panic(err)
 	}
-	logger.Infof("Host created, Addrs: %v", global.Global.Host.Addrs())
+	logger.Sugar.Infof("Host created, Addrs: %v", global.Global.Host.Addrs())
 	autoNat()
 	//5.启动成功后更新自己节点的信息到数据库
 	upsertMyselfPeer(priv, myself)
@@ -433,14 +433,14 @@ func Start() {
 func connect(peer *peer.AddrInfo) {
 	err := global.Global.Host.Connect(global.Global.Context, *peer)
 	if err != nil {
-		logger.Errorf("cannot connect peer: %v", peer)
+		logger.Sugar.Errorf("cannot connect peer: %v", peer)
 	}
 }
 
 func subcrible() *pubsub.PubsubTopic {
 	topic, err := pubsub.Subscribe(config.Libp2pParams.Topic)
 	if err != nil {
-		logger.Errorf("cannot subscribe topic: %v, err: %v", config.Libp2pParams.Topic, err)
+		logger.Sugar.Errorf("cannot subscribe topic: %v, err: %v", config.Libp2pParams.Topic, err)
 	}
 
 	return topic
@@ -451,20 +451,20 @@ func upsertMyselfPeer(priv libp2pcrypto.PrivKey, myself *entity.MyselfPeer) (nee
 	id := myself.Id
 
 	if config.ServerParams.ExternalAddr == "" {
-		logger.Errorf("NoHttpServerExternalAddr")
+		logger.Sugar.Errorf("NoHttpServerExternalAddr")
 	}
 	if config.ServerParams.ExternalPort == "" {
-		logger.Errorf("NoHttpServerExternalPort")
+		logger.Sugar.Errorf("NoHttpServerExternalPort")
 	}
 	var discoveryAddress string = ""
 	//discoveryAddress = config.ServerParams.ExternalAddr + ":" + config.ServerParams.ExternalPort
 	addr := config.Libp2pParams.ExternalAddr
 	if addr == "" {
-		logger.Errorf("Server Addr(External IP) not defined, Peers might not be able to resolve this node if behind NAT\n")
+		logger.Sugar.Errorf("Server Addr(External IP) not defined, Peers might not be able to resolve this node if behind NAT\n")
 	} else {
 		wssMultiAddr, wssErr := ma.NewMultiaddr(fmt.Sprintf(global.DefaultDnsWssAddrFormat, addr, config.Libp2pParams.ExternalWssPort))
 		if wssErr != nil {
-			logger.Errorf("Error creating wssMultiAddr: %v\n", wssErr)
+			logger.Sugar.Errorf("Error creating wssMultiAddr: %v\n", wssErr)
 		} else if wssMultiAddr != nil {
 			discoveryAddress = fmt.Sprintf(global.GeneralP2pAddrFormat, wssMultiAddr.String(), myself.PeerId)
 		}
@@ -489,7 +489,7 @@ func upsertMyselfPeer(priv libp2pcrypto.PrivKey, myself *entity.MyselfPeer) (nee
 		if myself.PeerId != global.Global.Host.ID().String() {
 			needUpdate = true
 			myself.PeerId = global.Global.Host.ID().String()
-			logger.Infof("PeerId changed")
+			logger.Sugar.Infof("PeerId changed")
 		}
 		var saddrs = util.ToString(global.Global.Host.Addrs())
 		addrs, err := message.TextMarshal(saddrs)
@@ -499,12 +499,12 @@ func upsertMyselfPeer(priv libp2pcrypto.PrivKey, myself *entity.MyselfPeer) (nee
 		if myself.Address != addrs {
 			needUpdate = true
 			myself.Address = addrs
-			logger.Infof("Address changed")
+			logger.Sugar.Infof("Address changed")
 		}
 		if myself.DiscoveryAddress != discoveryAddress {
 			needUpdate = true
 			myself.DiscoveryAddress = discoveryAddress
-			logger.Infof("DiscoveryAddress changed")
+			logger.Sugar.Infof("DiscoveryAddress changed")
 		}
 		bs, err := priv.GetPublic().Bytes()
 		if err != nil {
@@ -513,7 +513,7 @@ func upsertMyselfPeer(priv libp2pcrypto.PrivKey, myself *entity.MyselfPeer) (nee
 		if myself.PeerPublicKey != std.EncodeBase64(bs) {
 			needUpdate = true
 			myself.PeerPublicKey = std.EncodeBase64(bs)
-			logger.Infof("PublicKey changed")
+			logger.Sugar.Infof("PublicKey changed")
 		}
 		name := config.ServerParams.Name
 		if name == "" {
@@ -522,7 +522,7 @@ func upsertMyselfPeer(priv libp2pcrypto.PrivKey, myself *entity.MyselfPeer) (nee
 		if myself.Name != name {
 			needUpdate = true
 			myself.Name = name
-			logger.Infof("Name changed")
+			logger.Sugar.Infof("Name changed")
 		}
 		email := config.ServerParams.Email
 		if email == "" {
@@ -531,7 +531,7 @@ func upsertMyselfPeer(priv libp2pcrypto.PrivKey, myself *entity.MyselfPeer) (nee
 		if myself.Email != email {
 			needUpdate = true
 			myself.Email = email
-			logger.Infof("Email changed")
+			logger.Sugar.Infof("Email changed")
 		}
 
 		if needUpdate {

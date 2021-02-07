@@ -59,10 +59,10 @@ func ReceivePC(chainMessage *msg1.PCChainMessage) (*msg1.PCChainMessage, error) 
 	//if direct == msgtype.MsgDirect_Request {
 	payload, err := chainMessageHandler.PCReceiveHandler(chainMessage)
 	if err != nil {
-		logger.Errorf("PCReceiveHandler return err: %v", err)
+		logger.Sugar.Errorf("PCReceiveHandler return err: %v", err)
 		return nil, err
 	}
-	logger.Infof("payload: %v", payload)
+	logger.Sugar.Infof("payload: %v", payload)
 	response := InitPCResponse(chainMessage.MessagePayload.SrcPeer.(*entity.PeerClient), chainMessage.MessagePayload.MessageType)
 	response.MessagePayload.Payload = payload
 	/*} else if direct == msgtype.MsgDirect_Response {

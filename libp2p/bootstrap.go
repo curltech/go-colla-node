@@ -22,14 +22,14 @@ import (
 func getPeerInfosFromConf() []*peer.AddrInfo {
 	bootstraps, err := config.GetString("libp2p.dht.bootstraps")
 	if err != nil {
-		logger.Errorf("config bootstraps error")
+		logger.Sugar.Errorf("config bootstraps error")
 	}
 	addrInfos := make([]*peer.AddrInfo, 0)
 	bootstrapPeers := strings.Split(bootstraps, ",")
 	if len(bootstrapPeers) > 0 {
 		addrs := util.ToMultiaddr(bootstrapPeers)
 		addrInfos = util.MultiaddrToAddInfo(addrs)
-		logger.Infof("config bootstraps:%v", addrInfos)
+		logger.Sugar.Infof("config bootstraps:%v", addrInfos)
 
 		return addrInfos
 	}
@@ -54,7 +54,7 @@ func getPeerInfosFromStore() []*peer.AddrInfo {
 				peerinfos = append(peerinfos, addrInfo)
 			}
 		}
-		logger.Infof("store bootstraps:%v", peerinfos)
+		logger.Sugar.Infof("store bootstraps:%v", peerinfos)
 	}
 
 	return peerinfos
@@ -103,24 +103,24 @@ func Bootstrap() error {
 			if strings.Contains(peerId, "127.0.0.1") || strings.Contains(peerId, "localhost") {
 				return
 			}
-			logger.Infof("will connect %v", peerId)
+			logger.Sugar.Infof("will connect %v", peerId)
 			if err := global.Global.Host.Connect(global.Global.Context, peerInfo); err != nil {
-				logger.Errorf("Failed to connect to bootstrap node: %v, err: %v", peerInfo, err)
+				logger.Sugar.Errorf("Failed to connect to bootstrap node: %v, err: %v", peerInfo, err)
 			} else {
-				logger.Infof("Successfully connect to bootstrap node: %v", peerInfo)
+				logger.Sugar.Infof("Successfully connect to bootstrap node: %v", peerInfo)
 			}
 			dht2.PingPing(peerInfo.ID)
 			/*response, err := dht.PingAction.Ping(peerId, peerId)
 			if response == msgtype.OK {
-				logger.Infof("Successfully ping(action) bootstrap node: %v", peerInfo)
+				logger.Sugar.Infof("Successfully ping(action) bootstrap node: %v", peerInfo)
 			} else {
-				logger.Errorf("Failed to ping(action) bootstrap node: %v, err: %v", peerInfo, err)
+				logger.Sugar.Errorf("Failed to ping(action) bootstrap node: %v, err: %v", peerInfo, err)
 			}*/
 		}()
 	}
 
 	// 初始化dht，5分钟刷新路由表
-	logger.Infof("Bootstrapping the DHT")
+	logger.Sugar.Infof("Bootstrapping the DHT")
 	if err := global.Global.PeerEndpointDHT.Bootstrap(global.Global.Context); err != nil {
 		return err
 	}

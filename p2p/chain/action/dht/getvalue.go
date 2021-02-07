@@ -2,12 +2,12 @@ package dht
 
 import (
 	"errors"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/curltech/go-colla-core/logger"
 )
 
 type getValueAction struct {
@@ -39,7 +39,7 @@ func (this *getValueAction) GetValue(peerId string, payloadType string, data int
 }
 
 func (this *getValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	logger.Infof("Receive %v message", this.MsgType)
+	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	v := chainMessage.Payload
 	key, ok := v.(string)
 	if !ok {

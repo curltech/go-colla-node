@@ -36,7 +36,7 @@ func GetRaftConsensus() *RaftConsensus {
  * @return
  */
 func (this *RaftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	logger.Infof("ReceiveConsensus")
+	logger.Sugar.Infof("ReceiveConsensus")
 	dataBlock, err := this.GetDataBlock(chainMessage)
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func (this *RaftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*ms
 			go action.ConsensusAction.ConsensusDataBlock(peerId, msgtype.CONSENSUS_RAFT_PREPREPARED, dataBlock, "")
 		}
 	} else {
-		logger.Errorf("LessPeerLocation")
+		logger.Sugar.Errorf("LessPeerLocation")
 
 		return nil, errors.New("LessPeerLocation")
 	}
@@ -91,7 +91,7 @@ func (this *RaftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*ms
 follow收到Preprepared消息，准备完成后向leader发送prepared消息
 */
 func (this *RaftConsensus) ReceivePreprepared(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	logger.Infof("receive ReceivePreprepared")
+	logger.Sugar.Infof("receive ReceivePreprepared")
 	dataBlock, err := this.GetDataBlock(chainMessage)
 	if err != nil {
 		return nil, err
@@ -171,7 +171,7 @@ leader收到prepared消息，计算是否到达提交标准，向follow发送com
 */
 func (this *RaftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
 	// 本节点是主副节点都会收到
-	logger.Infof("receive ReceivePrepared")
+	logger.Sugar.Infof("receive ReceivePrepared")
 	messageLog, err := this.GetConsensusLog(chainMessage)
 	if err != nil {
 		return nil, err
@@ -191,11 +191,11 @@ func (this *RaftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg
 	 */
 	peerId := messageLog.PeerId
 	if peerId == primaryPeerId {
-		logger.Errorf("%v", messageLog)
+		logger.Sugar.Errorf("%v", messageLog)
 		return nil, errors.New("SendPrimaryPreparedMessage")
 	}
 	if primaryPeerId != myPeerId {
-		logger.Errorf("%v", messageLog)
+		logger.Sugar.Errorf("%v", messageLog)
 		return nil, errors.New("SendMyselfMessage")
 	}
 	key := this.GetLogCacheKey(messageLog)
@@ -251,7 +251,7 @@ func (this *RaftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg
 			}
 		}
 		f := len(peerIds) / 3
-		logger.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_RAFT_PREPARED, count)
+		logger.Sugar.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_RAFT_PREPARED, count)
 		// 收到足够的数目
 		if count > 2*f {
 			log.PeerId = myPeerId
@@ -268,7 +268,7 @@ func (this *RaftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg
 			//保存dataBlock
 		}
 	} else {
-		logger.Errorf("LessPeerLocation")
+		logger.Sugar.Errorf("LessPeerLocation")
 		return nil, errors.New("LessPeerLocation")
 	}
 
@@ -281,7 +281,7 @@ func (this *RaftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg
  */
 func (this *RaftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
 	// 本节点是主副节点都会收到
-	logger.Infof("receive ReceiveCommited")
+	logger.Sugar.Infof("receive ReceiveCommited")
 	messageLog, err := this.GetConsensusLog(chainMessage)
 	if err != nil {
 		return nil, err
@@ -299,7 +299,7 @@ func (this *RaftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg
 	 */
 	peerId := messageLog.PeerId
 	if peerId == myPeerId {
-		logger.Errorf("%v", messageLog)
+		logger.Sugar.Errorf("%v", messageLog)
 		return nil, errors.New("SendMyselfMessage")
 	}
 
@@ -359,7 +359,7 @@ func (this *RaftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg
 		log.ClientPeerId = messageLog.ClientPeerId
 		go action.ConsensusAction.ConsensusLog(dataBlock.PrimaryPeerId, msgtype.CONSENSUS_RAFT_REPLY, log, "")
 	} else {
-		logger.Warnf("SameSrcAndTargetPeer")
+		logger.Sugar.Warnf("SameSrcAndTargetPeer")
 	}
 
 	return nil, nil
@@ -371,7 +371,7 @@ leader收到reply消息，判断完成后向客户就返回reply消息
 */
 func (this *RaftConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
 	// 本节点是主副节点都会收到
-	logger.Infof("receive ReceivePrepared")
+	logger.Sugar.Infof("receive ReceivePrepared")
 	messageLog, err := this.GetConsensusLog(chainMessage)
 	if err != nil {
 		return nil, err
@@ -391,11 +391,11 @@ func (this *RaftConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Ch
 	 */
 	peerId := messageLog.PeerId
 	if peerId == primaryPeerId {
-		logger.Errorf("%v", messageLog)
+		logger.Sugar.Errorf("%v", messageLog)
 		return nil, errors.New("SendPrimaryPreparedMessage")
 	}
 	if primaryPeerId != myPeerId {
-		logger.Errorf("%v", messageLog)
+		logger.Sugar.Errorf("%v", messageLog)
 		return nil, errors.New("SendMyselfMessage")
 	}
 	key := this.GetLogCacheKey(messageLog)
@@ -451,7 +451,7 @@ func (this *RaftConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Ch
 			}
 		}
 		f := len(peerIds) / 3
-		logger.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_RAFT_PREPARED, count)
+		logger.Sugar.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_RAFT_PREPARED, count)
 		// 收到足够的数目
 		if count > 2*f {
 			log.PeerId = myPeerId
@@ -461,7 +461,7 @@ func (this *RaftConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Ch
 			//保存dataBlock
 		}
 	} else {
-		logger.Errorf("LessPeerLocation")
+		logger.Sugar.Errorf("LessPeerLocation")
 		return nil, errors.New("LessPeerLocation")
 	}
 

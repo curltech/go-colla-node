@@ -64,7 +64,7 @@ func ToAddInfo(peerId string, saddr string) (*peer.AddrInfo, error) {
 	saddr = GetStringAddr(saddr, peerId)
 	addr, err := multiaddr.NewMultiaddr(saddr)
 	if err != nil {
-		logger.Errorf("addr:%v can't build Multiaddr", saddr)
+		logger.Sugar.Errorf("addr:%v can't build Multiaddr", saddr)
 		return nil, err
 	}
 	addrInfo, err := peer.AddrInfoFromP2pAddr(addr)

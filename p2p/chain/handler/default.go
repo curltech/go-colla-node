@@ -26,7 +26,7 @@ func registChainMessageHandler(msgType string, handler *ChainMessageHandler) {
 	if !found {
 		chainMessageHandlers[msgType] = handler
 	} else {
-		logger.Errorf("ReceiveHandler:%v exist", msgType)
+		logger.Sugar.Errorf("ReceiveHandler:%v exist", msgType)
 	}
 }
 
@@ -35,7 +35,7 @@ func GetChainMessageHandler(msgType string) (*ChainMessageHandler, error) {
 	if found {
 		return fn, nil
 	} else {
-		logger.Errorf("ChainMessageHandler:%v is not exist", msgType)
+		logger.Sugar.Errorf("ChainMessageHandler:%v is not exist", msgType)
 
 		return nil, errors.New("NotExist")
 	}
@@ -60,7 +60,7 @@ func RegistChainMessageHandler(msgType string,
 		chainMessageHandler.ResponseHandler = responseHandler
 		chainMessageHandlers[msgType] = &chainMessageHandler
 	} else {
-		logger.Errorf("ReceiveHandler:%v exist", msgType)
+		logger.Sugar.Errorf("ReceiveHandler:%v exist", msgType)
 	}
 }
 
@@ -83,7 +83,7 @@ func registPCChainMessageHandler(msgType string, handler *PCChainMessageHandler)
 	if !found {
 		pcChainMessageHandlers[msgType] = handler
 	} else {
-		logger.Errorf("ReceivePCHandler:%v exist", msgType)
+		logger.Sugar.Errorf("ReceivePCHandler:%v exist", msgType)
 	}
 }
 
@@ -92,7 +92,7 @@ func GetPCChainMessageHandler(msgType string) (*PCChainMessageHandler, error) {
 	if found {
 		return fn, nil
 	} else {
-		logger.Errorf("PCChainMessageHandler:%v is not exist", msgType)
+		logger.Sugar.Errorf("PCChainMessageHandler:%v is not exist", msgType)
 
 		return nil, errors.New("NotExist")
 	}
@@ -108,6 +108,6 @@ func RegistPCChainMessageHandler(msgType string, sendHandler func(chainMessage *
 		pcChainMessageHandler.PCResponseHandler = responseHandler
 		pcChainMessageHandlers[msgType] = &pcChainMessageHandler
 	} else {
-		logger.Errorf("ReceivePCHandler:%v exist", msgType)
+		logger.Sugar.Errorf("ReceivePCHandler:%v exist", msgType)
 	}
 }

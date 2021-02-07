@@ -53,10 +53,10 @@ func send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 		if targetPeerId != "" && targetConnectSessionId != "" && (targetConnectPeerId == "" || global.IsMyself(targetConnectPeerId)) {
 			pipe := handler.GetPipePool().GetResponsePipe(targetPeerId, targetConnectSessionId)
 			if pipe != nil {
-				logger.Infof("Write data length:%v", len(data))
+				logger.Sugar.Infof("Write data length:%v", len(data))
 				_, _, err = pipe.Write(data, false)
 				if err != nil {
-					logger.Errorf("pipe.Write failure")
+					logger.Sugar.Errorf("pipe.Write failure")
 					return nil, err
 				}
 			} else {
@@ -66,10 +66,10 @@ func send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 			if connectPeerId != "" && !global.IsMyself(connectPeerId) {
 				pipe := handler.GetPipePool().GetRequestPipe(connectPeerId, config.P2pParams.ChainProtocolID)
 				if pipe != nil {
-					logger.Infof("Write data length:%v", len(data))
+					logger.Sugar.Infof("Write data length:%v", len(data))
 					_, _, err := pipe.Write(data, false)
 					if err != nil {
-						logger.Errorf("pipe.Write failure")
+						logger.Sugar.Errorf("pipe.Write failure")
 						return nil, err
 					}
 				} else {
@@ -77,7 +77,7 @@ func send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 				}
 			} else {
 				//也许可以找targetPeerId最近的节点发送
-				logger.Errorf("InvalidConnectPeerId")
+				logger.Sugar.Errorf("InvalidConnectPeerId")
 				return nil, errors.New("InvalidConnectPeerId")
 			}
 		}

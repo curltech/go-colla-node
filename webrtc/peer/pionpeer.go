@@ -72,7 +72,7 @@ func (this *PionPeer) signalCandidate(candidate *webrtc.ICECandidateInit) error 
 	webrtcSignal := &simplepeer.WebrtcSignal{SignalType: simplepeer.WebrtcSignalType_Candidate, Candidate: candidate}
 	_, err := simplepeer.Signal(webrtcSignal, this.TargetPeerId)
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return err
 	}
 
@@ -98,7 +98,7 @@ func (this *PionPeer) Create(targetPeerId string, initiator bool, options *webrt
 	var err error
 	this.peerConnection, err = webrtc.NewPeerConnection(*options.Config)
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 	}
 
 	// When an ICE candidate is available send to the other Pion instance
@@ -115,7 +115,7 @@ func (this *PionPeer) Create(targetPeerId string, initiator bool, options *webrt
 		if desc == nil {
 			this.pendingCandidates = append(this.pendingCandidates, can)
 		} else if onICECandidateErr := this.signalCandidate(&can); err != nil {
-			logger.Errorf("%v", onICECandidateErr)
+			logger.Sugar.Errorf("%v", onICECandidateErr)
 		}
 	})
 
@@ -142,7 +142,7 @@ func (this *PionPeer) Signal(webrtcSignal *simplepeer.WebrtcSignal) {
 	if candidate != nil {
 		candidateErr := this.peerConnection.AddICECandidate(*candidate)
 		if candidateErr != nil {
-			logger.Errorf("%v", candidateErr)
+			logger.Sugar.Errorf("%v", candidateErr)
 			return
 		}
 	} else {
@@ -151,7 +151,7 @@ func (this *PionPeer) Signal(webrtcSignal *simplepeer.WebrtcSignal) {
 		if sdp != nil {
 			sdpErr := this.peerConnection.SetRemoteDescription(*sdp)
 			if sdpErr != nil {
-				logger.Errorf("%v", sdpErr)
+				logger.Sugar.Errorf("%v", sdpErr)
 				return
 			}
 			if !this.initiator {
@@ -163,7 +163,7 @@ func (this *PionPeer) Signal(webrtcSignal *simplepeer.WebrtcSignal) {
 			for _, pendingCandidate := range this.pendingCandidates {
 				onICECandidateErr := this.signalCandidate(&pendingCandidate)
 				if onICECandidateErr != nil {
-					logger.Errorf("%v", onICECandidateErr)
+					logger.Sugar.Errorf("%v", onICECandidateErr)
 					return
 				}
 			}
@@ -178,7 +178,7 @@ func (this *PionPeer) setDataChannel() {
 	if this.initiator {
 		this.dataChannel, err = this.peerConnection.CreateDataChannel("data", nil)
 		if err != nil {
-			logger.Errorf("%v", err)
+			logger.Sugar.Errorf("%v", err)
 			return
 		}
 		this.registDataChannelEvent()
@@ -198,7 +198,7 @@ func (this *PionPeer) registDataChannelEvent() {
 		// Send the message as text
 		sendTextErr := this.SendText("Hello,胡劲松")
 		if sendTextErr != nil {
-			logger.Errorf("%v", sendTextErr)
+			logger.Sugar.Errorf("%v", sendTextErr)
 			return
 		}
 		//for range time.NewTicker(5 * time.Second).C {
@@ -232,14 +232,14 @@ func (this *PionPeer) createOffer() {
 	// Create an offer to send to the other process
 	offer, err := this.peerConnection.CreateOffer(&webrtc.OfferOptions{ICERestart: true})
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return
 	}
 
 	// Sets the LocalDescription, and starts our UDP listeners
 	// Note: this will start the gathering of ICE candidates
 	if err = this.peerConnection.SetLocalDescription(offer); err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return
 	}
 
@@ -247,7 +247,7 @@ func (this *PionPeer) createOffer() {
 	webrtcSignal := &simplepeer.WebrtcSignal{SignalType: simplepeer.WebrtcSignalType_Offer, Sdp: &offer}
 	_, err = simplepeer.Signal(webrtcSignal, this.TargetPeerId)
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return
 	}
 }
@@ -261,14 +261,14 @@ func (this *PionPeer) createAnswer() {
 	webrtcSignal := &simplepeer.WebrtcSignal{SignalType: simplepeer.WebrtcSignalType_Answer, Sdp: &answer}
 	_, err = simplepeer.Signal(webrtcSignal, this.TargetPeerId)
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return
 	}
 
 	// Sets the LocalDescription, and starts our UDP listeners
 	err = this.peerConnection.SetLocalDescription(answer)
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return
 	}
 }

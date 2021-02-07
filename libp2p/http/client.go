@@ -19,7 +19,7 @@ func Connect() {
 	client := &nethttp.Client{Transport: tr}
 	res, err := client.Get("libp2p://Qmaoi4isbcTbFfohQyn28EiYM5CDWQx9QRCjDh3CTeiY7P/hello")
 	if err != nil {
-		logger.Infof("response:", res)
+		logger.Sugar.Infof("response:", res)
 	}
 }
 

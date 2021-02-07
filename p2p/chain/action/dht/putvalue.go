@@ -1,20 +1,20 @@
 package dht
 
 import (
+	"errors"
+	"github.com/curltech/go-colla-core/crypto/std"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
-	"github.com/curltech/go-colla-core/crypto/std"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	entity1 "github.com/curltech/go-colla-node/p2p/chain/entity"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
+	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"time"
-	"errors"
 )
 
 type putValueAction struct {
@@ -46,7 +46,7 @@ func (this *putValueAction) PutValue(peerId string, payloadType string, data int
 }
 
 func (this *putValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	logger.Infof("Receive %v message", this.MsgType)
+	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	var response *msg.ChainMessage = nil
 	v := chainMessage.Payload
 	peerClient, ok := v.(*entity.PeerClient)

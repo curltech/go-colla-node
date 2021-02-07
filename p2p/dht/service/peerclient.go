@@ -1,16 +1,16 @@
 package service
 
 import (
+	"errors"
+	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/container"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/service"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
-	"github.com/curltech/go-colla-core/config"
-	"github.com/curltech/go-colla-core/logger"
 	"sync"
-	"errors"
 )
 
 /**
@@ -117,19 +117,19 @@ func (this *PeerClientService) GetLocals(keyKind string, peerId string, mobile s
 		}
 		key = ns.GetPeerClientMobileKey(mobile)
 	} else {
-		logger.Errorf("InvalidPeerClientKeyKind: %v", keyKind)
+		logger.Sugar.Errorf("InvalidPeerClientKeyKind: %v", keyKind)
 		return nil, errors.New("InvalidPeerClientKeyKind")
 	}
 	rec, err := dht.PeerEndpointDHT.GetLocal(key)
 	if err != nil {
-		logger.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
+		logger.Sugar.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
 		return nil, err
 	}
 	if rec != nil {
 		peerClients := make([]*entity.PeerClient, 0)
 		err = message.Unmarshal(rec.GetValue(), &peerClients)
 		if err != nil {
-			logger.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
+			logger.Sugar.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
 			return nil, err
 		}
 		if len(clientId) > 0 {
@@ -172,7 +172,7 @@ func (this *PeerClientService) GetValues(peerId string, mobile string) ([]*entit
 	} else if len(mobile) > 0 {
 		key = ns.GetPeerClientMobileKey(mobile)
 	} else {
-		logger.Errorf("InvalidPeerClientKey")
+		logger.Sugar.Errorf("InvalidPeerClientKey")
 		return nil, errors.New("InvalidPeerClientKey")
 	}
 	if config.Libp2pParams.FaultTolerantLevel == 0 {
@@ -184,7 +184,7 @@ func (this *PeerClientService) GetValues(peerId string, mobile string) ([]*entit
 			pcs := make([]*entity.PeerClient, 0)
 			err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
 			if err != nil {
-				logger.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Sugar.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
 				return nil, err
 			}
 			for _, pc := range pcs {
@@ -233,7 +233,7 @@ func (this *PeerClientService) GetValues(peerId string, mobile string) ([]*entit
 			pcs := make([]*entity.PeerClient, 0)
 			err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
 			if err != nil {
-				logger.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Sugar.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
 				return nil, err
 			}
 			for _, pc := range pcs {
@@ -264,7 +264,7 @@ func (this *PeerClientService) PutValue(peerClient *entity.PeerClient, keyKind s
 	} else if keyKind == ns.PeerClient_Mobile_KeyKind {
 		key = ns.GetPeerClientMobileKey(peerClient.Mobile)
 	} else {
-		logger.Errorf("InvalidPeerClientKeyKind: %v", keyKind)
+		logger.Sugar.Errorf("InvalidPeerClientKeyKind: %v", keyKind)
 		return errors.New("InvalidPeerClientKeyKind")
 	}
 

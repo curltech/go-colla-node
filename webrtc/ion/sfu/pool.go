@@ -134,12 +134,12 @@ func (this *SfuPeerPool) Receive(netPeer *p2p.NetPeer, payload map[string]interf
 func (this *SfuPeerPool) trickle(netPeer *p2p.NetPeer, sfuSignal *SfuSignal) (interface{}, error) {
 	var sfuPeer = this.GetPeer(netPeer)
 	if sfuPeer == nil {
-		logger.Errorf("sfuPeers:%v is not exist", netPeer)
+		logger.Sugar.Errorf("sfuPeers:%v is not exist", netPeer)
 		return nil, errors.New("NotExist")
 	}
 	err := sfuPeer.Trickle(*sfuSignal.Candidate, sfuSignal.Target)
 	if err != nil {
-		logger.Errorf("%v", err.Error())
+		logger.Sugar.Errorf("%v", err.Error())
 	}
 	return nil, err
 }
@@ -147,12 +147,12 @@ func (this *SfuPeerPool) trickle(netPeer *p2p.NetPeer, sfuSignal *SfuSignal) (in
 func (this *SfuPeerPool) answer(netPeer *p2p.NetPeer, sfuSignal *SfuSignal) (interface{}, error) {
 	var sfuPeer = this.GetPeer(netPeer)
 	if sfuPeer == nil {
-		logger.Errorf("sfuPeers:%v is not exist", netPeer)
+		logger.Sugar.Errorf("sfuPeers:%v is not exist", netPeer)
 		return nil, errors.New("NotExist")
 	}
 	err := sfuPeer.SetRemoteDescription(*sfuSignal.Sdp)
 	if err != nil {
-		logger.Errorf("%v", err.Error())
+		logger.Sugar.Errorf("%v", err.Error())
 	}
 	return nil, err
 }
@@ -160,7 +160,7 @@ func (this *SfuPeerPool) answer(netPeer *p2p.NetPeer, sfuSignal *SfuSignal) (int
 func (this *SfuPeerPool) offer(netPeer *p2p.NetPeer, sfuSignal *SfuSignal, isSync bool) (interface{}, error) {
 	var sfuPeer = this.GetPeer(netPeer)
 	if sfuPeer == nil {
-		logger.Errorf("sfuPeers:%v is not exist, will recreate new sfuPeer", netPeer)
+		logger.Sugar.Errorf("sfuPeers:%v is not exist, will recreate new sfuPeer", netPeer)
 		return nil, errors.New("NotExist")
 	}
 	answer, err := sfuPeer.Answer(*sfuSignal.Sdp)
@@ -175,7 +175,7 @@ func (this *SfuPeerPool) offer(netPeer *p2p.NetPeer, sfuSignal *SfuSignal, isSyn
 	} else {
 		_, err = Signal(answerSfuSignal, sfuPeer.GetPeer().TargetPeerId)
 		if err != nil {
-			logger.Errorf("error sending answer %s", err.Error())
+			logger.Sugar.Errorf("error sending answer %s", err.Error())
 		}
 	}
 
@@ -185,7 +185,7 @@ func (this *SfuPeerPool) offer(netPeer *p2p.NetPeer, sfuSignal *SfuSignal, isSyn
 func (this *SfuPeerPool) join(netPeer *p2p.NetPeer, sfuSignal *SfuSignal, isSync bool) (interface{}, error) {
 	var sfuPeer = this.GetPeer(netPeer)
 	if sfuPeer != nil {
-		logger.Errorf("sfuPeers:%v is exist, will recreate new sfuPeer", netPeer)
+		logger.Sugar.Errorf("sfuPeers:%v is exist, will recreate new sfuPeer", netPeer)
 		return nil, errors.New("Exist")
 	}
 	sfuPeer = NewSfuPeer(netPeer, nil)
@@ -205,7 +205,7 @@ func (this *SfuPeerPool) join(netPeer *p2p.NetPeer, sfuSignal *SfuSignal, isSync
 		offerSfuSignal.Sdp = offer
 		_, err := Signal(offerSfuSignal, sfuPeer.GetPeer().TargetPeerId)
 		if err != nil {
-			logger.Errorf("error sending offer %s", err.Error())
+			logger.Sugar.Errorf("error sending offer %s", err.Error())
 		}
 	}
 
@@ -216,7 +216,7 @@ func (this *SfuPeerPool) join(netPeer *p2p.NetPeer, sfuSignal *SfuSignal, isSync
 		trickleSfuSignal.Target = target
 		_, err := Signal(trickleSfuSignal, sfuPeer.GetPeer().TargetPeerId)
 		if err != nil {
-			logger.Errorf("error sending offer %s", err.Error())
+			logger.Sugar.Errorf("error sending offer %s", err.Error())
 		}
 	}
 
@@ -232,7 +232,7 @@ func (this *SfuPeerPool) join(netPeer *p2p.NetPeer, sfuSignal *SfuSignal, isSync
 	} else {
 		_, err = Signal(answerSfuSignal, sfuPeer.GetPeer().TargetPeerId)
 		if err != nil {
-			logger.Errorf("error sending answer %s", err.Error())
+			logger.Sugar.Errorf("error sending answer %s", err.Error())
 		}
 	}
 	return nil, nil
@@ -243,7 +243,7 @@ func (this *SfuPeerPool) GetPeer(netPeer *p2p.NetPeer) *SfuPeer {
 	defer this.lock.Unlock()
 	sfuPeers, ok := this.sfuPeers[netPeer.TargetPeerId]
 	if !ok {
-		logger.Errorf("sfuPeers:%v is exist, will recreate new sfuPeer", netPeer)
+		logger.Sugar.Errorf("sfuPeers:%v is exist, will recreate new sfuPeer", netPeer)
 		return nil
 	}
 	var sfuPeer *SfuPeer
@@ -251,7 +251,7 @@ func (this *SfuPeerPool) GetPeer(netPeer *p2p.NetPeer) *SfuPeer {
 		for _, sfuPeer = range sfuPeers {
 			// 如果连接没有完成
 			if sfuPeer.ConnectPeerId == netPeer.ConnectPeerId && sfuPeer.ConnectSessionId == netPeer.ConnectSessionId {
-				logger.Infof("webrtcPeer:+  + ' exist, connected:%v", netPeer, sfuPeer.Connected())
+				logger.Sugar.Infof("webrtcPeer:+  + ' exist, connected:%v", netPeer, sfuPeer.Connected())
 				break
 			}
 		}
@@ -262,7 +262,7 @@ func (this *SfuPeerPool) GetPeer(netPeer *p2p.NetPeer) *SfuPeer {
 func (this *SfuPeerPool) leave(netPeer *p2p.NetPeer) error {
 	var sfuPeer = this.GetPeer(netPeer)
 	if sfuPeer == nil {
-		logger.Errorf("sfuPeers:%v is not exist, will recreate new sfuPeer", netPeer)
+		logger.Sugar.Errorf("sfuPeers:%v is not exist, will recreate new sfuPeer", netPeer)
 		return errors.New("NotExist")
 	}
 	return sfuPeer.Close()
@@ -273,13 +273,13 @@ func (this *SfuPeerPool) Remove(netPeer *p2p.NetPeer) error {
 	defer this.lock.Unlock()
 	sfuPeers, ok := this.sfuPeers[netPeer.TargetPeerId]
 	if !ok {
-		logger.Errorf("sfuPeers:%v is not exist", netPeer)
+		logger.Sugar.Errorf("sfuPeers:%v is not exist", netPeer)
 		return nil
 	}
 	if sfuPeers != nil && len(sfuPeers) > 0 {
 		for i, sfuPeer := range sfuPeers {
 			if sfuPeer.ConnectPeerId == netPeer.ConnectPeerId && sfuPeer.ConnectSessionId == netPeer.ConnectSessionId {
-				logger.Infof("sfuPeer:%v exist, connected:%v, will be left", netPeer, sfuPeer.Connected())
+				logger.Sugar.Infof("sfuPeer:%v exist, connected:%v, will be left", netPeer, sfuPeer.Connected())
 				sfuPeers = append(sfuPeers[:i], sfuPeers[i+1:]...)
 				break
 			}
@@ -301,7 +301,7 @@ func (this *SfuPeerPool) onStateChange(event *PoolEvent) (interface{}, error) {
 		} else if state == webrtc.ICEConnectionStateDisconnected || state == webrtc.ICEConnectionStateClosed {
 			this.Remove(sfuPeer.NetPeer)
 		} else if state == webrtc.ICEConnectionStateCompleted || state == webrtc.ICEConnectionStateConnected {
-			logger.Infof("sfuPeer:%v state changed, connected:%v", sfuPeer.TargetPeerId, sfuPeer.Connected())
+			logger.Sugar.Infof("sfuPeer:%v state changed, connected:%v", sfuPeer.TargetPeerId, sfuPeer.Connected())
 		}
 	}
 

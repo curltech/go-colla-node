@@ -19,7 +19,7 @@ type discoveryNotifee struct {
 func (notifee *discoveryNotifee) HandlePeerFound(peer peer.AddrInfo) {
 	notifee.PeerChan <- peer
 	if global.Global.Host.Network().Connectedness(peer.ID) != network.Connected {
-		logger.Infof("Found %s!\n", peer.ID.ShortString())
+		logger.Sugar.Infof("Found %s!\n", peer.ID.ShortString())
 		global.Global.Host.Connect(global.Global.Context, peer)
 	}
 }
@@ -34,7 +34,7 @@ func mdns() chan peer.AddrInfo {
 	// An hour might be a long long period in practical applications. But this is fine for us
 	ser, err := discovery2.NewMdnsService(global.Global.Context, global.Global.Host, time.Hour, global.Global.Rendezvous)
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 	}
 
 	//register with service so that we get notified about peer discovery
@@ -48,10 +48,10 @@ func mdns() chan peer.AddrInfo {
 
 func GetFoundPeer(peerChan chan peer.AddrInfo) peer.AddrInfo {
 	peer := <-peerChan // will block untill we discover a peer
-	logger.Infof("Found peer:", peer, ", connecting")
+	logger.Sugar.Infof("Found peer:", peer, ", connecting")
 
 	if err := global.Global.Host.Connect(global.Global.Context, peer); err != nil {
-		logger.Infof("Connection failed:", err)
+		logger.Sugar.Infof("Connection failed:", err)
 	}
 
 	return peer

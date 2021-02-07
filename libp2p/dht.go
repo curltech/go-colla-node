@@ -288,19 +288,19 @@ func routingTableFilter(dht *kaddht.IpfsDHT, conns []network.Conn) bool {
 }
 
 func PeerAdded(id peer.ID) {
-	logger.Infof("PeerEndpointDHT.RoutingTable add peer: %v", id.Pretty())
+	logger.Sugar.Infof("PeerEndpointDHT.RoutingTable add peer: %v", id.Pretty())
 
 	dht2.PingPing(id)
 
 	/*response, err := dht.PingAction.Ping(id.Pretty(), id.Pretty())
 	if response == msgtype.OK {
-		logger.Infof("successfully ping(action): %v", id.Pretty())
+		logger.Sugar.Infof("successfully ping(action): %v", id.Pretty())
 	} else {
-		logger.Errorf("failed to ping(action): %v, err: %v", id.Pretty(), err)
+		logger.Sugar.Errorf("failed to ping(action): %v, err: %v", id.Pretty(), err)
 	}*/
 }
 
 func PeerRemoved(id peer.ID) {
-	logger.Infof("PeerEndpointDHT.RoutingTable remove peer: %v", id.Pretty())
+	logger.Sugar.Infof("PeerEndpointDHT.RoutingTable remove peer: %v", id.Pretty())
 	//更改状态
 }

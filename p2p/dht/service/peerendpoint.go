@@ -3,9 +3,9 @@ package service
 import (
 	"github.com/curltech/go-colla-core/container"
 	entity2 "github.com/curltech/go-colla-core/entity"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/service"
 	"github.com/curltech/go-colla-core/util/message"
-	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
@@ -110,14 +110,14 @@ func (this *PeerEndpointService) GetLocal(peerId string) ([]*entity.PeerEndpoint
 	key := ns.GetPeerEndpointKey(peerId)
 	rec, err := dht.PeerEndpointDHT.GetLocal(key)
 	if err != nil {
-		logger.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
+		logger.Sugar.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
 		return nil, err
 	}
 	if rec != nil {
 		peerEndpoints := make([]*entity.PeerEndpoint, 0)
 		err = message.Unmarshal(rec.GetValue(), &peerEndpoints)
 		if err != nil {
-			logger.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
+			logger.Sugar.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
 			return nil, err
 		}
 		return peerEndpoints, nil

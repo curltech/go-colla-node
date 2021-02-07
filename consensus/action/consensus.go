@@ -16,7 +16,7 @@ type consensusAction struct {
 var ConsensusAction consensusAction
 
 func (this *consensusAction) ConsensusDataBlock(peerId string, msgType string, dataBlock *entity.DataBlock, targetPeerId string) (interface{}, error) {
-	logger.Infof("Receive %v message", this.MsgType)
+	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	chainMessage := msg.ChainMessage{}
 	chainMessage.TargetPeerId = targetPeerId
 	chainMessage.Payload = dataBlock
@@ -37,7 +37,7 @@ func (this *consensusAction) ConsensusDataBlock(peerId string, msgType string, d
 }
 
 func (this *consensusAction) ConsensusLog(peerId string, msgType string, consensusLog *entity.ConsensusLog, targetPeerId string) (interface{}, error) {
-	logger.Infof("Receive %v message", this.MsgType)
+	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	chainMessage := msg.ChainMessage{}
 	chainMessage.TargetPeerId = targetPeerId
 	chainMessage.Payload = consensusLog

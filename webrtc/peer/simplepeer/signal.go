@@ -151,21 +151,21 @@ func Transform(payload map[string]interface{}) *WebrtcSignal {
 */
 func (this *SimplePeer) Signal(webrtcSignal *WebrtcSignal) error {
 	if this.destroyed {
-		logger.Errorf("cannot signal after peer is destroyed'), 'ERRSIGNALING")
+		logger.Sugar.Errorf("cannot signal after peer is destroyed'), 'ERRSIGNALING")
 		return errors.New(webrtc2.ERR_SIGNALING)
 	}
 	/**
 	如果是发起方并且需要重新协商
 	*/
 	if webrtcSignal.Renegotiate && this.initiator {
-		logger.Infof("got request to renegotiate")
+		logger.Sugar.Infof("got request to renegotiate")
 		this.needsNegotiation()
 	}
 	/**
 	如果是发起方并且需要增加收发器
 	*/
 	if webrtcSignal.TransceiverRequest != nil && this.initiator {
-		logger.Infof("got request for transceiver")
+		logger.Sugar.Infof("got request for transceiver")
 		webrtcSignal.TransceiverRequest = make(map[string]interface{})
 		kind, ok := webrtcSignal.TransceiverRequest["kind"]
 		if ok {
@@ -195,14 +195,14 @@ func (this *SimplePeer) Signal(webrtcSignal *WebrtcSignal) error {
 		if this.candidateFastAdd {
 			err := this.addIceCandidate(webrtcSignal.Candidate)
 			if err != nil {
-				logger.Errorf("addIceCandidate err:%v", err.Error())
+				logger.Sugar.Errorf("addIceCandidate err:%v", err.Error())
 			}
 		} else {
 			desc := this.peerConnection.RemoteDescription()
 			if desc != nil && desc.Type != 0 {
 				err := this.addIceCandidate(webrtcSignal.Candidate)
 				if err != nil {
-					logger.Errorf("addIceCandidate err:%v", err.Error())
+					logger.Sugar.Errorf("addIceCandidate err:%v", err.Error())
 				}
 			} else {
 				this.candidatesMux.Lock()
@@ -236,7 +236,7 @@ func (this *SimplePeer) Signal(webrtcSignal *WebrtcSignal) error {
 					// 加所有的候选candidate
 					err := this.addIceCandidate(&candidate)
 					if err != nil {
-						logger.Errorf("addIceCandidate err:%v", err.Error())
+						logger.Sugar.Errorf("addIceCandidate err:%v", err.Error())
 					}
 				}
 				this.pendingCandidates = make([]webrtc.ICECandidateInit, 0)
@@ -260,7 +260,7 @@ func (this *SimplePeer) signalCandidate(candidate *webrtc.ICECandidateInit) (int
 	candidateSignal := &WebrtcSignal{SignalType: WebrtcSignalType_Candidate, Candidate: candidate}
 	resp, err := this.EmitEvent(webrtc2.EVENT_SIGNAL, &webrtc2.PeerEvent{Data: candidateSignal})
 	if err != nil {
-		logger.Errorf("%v", err.Error())
+		logger.Sugar.Errorf("%v", err.Error())
 	}
 
 	return resp, err

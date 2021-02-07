@@ -43,18 +43,18 @@ func setupPlugins(externalPluginsPath string) error {
 	// Load any external plugins if available on externalPluginsPath
 	plugins, err := loader.NewPluginLoader(filepath.Join(externalPluginsPath, "plugins"))
 	if err != nil {
-		logger.Errorf("error loading plugins: %s", err)
+		logger.Sugar.Errorf("error loading plugins: %s", err)
 		panic(err)
 	}
 
 	// Load preloaded and external plugins
 	if err := plugins.Initialize(); err != nil {
-		logger.Errorf("error initializing plugins: %s", err)
+		logger.Sugar.Errorf("error initializing plugins: %s", err)
 		panic(err)
 	}
 
 	if err := plugins.Inject(); err != nil {
-		logger.Errorf("error initializing plugins: %s", err)
+		logger.Sugar.Errorf("error initializing plugins: %s", err)
 		panic(err)
 	}
 
@@ -67,7 +67,7 @@ func setupPlugins(externalPluginsPath string) error {
 func NewIdentity() (*config.Identity, error) {
 	identity, err := config.CreateIdentity(ioutil.Discard, []options.KeyGenerateOption{options.Key.Type(options.Ed25519Key)})
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		panic(err)
 	}
 	return &identity, nil
@@ -79,7 +79,7 @@ func NewIdentity() (*config.Identity, error) {
 func identity() (*config.Identity, error) {
 	buf, err := global.Global.PeerPrivateKey.Bytes()
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return nil, err
 	}
 	id := config.Identity{PeerID: string(global.Global.PeerId), PrivKey: base64.StdEncoding.EncodeToString(buf)}
@@ -91,19 +91,19 @@ func identity() (*config.Identity, error) {
 func createRepo() error {
 	id, err := identity()
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return err
 	}
 	cfg, err := config.InitWithIdentity(*id)
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return err
 	}
 
 	IpfsPeer.RepoPath = collaconfig.IpfsParams.RepoPath
 	err = fsrepo.Init(IpfsPeer.RepoPath, cfg)
 	if err != nil {
-		logger.Errorf("failed to init ephemeral node: %s", err)
+		logger.Sugar.Errorf("failed to init ephemeral node: %s", err)
 		return err
 	}
 
@@ -114,7 +114,7 @@ func createRepo() error {
 func createNode() error {
 	repo, err := fsrepo.Open(IpfsPeer.RepoPath)
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return err
 	}
 
@@ -132,14 +132,14 @@ func createNode() error {
 
 	IpfsPeer.IpfsNode, err = core.NewNode(IpfsPeer.Context, nodeOptions)
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return err
 	}
 
 	// Attach the Core API to the constructed node
 	IpfsPeer.CoreAPI, err = coreapi.NewCoreAPI(IpfsPeer.IpfsNode)
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return err
 	}
 
@@ -151,12 +151,12 @@ func spawnDefault() error {
 	var err error
 	IpfsPeer.RepoPath, err = config.PathRoot()
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return err
 	}
 
 	if err := setupPlugins(IpfsPeer.RepoPath); err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return err
 	}
 
@@ -166,13 +166,13 @@ func spawnDefault() error {
 // 创建节点，文件区域的设置从配置文件读取
 func spawnEphemeral() error {
 	if err := setupPlugins(collaconfig.IpfsParams.ExternalPluginsPath); err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return err
 	}
 
 	err := createRepo()
 	if err != nil {
-		logger.Errorf("failed to create temp repo: %s", err)
+		logger.Sugar.Errorf("failed to create temp repo: %s", err)
 		return err
 	}
 
@@ -207,7 +207,7 @@ func connectToPeers(peers []string) error {
 			defer wg.Done()
 			err := IpfsPeer.CoreAPI.Swarm().Connect(IpfsPeer.Context, *peerInfo)
 			if err != nil {
-				logger.Errorf("failed to connect to %s: %s", peerInfo.ID, err)
+				logger.Sugar.Errorf("failed to connect to %s: %s", peerInfo.ID, err)
 			}
 		}(peerInfo)
 	}
@@ -243,13 +243,13 @@ func getFile(path string) (files.File, *os.File, error) {
 func getFileNode(path string) (files.Node, error) {
 	st, err := os.Stat(path)
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return nil, err
 	}
 
 	f, err := files.NewSerialFile(path, false, st)
 	if err != nil {
-		logger.Errorf("%v", err)
+		logger.Sugar.Errorf("%v", err)
 		return nil, err
 	}
 
@@ -261,22 +261,22 @@ func getFileNode(path string) (files.Node, error) {
 */
 func Start() {
 	/// --- Part I: Getting a IPFS node running
-	logger.Infof("-- Getting an IPFS node running -- ")
+	logger.Sugar.Infof("-- Getting an IPFS node running -- ")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	// Spawn a node using a temporary path, creating a temporary repo for the run
-	logger.Infof("Spawning node on a temporary repo")
+	logger.Sugar.Infof("Spawning node on a temporary repo")
 	var err error
 	IpfsPeer = &ipfsPeer{Context: ctx}
 	err = spawnEphemeral()
 	if err != nil {
-		logger.Errorf("failed to spawn ephemeral node: %s", err)
+		logger.Sugar.Errorf("failed to spawn ephemeral node: %s", err)
 		return
 	}
 
-	logger.Infof("successfully start ipfs node:%v in %v", IpfsPeer.IpfsNode.PeerHost.ID(), IpfsPeer.IpfsNode.PeerHost.Addrs())
-	logger.Infof("in repo path:%v, enjoy it!", IpfsPeer.RepoPath)
+	logger.Sugar.Infof("successfully start ipfs node:%v in %v", IpfsPeer.IpfsNode.PeerHost.ID(), IpfsPeer.IpfsNode.PeerHost.Addrs())
+	logger.Sugar.Infof("in repo path:%v, enjoy it!", IpfsPeer.RepoPath)
 
 	select {}
 }
@@ -284,25 +284,25 @@ func Start() {
 func AddFile(filename string) string {
 	//加一个文件和路径到ipfs
 	/// --- Part II: Adding a file and a directory to IPFS
-	logger.Infof("\n-- Adding and getting back files & directories --")
+	logger.Sugar.Infof("\n-- Adding and getting back files & directories --")
 	someFile, file, err := getFile(filename)
 	if file != nil {
 		defer file.Close()
 	}
 	if err != nil {
-		logger.Errorf("Could not get File: %s", err)
+		logger.Sugar.Errorf("Could not get File: %s", err)
 
 		return ""
 	}
 	defer someFile.Close()
 	cidFile, err := IpfsPeer.CoreAPI.Unixfs().Add(IpfsPeer.Context, someFile)
 	if err != nil {
-		logger.Errorf("Could not add File: %s", err)
+		logger.Sugar.Errorf("Could not add File: %s", err)
 
 		return ""
 	}
 
-	logger.Infof("Added file to IPFS with CID %s\n", cidFile.String())
+	logger.Sugar.Infof("Added file to IPFS with CID %s\n", cidFile.String())
 
 	return cidFile.String()
 }
@@ -310,19 +310,19 @@ func AddFile(filename string) string {
 func AddDirectory(path string) string {
 	someDirectory, err := getFileNode(path)
 	if err != nil {
-		logger.Errorf("Could not get File: %s", err)
+		logger.Sugar.Errorf("Could not get File: %s", err)
 
 		return ""
 	}
 
 	cidDirectory, err := IpfsPeer.CoreAPI.Unixfs().Add(IpfsPeer.Context, someDirectory)
 	if err != nil {
-		logger.Errorf("Could not add Directory: %s", err)
+		logger.Sugar.Errorf("Could not add Directory: %s", err)
 
 		return ""
 	}
 
-	logger.Infof("Added directory to IPFS with CID %s\n", cidDirectory.String())
+	logger.Sugar.Infof("Added directory to IPFS with CID %s\n", cidDirectory.String())
 
 	return cidDirectory.String()
 }
@@ -339,19 +339,19 @@ func GetFile(cid string, path string) (string, error) {
 
 	rootNodeFile, err := IpfsPeer.CoreAPI.Unixfs().Get(IpfsPeer.Context, cidFile)
 	if err != nil {
-		logger.Errorf("Could not get file with CID: %s", err)
+		logger.Sugar.Errorf("Could not get file with CID: %s", err)
 
 		return outputPathFile, err
 	}
 
 	err = files.WriteTo(rootNodeFile, outputPathFile)
 	if err != nil {
-		logger.Errorf("Could not write out the fetched CID: %s", err)
+		logger.Sugar.Errorf("Could not write out the fetched CID: %s", err)
 
 		return outputPathFile, err
 	}
 
-	logger.Infof("Got file back from IPFS (IPFS path: %s) and wrote it to %s\n", cidFile.String(), outputPathFile)
+	logger.Sugar.Infof("Got file back from IPFS (IPFS path: %s) and wrote it to %s\n", cidFile.String(), outputPathFile)
 
 	return outputPathFile, nil
 }
@@ -367,19 +367,19 @@ func GetDirectory(cid string, path string) (string, error) {
 	}
 	rootNodeDirectory, err := IpfsPeer.CoreAPI.Unixfs().Get(IpfsPeer.Context, cidDirectory)
 	if err != nil {
-		logger.Errorf("Could not get file with CID: %s", err)
+		logger.Sugar.Errorf("Could not get file with CID: %s", err)
 
 		return outputPathDirectory, err
 	}
 
 	err = files.WriteTo(rootNodeDirectory, outputPathDirectory)
 	if err != nil {
-		logger.Errorf("Could not write out the fetched CID: %s", err)
+		logger.Sugar.Errorf("Could not write out the fetched CID: %s", err)
 
 		return outputPathDirectory, err
 	}
 
-	logger.Infof("Got directory back from IPFS (IPFS path: %s) and wrote it to %s\n", cidDirectory.String(), outputPathDirectory)
+	logger.Sugar.Infof("Got directory back from IPFS (IPFS path: %s) and wrote it to %s\n", cidDirectory.String(), outputPathDirectory)
 
 	return outputPathDirectory, nil
 }

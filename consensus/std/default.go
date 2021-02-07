@@ -40,7 +40,7 @@ func GetStdConsensus() *StdConsensus {
  * @return
  */
 func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	logger.Infof("ReceiveConsensus")
+	logger.Sugar.Infof("ReceiveConsensus")
 	dataBlock, err := this.GetDataBlock(chainMessage)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
  */
 func (this *StdConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
 	// 本节点是主副节点都会收到
-	logger.Infof("receive ReceiveCommited")
+	logger.Sugar.Infof("receive ReceiveCommited")
 	dataBlock, err := this.GetDataBlock(chainMessage)
 	if err != nil {
 		return nil, err
@@ -158,11 +158,11 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 	 */
 	peerId := messageLog.PeerId
 	if peerId == primaryPeerId {
-		logger.Errorf("%v", messageLog)
+		logger.Sugar.Errorf("%v", messageLog)
 		return nil, errors.New("SendPrimaryPreparedMessage")
 	}
 	if primaryPeerId != myPeerId {
-		logger.Errorf("%v", messageLog)
+		logger.Sugar.Errorf("%v", messageLog)
 		return nil, errors.New("SendMyselfMessage")
 	}
 	key := this.GetLogCacheKey(messageLog)
@@ -213,7 +213,7 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 				count++
 			}
 		}
-		logger.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_REPLY, count)
+		logger.Sugar.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_REPLY, count)
 		// 收到足够的数目
 		if count > config.ConsensusParams.StdMinPeerNum {
 			//保存dataBlock

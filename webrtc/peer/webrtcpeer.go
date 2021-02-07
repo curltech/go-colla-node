@@ -119,7 +119,7 @@ func (this *WebrtcSimplePeer) Create(targetPeerId string, iceServer []webrtc.ICE
 			return GetSfuPool().Join(this)
 		})
 		if !ok {
-			logger.Errorf("RegistEvent %v fail", webrtc2.EVENT_CONNECT)
+			logger.Sugar.Errorf("RegistEvent %v fail", webrtc2.EVENT_CONNECT)
 		}
 		ok = this.RegistEvent(webrtc2.EVENT_CLOSE, func(event *PoolEvent) (interface{}, error) {
 			err := GetSfuPool().Leave(this)
@@ -127,14 +127,14 @@ func (this *WebrtcSimplePeer) Create(targetPeerId string, iceServer []webrtc.ICE
 			return nil, err
 		})
 		if !ok {
-			logger.Errorf("RegistEvent %v fail", webrtc2.EVENT_CLOSE)
+			logger.Sugar.Errorf("RegistEvent %v fail", webrtc2.EVENT_CLOSE)
 		}
 	}
 	/**
 	 * 可以发起信号
 	 */
 	this.simplePeer.RegistEvent(webrtc2.EVENT_SIGNAL, func(evt *webrtc2.PeerEvent) (interface{}, error) {
-		logger.Infof("can signal to peer:%v;connectPeer:%v;session:", this.TargetPeerId, this.ConnectPeerId, this.ConnectSessionId)
+		logger.Sugar.Infof("can signal to peer:%v;connectPeer:%v;session:", this.TargetPeerId, this.ConnectPeerId, this.ConnectSessionId)
 		poolEvent := &PoolEvent{Name: webrtc2.EVENT_SIGNAL, Source: this, Data: evt.Data}
 		this.EmitEvent(webrtc2.EVENT_SIGNAL, poolEvent)
 		return webrtcPeerPool.EmitEvent(webrtc2.EVENT_SIGNAL, poolEvent)
@@ -144,9 +144,9 @@ func (this *WebrtcSimplePeer) Create(targetPeerId string, iceServer []webrtc.ICE
 	 * 连接建立
 	 */
 	this.simplePeer.RegistEvent(webrtc2.EVENT_CONNECT, func(evt *webrtc2.PeerEvent) (interface{}, error) {
-		logger.Infof("connected to peer:%v;connectPeer:%v;session:%v, can send message", this.TargetPeerId, this.ConnectPeerId, this.ConnectSessionId)
+		logger.Sugar.Infof("connected to peer:%v;connectPeer:%v;session:%v, can send message", this.TargetPeerId, this.ConnectPeerId, this.ConnectSessionId)
 		this.end = time.Now()
-		logger.Infof("connect time:%v", (this.end.Unix() - this.start.Unix()))
+		logger.Sugar.Infof("connect time:%v", (this.end.Unix() - this.start.Unix()))
 		this.SendText("hello,胡劲松")
 		poolEvent := &PoolEvent{Name: webrtc2.EVENT_CONNECT, Source: this}
 		this.EmitEvent(webrtc2.EVENT_CONNECT, poolEvent)
@@ -154,7 +154,7 @@ func (this *WebrtcSimplePeer) Create(targetPeerId string, iceServer []webrtc.ICE
 	})
 
 	this.simplePeer.RegistEvent(webrtc2.EVENT_CLOSE, func(evt *webrtc2.PeerEvent) (interface{}, error) {
-		logger.Infof("connected to peer:%v;connectPeer:%v;session:%v, is closed", this.TargetPeerId, this.ConnectPeerId, this.ConnectSessionId)
+		logger.Sugar.Infof("connected to peer:%v;connectPeer:%v;session:%v, is closed", this.TargetPeerId, this.ConnectPeerId, this.ConnectSessionId)
 		webrtcPeerPool.remove(this.NetPeer)
 		poolEvent := &PoolEvent{Name: webrtc2.EVENT_CLOSE, Source: this}
 		this.EmitEvent(webrtc2.EVENT_CLOSE, poolEvent)
@@ -166,7 +166,7 @@ func (this *WebrtcSimplePeer) Create(targetPeerId string, iceServer []webrtc.ICE
 	 */
 	this.simplePeer.RegistEvent(webrtc2.EVENT_DATA, func(evt *webrtc2.PeerEvent) (interface{}, error) {
 		data := evt.Data.([]byte)
-		logger.Infof("got a message from peer:%v", string(data))
+		logger.Sugar.Infof("got a message from peer:%v", string(data))
 		poolEvent := &PoolEvent{Name: webrtc2.EVENT_DATA, Source: this, Data: evt.Data}
 		this.EmitEvent(webrtc2.EVENT_DATA, poolEvent)
 		return webrtcPeerPool.EmitEvent(webrtc2.EVENT_DATA, poolEvent)
@@ -179,14 +179,14 @@ func (this *WebrtcSimplePeer) Create(targetPeerId string, iceServer []webrtc.ICE
 	})
 
 	this.simplePeer.RegistEvent(webrtc2.EVENT_TRACK, func(evt *webrtc2.PeerEvent) (interface{}, error) {
-		logger.Infof("track")
+		logger.Sugar.Infof("track")
 		poolEvent := &PoolEvent{Name: webrtc2.EVENT_TRACK, Source: this, Data: evt.Data}
 		this.EmitEvent(webrtc2.EVENT_TRACK, poolEvent)
 		return webrtcPeerPool.EmitEvent(webrtc2.EVENT_TRACK, poolEvent)
 	})
 
 	this.simplePeer.RegistEvent(webrtc2.EVENT_ERROR, func(evt *webrtc2.PeerEvent) (interface{}, error) {
-		logger.Errorf("error:%v", evt.Data)
+		logger.Sugar.Errorf("error:%v", evt.Data)
 		// 重试的次数需要限制，超过则从池中删除
 		//this.init(this._targetPeerId, this._iceServer, null, this._options)
 		poolEvent := &PoolEvent{Name: webrtc2.EVENT_ERROR, Source: this, Data: evt.Data}
@@ -234,7 +234,7 @@ func (this *WebrtcSimplePeer) Send(data []byte) error {
 	if this.simplePeer.Connected() {
 		return this.simplePeer.Send(data)
 	} else {
-		logger.Errorf("peerId:%v;connectPeer:%v session:%v  webrtc connection state is not connected", this.TargetPeerId, this.ConnectPeerId, this.ConnectSessionId)
+		logger.Sugar.Errorf("peerId:%v;connectPeer:%v session:%v  webrtc connection state is not connected", this.TargetPeerId, this.ConnectPeerId, this.ConnectSessionId)
 	}
 
 	return nil
@@ -247,7 +247,7 @@ func (this *WebrtcSimplePeer) SendText(data string) error {
 	if this.simplePeer.Connected() {
 		return this.simplePeer.SendText(data)
 	} else {
-		logger.Errorf("peerId:%v;connectPeer:%v session:%v  webrtc connection state is not connected", this.TargetPeerId, this.ConnectPeerId, this.ConnectSessionId)
+		logger.Sugar.Errorf("peerId:%v;connectPeer:%v session:%v  webrtc connection state is not connected", this.TargetPeerId, this.ConnectPeerId, this.ConnectSessionId)
 	}
 
 	return nil

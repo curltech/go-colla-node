@@ -171,7 +171,7 @@ func Encrypt(keyValue interface{}, plaintext []byte) []byte {
 		password := []byte(security.RandString(32))
 		vsG, m, err := ecdh.Encrypt(rand.Reader, pub, password, testCurveOID, testFingerprint)
 		if err != nil {
-			logger.Errorf("error encrypting: %s", err)
+			logger.Sugar.Errorf("error encrypting: %s", err)
 		}
 		cipher := std.EncryptSymmetrical(password, plaintext, "GCM")
 		ciphertext := make([]byte, len(vsG)+len(m)+len(cipher))
@@ -209,7 +209,7 @@ func Decrypt(keyValue interface{}, passphrase []byte, ciphertext []byte) []byte 
 		m := ciphertext[8:42]
 		password, err := ecdh.Decrypt(priv, vsG, m, testCurveOID, testFingerprint)
 		if err != nil {
-			logger.Errorf("error decrypting: %s", err)
+			logger.Sugar.Errorf("error decrypting: %s", err)
 		}
 		ciper := ciphertext[60:]
 		plaintext := std.DecryptSymmetrical(password, ciper, "GCM")

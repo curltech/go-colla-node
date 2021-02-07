@@ -40,7 +40,7 @@ func (this *findPeerAction) FindPeer(peerId string, payloadType string, data int
 }
 
 func (this *findPeerAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	logger.Infof("Receive %v message", this.MsgType)
+	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	v := chainMessage.Payload
 	id, ok := v.(string)
 	if !ok {

@@ -53,11 +53,11 @@ const DefaultExternalWssPort = "5720"
 
 func Print() {
 	Global.Multiaddrs = Global.Host.Addrs()
-	logger.Infof("p2p local peer address:%v", Global.Multiaddrs)
-	logger.Infof("p2p local peer peerId:%v", string(Global.PeerId))
-	logger.Infof("p2p local peer rendezvous:%v", Global.Rendezvous)
-	logger.Infof("protocolID are:%v", Global.ChainProtocolID)
-	logger.Infof("successfully start p2p server, enjoy it!")
+	logger.Sugar.Infof("p2p local peer address:%v", Global.Multiaddrs)
+	logger.Sugar.Infof("p2p local peer peerId:%v", string(Global.PeerId))
+	logger.Sugar.Infof("p2p local peer rendezvous:%v", Global.Rendezvous)
+	logger.Sugar.Infof("protocolID are:%v", Global.ChainProtocolID)
+	logger.Sugar.Infof("successfully start p2p server, enjoy it!")
 }
 
 func IsMyself(peerId string) bool {

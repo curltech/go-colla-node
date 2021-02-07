@@ -63,7 +63,7 @@ func (this *tcpClient) Dial(host string, port string, user string, realm string)
 
 	// The relayConn's local address is actually the transport
 	// address assigned on the TURN server.
-	logger.Infof("relayed-address=%s", relayConn.LocalAddr().String())
+	logger.Sugar.Infof("relayed-address=%s", relayConn.LocalAddr().String())
 }
 
 func (this *tcpClient) Close() {

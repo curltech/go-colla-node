@@ -12,7 +12,7 @@ import (
 
 func Start() {
 	if !config.ImapServerParams.Enable {
-		logger.Errorf("imap is not enable")
+		logger.Sugar.Errorf("imap is not enable")
 		return
 	}
 	// Create a memory backend
@@ -35,8 +35,8 @@ func Start() {
 	})
 	imapServer.Enable(idle.NewExtension())
 
-	logger.Infof("Starting IMAP server at localhost:1143")
+	logger.Sugar.Infof("Starting IMAP server at localhost:1143")
 	if err := imapServer.ListenAndServe(); err != nil {
-		logger.Errorf(err.Error())
+		logger.Sugar.Errorf(err.Error())
 	}
 }

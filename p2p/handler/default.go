@@ -23,7 +23,7 @@ func GetProtocolMessageHandler(protocolID string) (*ProtocolMessageHandler, erro
 	if found {
 		return fn, nil
 	} else {
-		logger.Errorf("ChainMessageHandler:%v is not exist", protocolID)
+		logger.Sugar.Errorf("ChainMessageHandler:%v is not exist", protocolID)
 
 		return nil, errors.New("NotExist")
 	}
@@ -38,7 +38,7 @@ func RegistProtocolMessageHandler(protocolID string,
 		protocolMessageHandler.ReceiveHandler = receiveHandler
 		protocolMessageHandlers[protocolID] = &protocolMessageHandler
 	} else {
-		logger.Errorf("ReceiveHandler:%v exist", protocolID)
+		logger.Sugar.Errorf("ReceiveHandler:%v exist", protocolID)
 	}
 }
 

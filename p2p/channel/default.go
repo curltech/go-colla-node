@@ -41,7 +41,7 @@ func GetChannel(stream network.Stream, peer *peer.AddrInfo, handler func(data st
 	peerId := peer.ID.Pretty()
 	ch, ok := channelPool.Load(peerId)
 	if ok {
-		logger.Infof("peer:%v exist", peerId)
+		logger.Sugar.Infof("peer:%v exist", peerId)
 
 		return ch.(*Channel), nil
 	}
@@ -112,7 +112,7 @@ func (channel *Channel) loopRead() {
 			// 判断是不是超时
 			if netErr, ok := err.(net.Error); ok {
 				if netErr.Timeout() {
-					logger.Errorf("ReadMessage timeout remote: %v\n", channel.stream.ID())
+					logger.Sugar.Errorf("ReadMessage timeout remote: %v\n", channel.stream.ID())
 				}
 			}
 			channel.Close()

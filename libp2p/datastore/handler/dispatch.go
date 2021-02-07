@@ -62,19 +62,19 @@ func NewKeyRequest(key datastore.Key) (*DispatchRequest, error) {
 func NewPrefixRequest(prefix string) (*DispatchRequest, error) {
 	ds := GetDatastore(prefix)
 	if ds == nil {
-		logger.Errorf("No datastore:%v", prefix)
+		logger.Sugar.Errorf("No datastore:%v", prefix)
 		return nil, errors.New("No datastore")
 	}
 	s := container.GetService(prefix)
 	var svc service2.BaseService
 	if s == nil {
-		logger.Warnf("No service:%v", prefix)
+		logger.Sugar.Warnf("No service:%v", prefix)
 	} else {
 		svc = s.(service2.BaseService)
 	}
 	keyname, ok := keynamePool[prefix]
 	if !ok {
-		logger.Errorf("No keyname:%v", prefix)
+		logger.Sugar.Errorf("No keyname:%v", prefix)
 		return nil, errors.New("No keyname")
 	}
 
@@ -145,7 +145,7 @@ func (this *DispatchDatastore) Delete(key datastore.Key) (err error) {
 
 // Query implements Datastore.Query
 func (this *DispatchDatastore) Query(q dsq.Query) (dsq.Results, error) {
-	logger.Warnf("query trigger:%v:%v", q.Prefix, q.String())
+	logger.Sugar.Warnf("query trigger:%v:%v", q.Prefix, q.String())
 	request, err := NewPrefixRequest(q.Prefix)
 	if err != nil {
 		return nil, err

@@ -2,8 +2,11 @@ package dht
 
 import (
 	"context"
+	"errors"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/crypto/std"
+	"github.com/curltech/go-colla-core/logger"
+	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/ns"
@@ -13,9 +16,6 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/curltech/go-colla-core/util/message"
-	"errors"
-	"github.com/curltech/go-colla-core/logger"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
 	"sync"
@@ -32,7 +32,7 @@ var ConnectAction connectAction
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
 func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	logger.Infof("Receive %v message", this.MsgType)
+	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	var response *msg.ChainMessage = nil
 	v := chainMessage.Payload
 	peerClient, ok := v.(*entity.PeerClient)
@@ -73,7 +73,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 			pcArr := make([]*entity.PeerClient, 0)
 			err = message.TextUnmarshal(string(recvdVal.Val), &pcArr)
 			if err != nil {
-				logger.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Sugar.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
 			}
@@ -108,13 +108,13 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 			pcArr := make([]*entity.PeerClient, 0)
 			err = message.TextUnmarshal(string(recvdVal.Val), &pcArr)
 			if err != nil {
-				logger.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Sugar.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
 			}
 			err = service.GetPeerClientService().PutLocals(pcArr)
 			if err != nil {
-				logger.Errorf("failed to PutLocalPCs PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Sugar.Errorf("failed to PutLocalPCs PeerClient value: %v, err: %v", recvdVal.Val, err)
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
 			}
@@ -208,7 +208,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 	// 添加最近节点
 	pchan, err := dht.PeerEndpointDHT.GetClosestPeers(key)
 	if err != nil {
-		logger.Errorf("failed to GetClosestPeers by key: %v, err: %v", key, err)
+		logger.Sugar.Errorf("failed to GetClosestPeers by key: %v, err: %v", key, err)
 	} else {
 		wg := sync.WaitGroup{}
 		for p := range pchan {
@@ -217,7 +217,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 				ctx, cancel := context.WithCancel(global.Global.Context)
 				defer cancel()
 				defer wg.Done()
-				logger.Infof("ClosestPeers-PeerId: %v", p.Pretty())
+				logger.Sugar.Infof("ClosestPeers-PeerId: %v", p.Pretty())
 				routing.PublishQueryEvent(ctx, &routing.QueryEvent{
 					Type: routing.Value,
 					ID:   p,
@@ -225,17 +225,17 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 				k := ns.GetPeerEndpointKey(p.Pretty())
 				recvdVals, err := dht.PeerEndpointDHT.GetValues(k, config.Libp2pParams.Nvals)
 				if err != nil {
-					logger.Errorf("failed to GetValues by PeerEndpoint key: %v, err: %v", k, err)
+					logger.Sugar.Errorf("failed to GetValues by PeerEndpoint key: %v, err: %v", k, err)
 				} else {
 					for _, recvdVal := range recvdVals {
 						entities := make([]*entity.PeerEndpoint, 0)
 						err = message.TextUnmarshal(string(recvdVal.Val), &entities)
 						if err != nil {
-							logger.Errorf("failed to TextUnmarshal PeerEndpoint value: %v, err: %v", recvdVal.Val, err)
+							logger.Sugar.Errorf("failed to TextUnmarshal PeerEndpoint value: %v, err: %v", recvdVal.Val, err)
 						} else {
 							if len(entities) > 0 {
 								peer := entities[0]
-								logger.Infof("PeerEndpoint: %v", peer.PeerId+"-"+peer.DiscoveryAddress)
+								logger.Sugar.Infof("PeerEndpoint: %v", peer.PeerId+"-"+peer.DiscoveryAddress)
 								peers = append(peers, peer)
 							}
 						}
