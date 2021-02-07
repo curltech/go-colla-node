@@ -10,6 +10,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/chain/action/dht"
 	dhtentity "github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
+	"github.com/curltech/go-colla-node/p2p/msgtype"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
 )
@@ -107,11 +108,11 @@ func Bootstrap() error {
 			} else {
 				logger.Infof("Successfully connect to bootstrap node: %v", peerInfo)
 			}
-			_, err := dht.PingAction.Ping(peerId, peerId)
-			if err != nil {
-				logger.Errorf("Failed to ping bootstrap node: %v, err: %v", peerInfo, err)
-			} else {
+			response, err := dht.PingAction.Ping(peerId, peerId)
+			if response == msgtype.OK {
 				logger.Infof("Successfully ping bootstrap node: %v", peerInfo)
+			} else {
+				logger.Errorf("Failed to ping bootstrap node: %v, err: %v", peerInfo, err)
 			}
 		}()
 	}
