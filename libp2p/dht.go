@@ -291,13 +291,13 @@ func PeerAdded(id peer.ID) {
 	logger.Infof("PeerEndpointDHT.RoutingTable add peer: %v", id.Pretty())
 
 	response, err := dht.PingAction.Ping(id.Pretty(), id.Pretty())
-	if err == nil && response == msgtype.OK {
+	if response == msgtype.OK {
 		logger.Infof("successfully ping: %v", id.Pretty())
 	} else {
 		logger.Errorf("failed to ping: %v, err: %v", id.Pretty(), err)
 	}
 
-	dht2.PingPing(id)
+	//dht2.PingPing(id)
 }
 
 func PeerRemoved(id peer.ID) {
