@@ -7,8 +7,8 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/datastore/xorm"
 	dht2 "github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/ns"
-	//"github.com/curltech/go-colla-node/p2p/chain/action/dht"
-	//"github.com/curltech/go-colla-node/p2p/msgtype"
+	"github.com/curltech/go-colla-node/p2p/chain/action/dht"
+	"github.com/curltech/go-colla-node/p2p/msgtype"
 	badger "github.com/ipfs/go-ds-badger2"
 	"github.com/ipfs/go-ds-flatfs"
 	"github.com/ipfs/go-ds-leveldb"
@@ -292,12 +292,12 @@ func PeerAdded(id peer.ID) {
 
 	dht2.PingPing(id)
 
-	/*response, err := dht.PingAction.Ping(id.Pretty(), id.Pretty())
+	response, err := dht.PingAction.Ping(id.Pretty(), id.Pretty())
 	if response == msgtype.OK {
 		logger.Sugar.Infof("successfully ping(action): %v", id.Pretty())
 	} else {
 		logger.Sugar.Errorf("failed to ping(action): %v, err: %v", id.Pretty(), err)
-	}*/
+	}
 }
 
 func PeerRemoved(id peer.ID) {
