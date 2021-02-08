@@ -110,11 +110,11 @@ func Bootstrap() error {
 				logger.Sugar.Infof("Successfully connect to bootstrap node: %v", peerInfo)
 			}
 			//dht2.PingPing(peerInfo.ID)
-			/*response, err := dht.PingAction.Ping(peerId, peerId)
+			/*response, err := dht.PeerEndPointAction.PeerEndPoint(peerId, peerId)
 			if response == msgtype.OK {
-				logger.Sugar.Infof("Successfully ping(action) bootstrap node: %v", peerInfo)
+				logger.Sugar.Infof("Successfully PeerEndPoint bootstrap node: %v", peerInfo)
 			} else {
-				logger.Sugar.Errorf("Failed to ping(action) bootstrap node: %v, err: %v", peerInfo, err)
+				logger.Sugar.Errorf("Failed to PeerEndPoint bootstrap node: %v, err: %v", peerInfo, err)
 			}*/
 		}()
 	}
