@@ -27,6 +27,15 @@ func Send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 }
 
 /**
+定位器之间直接发送方法
+ */
+func DirectSend(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
+	handler1.Encrypt(msg)
+
+	return send(msg)
+}
+
+/**
 直接发送到下一个节点，报文不做处理，有3种发送目标：
 1.如果主题不为空，发送到主题
 2.发送到peerClient：这时候TargetPeerId和TargetConnectSessionId不为空、TargetConnectPeerId可以为空或者就是自己（connectPeerId可以为空或者就是TargetPeerId）
