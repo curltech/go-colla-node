@@ -13,6 +13,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peerstore"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	ma "github.com/multiformats/go-multiaddr"
+	"strings"
 	"sync"
 	"time"
 )
@@ -73,24 +74,36 @@ func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pip
 	if ok {
 		return p
 	} else {
-		addr, err := ma.NewMultiaddr(peerId)
-		if err != nil {
-			logger.Sugar.Errorf(err.Error())
-			return nil
+		var id peer.ID
+		if strings.HasPrefix(peerId, "/") {
+			addr, err := ma.NewMultiaddr(peerId)
+			if err != nil {
+				logger.Sugar.Errorf(err.Error())
+				return nil
+			}
+			// Extract the peer ID from the multiaddr.
+			info, err := peer.AddrInfoFromP2pAddr(addr)
+			if err != nil {
+				logger.Sugar.Errorf(err.Error())
+				return nil
+			}
+			// Add the destination's peer multiaddress in the peerstore.
+			// This will be used during connection and stream creation by libp2p.
+			//global.Global.Host.Connect(global.Global.Context, *info)
+			global.Global.Host.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.PermanentAddrTTL)
+			id = info.ID
+		} else {
+			p, err := peer.Decode(peerId)
+			if err != nil {
+				logger.Sugar.Errorf(err.Error())
+				return nil
+			} else {
+				id = p
+			}
 		}
-		// Extract the peer ID from the multiaddr.
-		info, err := peer.AddrInfoFromP2pAddr(addr)
-		if err != nil {
-			logger.Sugar.Errorf(err.Error())
-			return nil
-		}
-		// Add the destination's peer multiaddress in the peerstore.
-		// This will be used during connection and stream creation by libp2p.
-		//global.Global.Host.Connect(global.Global.Context, *info)
-		global.Global.Host.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.PermanentAddrTTL)
 		//主动创建流和管道与其他peer沟通，发消息，handler用于最终发送前消息的预先处理，或者接收消息后的处理
 		//peerId是带地址信息的/ip4/192.168.0.104/tcp/3721/p2p/12D3KooWPpZrX5bNEpJcHYFACTKkmMMxF39oU6Rm2WeK4rr8mRVp
-		stream, err := global.Global.Host.NewStream(global.Global.Context, info.ID, protocol.ID(protocolId))
+		stream, err := global.Global.Host.NewStream(global.Global.Context, id, protocol.ID(protocolId))
 		if err != nil {
 			logger.Sugar.Errorf("NewStream failed:%v", err)
 			return nil
