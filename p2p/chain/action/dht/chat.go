@@ -40,14 +40,6 @@ func (this *chatAction) Chat(peerId string, payloadType string, data interface{}
 	return nil, nil
 }
 
-func (this *chatAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	logger.Sugar.Infof("Receive %v message", this.MsgType)
-	go sender.RelaySend(chainMessage)
-	response := handler.Response(chainMessage.MessageType, time.Now())
-
-	return response, nil
-}
-
 func init() {
 	ChatAction = chatAction{}
 	ChatAction.MsgType = msgtype.CHAT
