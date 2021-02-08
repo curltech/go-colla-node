@@ -27,6 +27,7 @@ const (
 	SIGNAL     = "SIGNAL"
 	IONSIGNAL  = "IONSIGNAL"
 	FINDCLIENT = "FINDCLIENT"
+	PEERENDPOINT = "PEERENDPOINT"
 	// PeerClient连接
 	CONNECT = "CONNECT"
 	// PeerClient断开连接
