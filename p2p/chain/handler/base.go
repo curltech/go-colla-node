@@ -107,7 +107,9 @@ func GetPublicKey(targetPeerId string) (*crypto.Key, error) {
 	} else {
 		peerEndpoint, err := service.GetPeerEndpointService().GetValue(targetPeerId)
 		if err == nil && peerEndpoint != nil {
-			targetPublicKey = peerEndpoint.PublicKey
+			if peerEndpoint.PublicKey != "" {
+				targetPublicKey = peerEndpoint.PublicKey
+			}
 		}
 	}
 	if targetPublicKey == "" {
