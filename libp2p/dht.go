@@ -5,7 +5,7 @@ import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/datastore/handler"
 	"github.com/curltech/go-colla-node/libp2p/datastore/xorm"
-	dht2 "github.com/curltech/go-colla-node/libp2p/dht"
+	//dht2 "github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/chain/action/dht"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
@@ -290,7 +290,7 @@ func routingTableFilter(dht *kaddht.IpfsDHT, conns []network.Conn) bool {
 func PeerAdded(id peer.ID) {
 	logger.Sugar.Infof("PeerEndpointDHT.RoutingTable add peer: %v", id.Pretty())
 
-	dht2.PingPing(id)
+	//dht2.PingPing(id)
 
 	response, err := dht.PingAction.Ping(id.Pretty(), id.Pretty())
 	if response == msgtype.OK {
