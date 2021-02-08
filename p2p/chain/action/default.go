@@ -26,6 +26,7 @@ func (this *BaseAction) Send(chainMessage *msg.ChainMessage) (*msg.ChainMessage,
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
 func (this *BaseAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	go sender.RelaySend(chainMessage)
 	response := handler.Response(chainMessage.MessageType, time.Now())
 
