@@ -292,11 +292,11 @@ func PeerAdded(id peer.ID) {
 
 	//dht2.PingPing(id)
 
-	response, err := dht.PingAction.Ping(id.Pretty(), id.Pretty())
+	response, err := dht.PeerEndPointAction.PeerEndPoint(id.Pretty(), id.Pretty())
 	if response == msgtype.OK {
-		logger.Sugar.Infof("successfully ping(action): %v", id.Pretty())
+		logger.Sugar.Infof("successfully PeerEndPoint: %v", id.Pretty())
 	} else {
-		logger.Sugar.Errorf("failed to ping(action): %v, err: %v", id.Pretty(), err)
+		logger.Sugar.Errorf("failed to PeerEndPoint: %v, err: %v", id.Pretty(), err)
 	}
 }
 
