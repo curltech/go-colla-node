@@ -9,6 +9,7 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
+	"github.com/curltech/go-colla-node/p2p/chain/handler/sender"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
@@ -34,7 +35,8 @@ func (this *pingAction) Ping(peerId string, targetPeerId string) (interface{}, e
 	chainMessage.MessageType = msgtype.PING
 	chainMessage.MessageDirect = msgtype.MsgDirect_Request
 
-	response, err := this.Send(&chainMessage)
+	//response, err := this.Send(&chainMessage)
+	response, err := sender.DirectSend(&chainMessage)
 	if err != nil {
 		return nil, err
 	}
