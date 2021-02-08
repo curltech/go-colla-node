@@ -87,8 +87,23 @@ func GetPublicKey(targetPeerId string) (*crypto.Key, error) {
 	}
 	peerClients, err := service.GetPeerClientService().GetValues(targetPeerId, "")
 	if err == nil && len(peerClients) > 0 {
-		peerClient := peerClients[0]
-		targetPublicKey = peerClient.PublicKey
+		latestPeerClient := &entity.PeerClient{}
+		for _, peerClient := range peerClients {
+			if latestPeerClient.PublicKey == "" {
+				latestPeerClient = peerClient
+			} else {
+				if peerClient.LastUpdateTime != nil && latestPeerClient.LastUpdateTime != nil &&
+					(peerClient.LastUpdateTime.UTC().After(latestPeerClient.LastUpdateTime.UTC()) ||
+						(peerClient.LastUpdateTime.UTC().Equal(latestPeerClient.LastUpdateTime.UTC()) &&
+							peerClient.LastAccessTime != nil && latestPeerClient.LastAccessTime != nil &&
+							peerClient.LastAccessTime.UTC().After(latestPeerClient.LastAccessTime.UTC()))) {
+					latestPeerClient = peerClient
+				}
+			}
+		}
+		if latestPeerClient.PublicKey != "" {
+			targetPublicKey = latestPeerClient.PublicKey
+		}
 	} else {
 		peerEndpoint, err := service.GetPeerEndpointService().GetValue(targetPeerId)
 		if err == nil && peerEndpoint != nil {
