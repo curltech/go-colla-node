@@ -33,7 +33,6 @@ func (this *peerEndPointAction) PeerEndPoint(peerId string, targetPeerId string)
 	chainMessage.MessageType = msgtype.PEERENDPOINT
 	chainMessage.MessageDirect = msgtype.MsgDirect_Request
 
-	//response, err := this.Send(&chainMessage)
 	response, err := sender.DirectSend(&chainMessage)
 	if err != nil {
 		return nil, err
