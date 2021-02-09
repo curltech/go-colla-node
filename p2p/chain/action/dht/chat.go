@@ -1,13 +1,10 @@
 package dht
 
 import (
-	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
-	"github.com/curltech/go-colla-node/p2p/chain/handler/sender"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"time"
 )
 
 type chatAction struct {
