@@ -5,13 +5,10 @@ import (
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/entity"
 	"github.com/curltech/go-colla-core/logger"
-	//dht2 "github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/util"
 	dhtentity "github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
-	//"github.com/curltech/go-colla-node/p2p/chain/action/dht"
-	//"github.com/curltech/go-colla-node/p2p/msgtype"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
 )
@@ -109,13 +106,6 @@ func Bootstrap() error {
 			} else {
 				logger.Sugar.Infof("Successfully connect to bootstrap node: %v", peerInfo)
 			}
-			//dht2.PingPing(peerInfo.ID)
-			/*response, err := dht.PeerEndPointAction.PeerEndPoint(peerId, peerId)
-			if response == msgtype.OK {
-				logger.Sugar.Infof("Successfully PeerEndPoint bootstrap node: %v", peerInfo)
-			} else {
-				logger.Sugar.Errorf("Failed to PeerEndPoint bootstrap node: %v, err: %v", peerInfo, err)
-			}*/
 		}()
 	}
 
