@@ -82,7 +82,7 @@ func (this *PbftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*ms
 	/**
 	 * 交易校验通过，主节点进入预准备状态，记录日志
 	 */
-	this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PREPREPARED)
+	this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PBFT_PREPREPARED)
 
 	peerIds := this.ChooseConsensusPeer()
 	if peerIds != nil && len(peerIds) > 2 {
@@ -95,7 +95,7 @@ func (this *PbftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*ms
 				continue
 			}
 			// 封装消息，异步发送
-			go action.ConsensusAction.ConsensusDataBlock(peerId, msgtype.CONSENSUS_PREPREPARED, dataBlock, "")
+			go action.ConsensusAction.ConsensusDataBlock(peerId, msgtype.CONSENSUS_PBFT_PREPREPARED, dataBlock, "")
 		}
 	} else {
 		logger.Sugar.Errorf("LessPeerLocation")
@@ -147,7 +147,7 @@ func (this *PbftConsensus) ReceivePreprepared(chainMessage *msg.ChainMessage) (*
 	log.SliceNumber = sliceNumber
 	log.PrimarySequenceId = primarySequenceId
 	log.PeerId = myselfPeer.PeerId
-	log.Status = msgtype.CONSENSUS_PREPREPARED
+	log.Status = msgtype.CONSENSUS_PBFT_PREPREPARED
 
 	key := this.GetLogCacheKey(log)
 	l, found := MemCache.Get(key)
@@ -164,11 +164,11 @@ func (this *PbftConsensus) ReceivePreprepared(chainMessage *msg.ChainMessage) (*
 	}
 	service2.GetDataBlockService().Save(dataBlock)
 	// 每个副节点记录自己的Preprepared消息
-	log = this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PREPREPARED)
+	log = this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PBFT_PREPREPARED)
 	/**
 	 * 准备CONSENSUS_PREPARED状态的消息
 	 */
-	log.Status = msgtype.CONSENSUS_PREPARED
+	log.Status = msgtype.CONSENSUS_PBFT_PREPARED
 	/**
 	 * 发送CONSENSUS_PREPARED给副节点
 	 *
@@ -185,7 +185,7 @@ func (this *PbftConsensus) ReceivePreprepared(chainMessage *msg.ChainMessage) (*
 			if myselfPeer.PeerId == id {
 				continue
 			}
-			go action.ConsensusAction.ConsensusLog(id, msgtype.CONSENSUS_PREPARED, log, "")
+			go action.ConsensusAction.ConsensusLog(id, msgtype.CONSENSUS_PBFT_PREPARED, log, "")
 		}
 	} else {
 		logger.Sugar.Errorf("LessPeerLocation")
@@ -267,7 +267,7 @@ func (this *PbftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg
 	} else {
 		// 记录其他节点发来了Prepared消息，每个节点不会记录自己的Prepared消息
 		messageLog.Id = 0
-		messageLog.Status = msgtype.CONSENSUS_PREPARED
+		messageLog.Status = msgtype.CONSENSUS_PBFT_PREPARED
 		service2.GetConsensusLogService().Insert(messageLog)
 		MemCache.SetDefault(key, messageLog)
 	}
@@ -284,7 +284,7 @@ func (this *PbftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg
 		log.SliceNumber = messageLog.SliceNumber
 		log.PrimarySequenceId = messageLog.PrimarySequenceId
 		log.PeerId = peerId
-		log.Status = msgtype.CONSENSUS_PREPARED
+		log.Status = msgtype.CONSENSUS_PBFT_PREPARED
 		count := 1
 		for _, id := range peerIds {
 			log.PeerId = id
@@ -298,11 +298,11 @@ func (this *PbftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg
 			}
 		}
 		f := len(peerIds) / 3
-		logger.Sugar.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_PREPARED, count)
+		logger.Sugar.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_PBFT_PREPARED, count)
 		// 收到足够的数目
 		if count > 2*f {
 			log.PeerId = myPeerId
-			log.Status = msgtype.CONSENSUS_COMMITED
+			log.Status = msgtype.CONSENSUS_PBFT_COMMITED
 			key = this.GetLogCacheKey(log)
 			l, found = MemCache.Get(key)
 			if found {
@@ -324,7 +324,7 @@ func (this *PbftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg
 					if myPeerId == id {
 						continue
 					}
-					go action.ConsensusAction.ConsensusLog(id, msgtype.CONSENSUS_COMMITED, log, "")
+					go action.ConsensusAction.ConsensusLog(id, msgtype.CONSENSUS_PBFT_COMMITED, log, "")
 				}
 			}
 		}
@@ -390,7 +390,7 @@ func (this *PbftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg
 	log.SliceNumber = messageLog.SliceNumber
 	log.PrimarySequenceId = messageLog.PrimarySequenceId
 	log.PeerId = peerId
-	log.Status = msgtype.CONSENSUS_COMMITED
+	log.Status = msgtype.CONSENSUS_PBFT_COMMITED
 	key := this.GetLogCacheKey(log)
 	var cacheLog *entity.ConsensusLog
 	l, found := MemCache.Get(key)
@@ -408,7 +408,7 @@ func (this *PbftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg
 	} else {
 		// 记录其他节点发来了Commited消息，每个节点不会记录自己的Commited消息
 		messageLog.Id = 0
-		messageLog.Status = msgtype.CONSENSUS_COMMITED
+		messageLog.Status = msgtype.CONSENSUS_PBFT_COMMITED
 		service2.GetConsensusLogService().Insert(messageLog)
 		MemCache.SetDefault(key, messageLog)
 	}
@@ -433,7 +433,7 @@ func (this *PbftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg
 			}
 		}
 		f := len(peerIds) / 3
-		logger.Sugar.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_COMMITED, count)
+		logger.Sugar.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_PBFT_COMMITED, count)
 		if count > 2*f {
 			/**
 			 * 数据块记录有效
@@ -451,13 +451,13 @@ func (this *PbftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg
 			/**
 			 * 异步返回客户端reply
 			 */
-			log.Status = msgtype.CONSENSUS_REPLY
+			log.Status = msgtype.CONSENSUS_PBFT_REPLY
 			if dataBlock.PeerId != myPeerId {
 				//go service.GetPeerEndpointService().modifyBadCount(-1)
 				log.PublicKey = myselfPeer.PublicKey
 				log.Address = myselfPeer.Address
 				log.ClientPeerId = messageLog.ClientPeerId
-				go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_REPLY, log, "")
+				go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_PBFT_REPLY, log, "")
 			} else {
 				logger.Sugar.Warnf("SameSrcAndTargetPeer")
 			}
