@@ -352,7 +352,7 @@ func (this *RaftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg
 	 * 异步返回leader reply
 	 */
 	log.Status = msgtype.CONSENSUS_RAFT_REPLY
-	if dataBlock.PeerId != myPeerId {
+	if dataBlock.PrimaryPeerId != myPeerId {
 		//go service.GetPeerEndpointService().modifyBadCount(-1)
 		log.PublicKey = myselfPeer.PublicKey
 		log.Address = myselfPeer.Address
@@ -457,7 +457,7 @@ func (this *RaftConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Ch
 			log.PeerId = myPeerId
 			log.Status = msgtype.CONSENSUS_RAFT_REPLY
 			MemCache.SetDefault(key, log)
-			go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_RAFT_REPLY, log, "")
+			go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_RAFT_REPLY, log, dataBlock.PeerId)
 			//保存dataBlock
 		}
 	} else {
