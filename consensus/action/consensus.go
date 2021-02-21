@@ -17,7 +17,7 @@ var ConsensusAction consensusAction
 
 func (this *consensusAction) ConsensusDataBlock(peerId string, msgType string, dataBlock *entity.DataBlock, targetPeerId string) (interface{}, error) {
 	logger.Sugar.Infof("Receive %v message", this.MsgType)
-	if targetPeerId == "" && peerId != "" {
+	if targetPeerId == "" {
 		targetPeerId = peerId
 	}
 	chainMessage := msg.ChainMessage{}
@@ -28,7 +28,7 @@ func (this *consensusAction) ConsensusDataBlock(peerId string, msgType string, d
 	chainMessage.MessageType = msgtype.MsgType(msgType)
 	chainMessage.MessageDirect = msgtype.MsgDirect_Request
 
-	response, err := this.Send(&chainMessage)
+	response, err := sender.DirectSend(&chainMessage)
 	if err != nil {
 		return nil, err
 	}
@@ -41,18 +41,21 @@ func (this *consensusAction) ConsensusDataBlock(peerId string, msgType string, d
 
 func (this *consensusAction) ConsensusLog(peerId string, msgType string, consensusLog *entity.ConsensusLog, targetPeerId string) (interface{}, error) {
 	logger.Sugar.Infof("Receive %v message", this.MsgType)
-	if targetPeerId == "" && peerId != "" {
-		targetPeerId = peerId
-	}
+	var response *msg.ChainMessage
+	var err error
 	chainMessage := msg.ChainMessage{}
-	chainMessage.TargetPeerId = targetPeerId
 	chainMessage.Payload = consensusLog
 	chainMessage.ConnectPeerId = peerId
 	chainMessage.PayloadType = handler.PayloadType_ConsensusLog
 	chainMessage.MessageType = msgtype.MsgType(msgType)
 	chainMessage.MessageDirect = msgtype.MsgDirect_Request
-
-	response, err := this.Send(&chainMessage)
+	if targetPeerId == "" {
+		chainMessage.TargetPeerId = peerId
+		response, err = sender.DirectSend(&chainMessage)
+	} else {
+		chainMessage.TargetPeerId = targetPeerId
+		response, err = this.Send(&chainMessage)
+	}
 	if err != nil {
 		return nil, err
 	}
