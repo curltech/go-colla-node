@@ -457,7 +457,7 @@ func (this *PbftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg
 				log.PublicKey = myselfPeer.PublicKey
 				log.Address = myselfPeer.Address
 				log.ClientPeerId = messageLog.ClientPeerId
-				go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_PBFT_REPLY, log, "")
+				go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_PBFT_REPLY, log, dataBlock.PeerId)
 			} else {
 				logger.Sugar.Warnf("SameSrcAndTargetPeer")
 			}
