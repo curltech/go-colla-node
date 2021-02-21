@@ -175,32 +175,23 @@ func Decrypt(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 		data = compress.GzipUncompress(data)
 	}
 	var err error
+	var payload interface{}
 	switch msg.PayloadType {
 	case PayloadType_String:
-		payload := ""
-		err = message.Unmarshal(data, &payload)
-		msg.Payload = payload
-	case PayloadType_Map:
-		payload := make(map[string]interface{})
-		err = message.Unmarshal(data, &payload)
-		msg.Payload = payload
+		payload = ""
 	case PayloadType_PeerClient:
-		payload := &entity.PeerClient{}
-		err = message.Unmarshal(data, &payload)
-		msg.Payload = payload
+		payload = &entity.PeerClient{}
 	case PayloadType_PeerEndpoint:
-		payload := &entity.PeerEndpoint{}
-		err = message.Unmarshal(data, &payload)
-		msg.Payload = payload
+		payload = &entity.PeerEndpoint{}
+	case PayloadType_DataBlock:
+		payload = &entity2.DataBlock{}
 	case PayloadType_WebsocketChainMessage:
-		payload := &msg1.WebsocketChainMessage{}
-		err = message.Unmarshal(data, &payload)
-		msg.Payload = payload
-	default:
-		payload := make(map[string]interface{})
-		err = message.Unmarshal(data, &payload)
-		msg.Payload = payload
+		payload = &msg1.WebsocketChainMessage{}
+	default: // PayloadType_Map
+		payload = make(map[string]interface{})
 	}
+	err = message.Unmarshal(data, &payload)
+	msg.Payload = payload
 	msg.TransportPayload = ""
 	return msg, err
 }
