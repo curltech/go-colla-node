@@ -185,6 +185,8 @@ func Decrypt(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 		payload = &entity.PeerEndpoint{}
 	case PayloadType_DataBlock:
 		payload = &entity2.DataBlock{}
+	case PayloadType_ConsensusLog:
+		payload = &entity2.ConsensusLog{}
 	case PayloadType_WebsocketChainMessage:
 		payload = &msg1.WebsocketChainMessage{}
 	default: // PayloadType_Map
