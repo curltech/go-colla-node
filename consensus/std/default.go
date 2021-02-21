@@ -220,7 +220,7 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 			service2.GetDataBlockService().Insert(dataBlock)
 			log.PeerId = myPeerId
 			log.Status = msgtype.CONSENSUS_REPLY
-			go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_REPLY, log, "")
+			go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_REPLY, log, dataBlock.PeerId)
 		}
 	}
 
