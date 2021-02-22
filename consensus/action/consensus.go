@@ -28,7 +28,7 @@ func (this *consensusAction) ConsensusDataBlock(peerId string, msgType string, d
 	chainMessage.MessageType = msgtype.MsgType(msgType)
 	chainMessage.MessageDirect = msgtype.MsgDirect_Request
 
-	response, err := sender.DirectSend(&chainMessage)
+	response, err := this.Send(&chainMessage)
 	if err != nil {
 		return nil, err
 	}
@@ -41,21 +41,17 @@ func (this *consensusAction) ConsensusDataBlock(peerId string, msgType string, d
 
 func (this *consensusAction) ConsensusLog(peerId string, msgType string, consensusLog *entity.ConsensusLog, targetPeerId string) (interface{}, error) {
 	logger.Sugar.Infof("Receive %v message", this.MsgType)
-	var response *msg.ChainMessage
-	var err error
+	if targetPeerId == "" {
+		targetPeerId = peerId
+	}
 	chainMessage := msg.ChainMessage{}
 	chainMessage.Payload = consensusLog
 	chainMessage.ConnectPeerId = peerId
 	chainMessage.PayloadType = handler.PayloadType_ConsensusLog
 	chainMessage.MessageType = msgtype.MsgType(msgType)
 	chainMessage.MessageDirect = msgtype.MsgDirect_Request
-	if targetPeerId == "" {
-		chainMessage.TargetPeerId = peerId
-		response, err = sender.DirectSend(&chainMessage)
-	} else {
-		chainMessage.TargetPeerId = targetPeerId
-		response, err = this.Send(&chainMessage)
-	}
+
+	response, err := this.Send(&chainMessage)
 	if err != nil {
 		return nil, err
 	}
