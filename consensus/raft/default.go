@@ -457,7 +457,7 @@ func (this *RaftConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Ch
 			log.PeerId = myPeerId
 			log.Status = msgtype.CONSENSUS_RAFT_REPLY
 			MemCache.SetDefault(key, log)
-			go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_RAFT_REPLY, log, dataBlock.PeerId)
+			go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_RAFT_REPLY, log, "")
 			//保存dataBlock
 		}
 	} else {
