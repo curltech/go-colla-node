@@ -162,7 +162,7 @@ func (this *PbftConsensus) ReceivePreprepared(chainMessage *msg.ChainMessage) (*
 			return nil, nil
 		}
 	}
-	service2.GetDataBlockService().Save(dataBlock)
+	//service2.GetDataBlockService().Save(dataBlock)
 	// 每个副节点记录自己的Preprepared消息
 	log = this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PBFT_PREPREPARED)
 	/**
