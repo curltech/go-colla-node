@@ -569,9 +569,3 @@ func NewPeerEndpointDHT(options []dht2.Option) *dht.PeerEntityDHT {
 
 	return dht.PeerEndpointDHT
 }
-
-func init() {
-	if config.Libp2pParams.Enable {
-		go Start()
-	}
-}

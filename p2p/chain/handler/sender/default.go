@@ -28,7 +28,7 @@ func Send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 
 /**
 定位器之间直接发送方法
- */
+*/
 func DirectSend(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 	handler1.Encrypt(msg)
 
@@ -45,6 +45,9 @@ func send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 	topic := msg.Topic
 	connectPeerId := msg.ConnectPeerId
 	targetPeerId := msg.TargetPeerId
+	if targetPeerId == "" {
+		targetPeerId = connectPeerId
+	}
 	targetConnectSessionId := msg.TargetConnectSessionId
 	targetConnectPeerId := msg.TargetConnectPeerId
 	data, err := message.Marshal(msg)
@@ -138,22 +141,19 @@ func RelaySend(chainMessage *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 			return chainMessage, nil
 		} else {
 			// 如果PeerClient不是最终目标，那么查找最终目标是否是定位器节点，如果是，下一步是定位器节点
-			connectPeerId, err := service.GetPeerEndpointService().FindPeer(targetPeerId)
-			if err != nil {
-				return nil, err
-			} else {
-				if connectPeerId != "" {
-					if chainMessage.ConnectPeerId == "" {
-						chainMessage.ConnectPeerId = chainMessage.TargetPeerId
-					}
-				} else {
-					targetConnectPeerId := chainMessage.TargetConnectPeerId
-					if targetConnectPeerId != "" {
-						chainMessage.ConnectPeerId = targetConnectPeerId
-					}
+			connectPeerId, _ := service.GetPeerEndpointService().FindPeer(targetPeerId)
+
+			if connectPeerId != "" {
+				if chainMessage.ConnectPeerId == "" {
+					chainMessage.ConnectPeerId = chainMessage.TargetPeerId
 				}
-				return send(chainMessage)
+			} else {
+				targetConnectPeerId := chainMessage.TargetConnectPeerId
+				if targetConnectPeerId != "" {
+					chainMessage.ConnectPeerId = targetConnectPeerId
+				}
 			}
+			return send(chainMessage)
 		}
 	}
 }
