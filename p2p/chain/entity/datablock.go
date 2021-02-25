@@ -8,7 +8,7 @@ import (
 type BlockType string
 
 const (
-	BlockType_Temp  = "Temp"
+	BlockType_Temp = "Temp"
 	BlockType_Permanent = "Permanent"
 )
 
