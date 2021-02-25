@@ -201,6 +201,7 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 			log.PeerId = id
 			key = this.GetLogCacheKey(log)
 			l, found = MemCache.Get(key)
+			cacheLog = nil
 			if found {
 				cacheLog = l.(*entity.ConsensusLog)
 			}
