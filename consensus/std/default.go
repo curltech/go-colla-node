@@ -148,7 +148,7 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 	}
 	myPeerId := myselfPeer.PeerId
 	/**
-	* 通过检查PbftConsensusLogEO日志判断是否该接受还是拒绝
+	* 通过检查ConsensusLogEO日志判断是否该接受还是拒绝
 	 */
 	primaryPeerId := messageLog.PrimaryPeerId
 	payloadHash := messageLog.PayloadHash
@@ -170,7 +170,6 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 	if found {
 		cacheLog = l.(*entity.ConsensusLog)
 	}
-	// 已经记录了准备消息，重复收到，检查hash
 	if cacheLog != nil {
 		existPayloadHash := cacheLog.PayloadHash
 		if payloadHash != existPayloadHash {
@@ -180,8 +179,6 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 	} else {
 		MemCache.SetDefault(key, messageLog)
 	}
-	/**
-	 */
 	key = this.GetDataBlockCacheKey(messageLog.BlockId, messageLog.SliceNumber)
 	var dataBlock *entity.DataBlock
 	d, ok := MemCache.Get(key)
@@ -213,8 +210,9 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 		}
 		logger.Sugar.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_REPLY, count)
 		// 收到足够的数目
-		if count > config.ConsensusParams.StdMinPeerNum {
+		if count == config.ConsensusParams.StdMinPeerNum + 1 {
 			//保存dataBlock
+			dataBlock.Status = entity2.EntityStatus_Effective
 			service2.GetDataBlockService().Insert(dataBlock)
 			log.PeerId = myPeerId
 			go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_REPLY, log, "")
