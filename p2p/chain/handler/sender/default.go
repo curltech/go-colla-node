@@ -82,7 +82,18 @@ func send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 					_, _, err := pipe.Write(data, false)
 					if err != nil {
 						logger.Sugar.Errorf("pipe.Write failure")
-						return nil, err
+						s := pipe.GetStream()
+						handler.GetPipePool().Close(handler.GetPeerId(connectPeerId), string(s.Protocol()), s.Conn().ID(), s.ID())
+						pipe2 := handler.GetPipePool().GetRequestPipe(connectPeerId, config.P2pParams.ChainProtocolID)
+						if pipe2 != nil {
+							_, _, err2 := pipe2.Write(data, false)
+							if err2 != nil {
+								logger.Sugar.Errorf("pipe2.Write failure: %v", err2)
+								return nil, err2
+							}
+						} else {
+							return nil, errors.New("NoPipe2")
+						}
 					}
 				} else {
 					return nil, errors.New("NoPipe")
