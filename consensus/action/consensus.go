@@ -45,6 +45,7 @@ func (this *consensusAction) ConsensusLog(peerId string, msgType string, consens
 		targetPeerId = peerId
 	}
 	chainMessage := msg.ChainMessage{}
+	chainMessage.TargetPeerId = targetPeerId
 	chainMessage.Payload = consensusLog
 	chainMessage.ConnectPeerId = peerId
 	chainMessage.PayloadType = handler.PayloadType_ConsensusLog
