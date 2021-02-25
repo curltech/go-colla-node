@@ -67,7 +67,7 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 		}
 		if peerIds != nil && len(peerIds) > 0 {
 			/**
-			 * 交易校验通过，主节点进入预准备状态，记录日志
+			 * 交易校验通过，主节点进入准备状态，记录日志
 			 */
 			log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PREPARED)
 			log.PeerIds = strings.Join(peerIds, ",")
