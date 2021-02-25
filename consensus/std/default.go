@@ -60,48 +60,48 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 		}
 	}
 
-	var peerIds []string
-	if config.ConsensusParams.StdMinPeerNum > 0 {
-		peerIds = this.ChooseConsensusPeer()
-	}
-	if peerIds != nil && len(peerIds) > 0 {
-		/**
-		 * 交易校验通过，主节点进入预准备状态，记录日志
-		 */
-		log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PREPARED)
-		logkey := this.GetLogCacheKey(log)
-		MemCache.SetDefault(logkey, log)
-		datakey := this.GetDataBlockCacheKey(dataBlock.BlockId, dataBlock.SliceNumber)
-		MemCache.SetDefault(datakey, dataBlock)
-		log.PeerIds = strings.Join(peerIds, ",")
-		/**
-		 * 发送CONSENSUS_COMMITED给副节点，告知主节点的状态
-		 */
-		for _, peerId := range peerIds {
-			if myselfPeer.PeerId == peerId {
-				continue
-			}
-			// 封装消息，异步发送
-			go action.ConsensusAction.ConsensusDataBlock(peerId, msgtype.CONSENSUS_COMMITED, dataBlock, "")
+	if dataBlock.BlockType != entity.BlockType_Temp {
+		var peerIds []string
+		if config.ConsensusParams.StdMinPeerNum > 0 {
+			peerIds = this.ChooseConsensusPeer()
 		}
-		response := handler.Response(msgtype.CONSENSUS_PREPARED, msgtype.RESPONSE)
+		if peerIds != nil && len(peerIds) > 0 {
+			/**
+			 * 交易校验通过，主节点进入预准备状态，记录日志
+			 */
+			log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PREPARED)
+			log.PeerIds = strings.Join(peerIds, ",")
+			logkey := this.GetLogCacheKey(log)
+			MemCache.SetDefault(logkey, log)
+			dataBlock.PeerIds = strings.Join(peerIds, ",")
+			datakey := this.GetDataBlockCacheKey(dataBlock.BlockId, dataBlock.SliceNumber)
+			MemCache.SetDefault(datakey, dataBlock)
+			/**
+			 * 发送CONSENSUS_COMMITED给副节点，告知主节点的状态
+			 */
+			for _, peerId := range peerIds {
+				if myselfPeer.PeerId == peerId {
+					continue
+				}
+				// 封装消息，异步发送
+				go action.ConsensusAction.ConsensusDataBlock(peerId, msgtype.CONSENSUS_COMMITED, dataBlock, "")
+			}
+			response := handler.Ok(msgtype.CONSENSUS_PREPARED)
 
-		return response, nil
-	} else {
-		service2.GetDataBlockService().Insert(dataBlock)
-		response := handler.Ok(msgtype.CONSENSUS_REPLY)
+			return response, nil
+		}
+	}		
+	service2.GetDataBlockService().Insert(dataBlock)
+	response := handler.Ok(msgtype.CONSENSUS_REPLY)
 
-		return response, nil
-	}
-
-	return nil, nil
+	return response, nil
 }
 
 /**
  * vice收到commited消息，完成后，向primary发送reply消息
  */
 func (this *StdConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	// 本节点是主副节点都会收到
+	// 本节点是副节点会收到
 	logger.Sugar.Infof("receive ReceiveCommited")
 	dataBlock, err := this.GetDataBlock(chainMessage)
 	if err != nil {
@@ -120,7 +120,6 @@ func (this *StdConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.
 	/**
 	 * 数据块记录有效
 	 */
-	//dataBlock = service2.GetDataBlockService().GetDataBlock(blockId, sliceNumber)
 	if dataBlock != nil {
 		dataBlock.Status = entity2.EntityStatus_Effective
 		service2.GetDataBlockService().Insert(dataBlock)
