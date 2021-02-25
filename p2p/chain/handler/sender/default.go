@@ -68,7 +68,7 @@ func send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 				logger.Sugar.Infof("Write data length:%v", len(data))
 				_, _, err = pipe.Write(data, false)
 				if err != nil {
-					logger.Sugar.Errorf("pipe.Write failure")
+					logger.Sugar.Errorf("pipe.Write failure: %v", err)
 					return nil, err
 				}
 			} else {
