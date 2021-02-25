@@ -5,6 +5,13 @@ import (
 	"time"
 )
 
+type BlockType string
+
+const (
+	BlockType_Temp  = "Temp"
+	BlockType_Permanent = "Permanent"
+)
+
 type DataBlock struct {
 	//entity.StatusEntity `xorm:"extends"`
 	Id         uint64     `xorm:"pk" json:"-,omitempty"`
@@ -25,6 +32,7 @@ type DataBlock struct {
 
 	BlockId        string `xorm:"varchar(255) notnull" json:"blockId,omitempty"`
 	BusinessNumber string `xorm:"varchar(255)" json:"businessNumber,omitempty"`
+	BlockType      BlockType `xorm:"varchar(255)" json:"blockType,omitempty"`
 	/**
 	 * 双方的公钥不能被加密传输，因为需要根据公钥决定配对的是哪一个版本的私钥
 	 *
