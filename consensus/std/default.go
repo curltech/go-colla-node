@@ -115,7 +115,7 @@ func (this *StdConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.
 		return nil, errors.New("NoMyselfPeer")
 	}
 
-	log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_COMMITED)
+	log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_REPLY)
 
 	/**
 	 * 数据块记录有效
@@ -178,9 +178,6 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 			return nil, errors.New("ErrorPayloadHash")
 		}
 	} else {
-		// 记录其他节点发来了Prepared消息，每个节点不会记录自己的Prepared消息
-		messageLog.Id = 0
-		messageLog.Status = msgtype.CONSENSUS_REPLY
 		MemCache.SetDefault(key, messageLog)
 	}
 	/**
@@ -191,14 +188,16 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 	if ok {
 		dataBlock = d.(*entity.DataBlock)
 	}
-	peerIds := strings.Split(dataBlock.PeerIds, ",")
+	var peerIds []string
+	if dataBlock != nil {
+		peerIds = strings.Split(dataBlock.PeerIds, ",")
+	}
 	if peerIds != nil && len(peerIds) > 0 {
 		log := &entity.ConsensusLog{}
 		log.PrimaryPeerId = primaryPeerId
 		log.BlockId = messageLog.BlockId
 		log.SliceNumber = messageLog.SliceNumber
 		log.PrimarySequenceId = messageLog.PrimarySequenceId
-		log.PeerId = peerId
 		log.Status = msgtype.CONSENSUS_REPLY
 		count := 1
 		for _, id := range peerIds {
@@ -218,7 +217,6 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 			//保存dataBlock
 			service2.GetDataBlockService().Insert(dataBlock)
 			log.PeerId = myPeerId
-			log.Status = msgtype.CONSENSUS_REPLY
 			go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_REPLY, log, "")
 		}
 	}
