@@ -67,7 +67,7 @@ func Encrypt(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 		signature := openpgp.Sign(global.Global.PrivateKey, nil, data)
 		msg.PayloadSignature = std.EncodeBase64(signature)
 	}
-	if msg.NeedCompress == true {
+	if msg.NeedCompress == true && len(string(data)) > CompressLimit {
 		data = compress.GzipCompress(data)
 	} else {
 		msg.NeedCompress = false
