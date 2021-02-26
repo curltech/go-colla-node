@@ -18,43 +18,33 @@ type findPeerAction struct {
 var FindPeerAction findPeerAction
 
 /**
-在chain目录下的采用自定义protocol "/chain"的方式自己实现的功能
+接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
-func (this *findPeerAction) FindPeer(peerId string, payloadType string, data interface{}) (interface{}, error) {
-	chainMessage := msg.ChainMessage{}
-	chainMessage.Payload = data
-	chainMessage.ConnectPeerId = peerId
-	chainMessage.PayloadType = payloadType
-	chainMessage.MessageType = msgtype.FINDPEER
-	chainMessage.MessageDirect = msgtype.MsgDirect_Request
-
-	response, err := this.Send(&chainMessage)
-	if err != nil {
-		return nil, err
-	}
-	if response != nil {
-		return response.Payload, nil
-	}
-
-	return nil, nil
-}
-
 func (this *findPeerAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
 	logger.Sugar.Infof("Receive %v message", this.MsgType)
-	v := chainMessage.Payload
-	id, ok := v.(string)
+	var response *msg.ChainMessage = nil
+	conditionBean, ok := chainMessage.Payload.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("ErrorId")
+		response = handler.Error(chainMessage.MessageType, errors.New("ErrorCondition"))
+		return response, nil
 	}
-	ID, err := peer.Decode(id)
-	if err != nil {
-
+	var peerId string = ""
+	if conditionBean["peerId"] != nil {
+		peerId = conditionBean["peerId"].(string)
 	}
-	addrInfo, err := dht.PeerEndpointDHT.FindPeer(ID)
-	if err != nil {
-		return nil, err
+	if len(peerId) > 0 {
+		ID, err := peer.Decode(peerId)
+		if err != nil {
+			response = handler.Error(chainMessage.MessageType, err)
+			return response, nil
+		}
+		addrInfo, err := dht.PeerEndpointDHT.FindPeer(ID)
+		if err != nil {
+			response = handler.Error(chainMessage.MessageType, err)
+			return response, nil
+		}
+		response = handler.Response(chainMessage.MessageType, addrInfo.String())
 	}
-	response := handler.Response(chainMessage.MessageType, addrInfo.String())
 
 	return response, nil
 }
