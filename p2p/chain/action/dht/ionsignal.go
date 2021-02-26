@@ -32,16 +32,10 @@ func (this *ionSignalAction) RegistReceiver(receiver func(netPeer *p2p.NetPeer, 
 /**
 peerId如果为空，发送的对象是自己，需要检查如果是自己，则检查最终目标，考虑转发
 */
-func (this *ionSignalAction) Signal(peerId string, payloadType string, data interface{}, targetPeerId string) (interface{}, error) {
-	chainMessage := msg.ChainMessage{}
-	chainMessage.TargetPeerId = targetPeerId
-	chainMessage.Payload = data
-	chainMessage.ConnectPeerId = peerId
-	chainMessage.PayloadType = payloadType
-	chainMessage.MessageType = msgtype.IONSIGNAL
-	chainMessage.MessageDirect = msgtype.MsgDirect_Request
+func (this *ionSignalAction) Signal(peerId string, data interface{}, targetPeerId string) (interface{}, error) {
+	chainMessage := this.PrepareSend(peerId, data, targetPeerId)
 
-	response, err := this.Send(&chainMessage)
+	response, err := this.Send(chainMessage)
 	if err != nil {
 		return nil, err
 	}
