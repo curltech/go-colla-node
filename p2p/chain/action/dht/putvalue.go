@@ -24,27 +24,8 @@ type putValueAction struct {
 var PutValueAction putValueAction
 
 /**
-在chain目录下的采用自定义protocol "/chain"的方式自己实现的功能
+接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
-func (this *putValueAction) PutValue(peerId string, payloadType string, data interface{}) (interface{}, error) {
-	chainMessage := msg.ChainMessage{}
-	chainMessage.Payload = data
-	chainMessage.ConnectPeerId = peerId
-	chainMessage.PayloadType = payloadType
-	chainMessage.MessageType = msgtype.PUTVALUE
-	chainMessage.MessageDirect = msgtype.MsgDirect_Request
-
-	response, err := this.Send(&chainMessage)
-	if err != nil {
-		return nil, err
-	}
-	if response != nil {
-		return response.Payload, nil
-	}
-
-	return nil, nil
-}
-
 func (this *putValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
 	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	var response *msg.ChainMessage = nil
