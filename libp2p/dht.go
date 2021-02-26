@@ -289,7 +289,7 @@ func routingTableFilter(dht *kaddht.IpfsDHT, conns []network.Conn) bool {
 func PeerAdded(id peer.ID) {
 	logger.Sugar.Infof("PeerEndpointDHT.RoutingTable add peer: %v", id.Pretty())
 
-	response, err := dht.PeerEndPointAction.PeerEndPoint(id.Pretty(), id.Pretty())
+	response, err := dht.PeerEndPointAction.PeerEndPoint(id.Pretty())
 	if response == msgtype.OK {
 		logger.Sugar.Infof("successfully PeerEndPoint: %v", id.Pretty())
 	} else {
