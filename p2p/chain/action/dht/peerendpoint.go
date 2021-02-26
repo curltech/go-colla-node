@@ -24,16 +24,11 @@ var PeerEndPointAction peerEndPointAction
 /**
 在chain目录下的采用自定义protocol "/chain"的方式自己实现的功能
 */
-func (this *peerEndPointAction) PeerEndPoint(peerId string, targetPeerId string) (interface{}, error) {
-	chainMessage := msg.ChainMessage{}
-	chainMessage.TargetPeerId = targetPeerId
-	chainMessage.Payload = global.Global.MyselfPeer
-	chainMessage.ConnectPeerId = peerId
+func (this *peerEndPointAction) PeerEndPoint(targetPeerId string) (interface{}, error) {
+	chainMessage := this.PrepareSend("", global.Global.MyselfPeer, targetPeerId)
 	chainMessage.PayloadType = handler.PayloadType_PeerEndpoint
-	chainMessage.MessageType = msgtype.PEERENDPOINT
-	chainMessage.MessageDirect = msgtype.MsgDirect_Request
 
-	response, err := sender.DirectSend(&chainMessage)
+	response, err := sender.DirectSend(chainMessage)
 	if err != nil {
 		return nil, err
 	}
