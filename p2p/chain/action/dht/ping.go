@@ -3,7 +3,6 @@ package dht
 import (
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
-	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 )
 
@@ -18,17 +17,10 @@ var PingAction pingAction
 Ping只是一个演示，适合点对点的通信，这种方式灵活度高，但是需要自己实现全网遍历的功能
 chat就可以采用这种方式
 */
-func (this *pingAction) Ping(peerId string, payloadType string, data interface{}, targetPeerId string, targetConnectSessionId string) (interface{}, error) {
-	chainMessage := msg.ChainMessage{}
-	chainMessage.TargetPeerId = targetPeerId
-	chainMessage.TargetConnectSessionId = targetConnectSessionId
-	chainMessage.Payload = data
-	chainMessage.ConnectPeerId = peerId
-	chainMessage.PayloadType = payloadType
-	chainMessage.MessageType = msgtype.PING
-	chainMessage.MessageDirect = msgtype.MsgDirect_Request
+func (this *pingAction) Ping(peerId string, data interface{}, targetPeerId string) (interface{}, error) {
+	chainMessage := this.PrepareSend(peerId, data, targetPeerId)
 
-	response, err := this.Send(&chainMessage)
+	response, err := this.Send(chainMessage)
 	if err != nil {
 		return nil, err
 	}
