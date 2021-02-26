@@ -3,7 +3,6 @@ package sfu
 import (
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/p2p/chain/action/dht"
-	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/pion/webrtc/v3"
 )
 
@@ -43,7 +42,7 @@ func Signal(sfuSignal *SfuSignal, targetPeerId string) (interface{}, error) {
 		sig["candidate"] = sfuSignal.Candidate
 	}
 
-	return dht.IonSignalAction.Signal("", handler.PayloadType_Map, sig, targetPeerId)
+	return dht.IonSignalAction.Signal("", sig, targetPeerId)
 }
 
 func Transform(payload map[string]interface{}) *SfuSignal {
