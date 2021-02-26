@@ -5,7 +5,6 @@ import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/p2p/chain/action/dht"
-	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	webrtc2 "github.com/curltech/go-colla-node/webrtc"
 	"github.com/pion/webrtc/v3" //用到了webrtc的数据结构，但是更好的是不用，只将转换的方法做在webrtc里面
 )
@@ -73,7 +72,7 @@ func Signal(webrtcSignal *WebrtcSignal, targetPeerId string) (interface{}, error
 		}
 	}
 
-	return dht.SignalAction.Signal("", handler.PayloadType_Map, sig, targetPeerId)
+	return dht.SignalAction.Signal("", sig, targetPeerId)
 }
 
 func Transform(payload map[string]interface{}) *WebrtcSignal {
