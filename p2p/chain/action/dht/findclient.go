@@ -22,31 +22,6 @@ type findClientAction struct {
 var FindClientAction findClientAction
 
 /**
-主动发送消息
-*/
-func (this *findClientAction) FindClient(peerId string, targetPeerId string, mobileNumber string) (interface{}, error) {
-	chainMessage := msg.ChainMessage{}
-	conditionBean := make(map[string]interface{})
-	conditionBean["peerId"] = targetPeerId
-	conditionBean["mobileNumber"] = mobileNumber
-	chainMessage.Payload = conditionBean
-	chainMessage.ConnectPeerId = peerId
-	chainMessage.PayloadType = handler.PayloadType_Map
-	chainMessage.MessageType = msgtype.FINDCLIENT
-	chainMessage.MessageDirect = msgtype.MsgDirect_Request
-
-	response, err := this.Send(&chainMessage)
-	if err != nil {
-		return nil, err
-	}
-	if response != nil {
-		return response.Payload, nil
-	}
-
-	return nil, nil
-}
-
-/**
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
 func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
