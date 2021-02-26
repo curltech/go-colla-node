@@ -2,14 +2,31 @@ package action
 
 import (
 	"github.com/curltech/go-colla-core/logger"
+	"github.com/curltech/go-colla-core/util/security"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/chain/handler/sender"
 	"github.com/curltech/go-colla-node/p2p/msg"
+	"github.com/curltech/go-colla-node/p2p/msgtype"
 	"time"
 )
 
 type BaseAction struct {
-	MsgType string
+	MsgType msgtype.MsgType
+}
+
+func (this *BaseAction) PrepareSend(peerId string, data interface{}, targetPeerId string) *msg.ChainMessage {
+	chainMessage := msg.ChainMessage{}
+	chainMessage.ConnectPeerId = peerId
+	chainMessage.Payload = data
+	chainMessage.TargetPeerId = targetPeerId
+	chainMessage.PayloadType = handler.PayloadType_Map
+	chainMessage.MessageType = this.MsgType
+	chainMessage.MessageDirect = msgtype.MsgDirect_Request
+	chainMessage.NeedCompress = true
+	chainMessage.NeedEncrypt = false
+	chainMessage.UUID = security.UUID()
+
+	return &chainMessage
 }
 
 /**
