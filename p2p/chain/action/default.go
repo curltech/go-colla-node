@@ -16,6 +16,9 @@ type BaseAction struct {
 
 func (this *BaseAction) PrepareSend(peerId string, data interface{}, targetPeerId string) *msg.ChainMessage {
 	chainMessage := msg.ChainMessage{}
+	if peerId == "" {
+		peerId = targetPeerId
+	}
 	chainMessage.ConnectPeerId = peerId
 	chainMessage.Payload = data
 	chainMessage.TargetPeerId = targetPeerId
