@@ -52,12 +52,13 @@ func Encrypt(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 		return nil, errors.New("PayloadMarshalFailure")
 	}
 
+	var openpgpPub *crypto.Key
 	if msg.NeedEncrypt == true {
 		targetPeerId := msg.TargetPeerId
 		if targetPeerId == "" {
 			targetPeerId, _ = util.GetIdAddr(msg.ConnectPeerId)
 		}
-		openpgpPub, err := GetPublicKey(targetPeerId)
+		openpgpPub, err = GetPublicKey(targetPeerId)
 		if err != nil {
 			msg.NeedEncrypt = false
 			return msg, err
@@ -65,9 +66,13 @@ func Encrypt(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 
 		signature := openpgp.Sign(global.Global.PrivateKey, nil, data)
 		msg.PayloadSignature = std.EncodeBase64(signature)
-		if msg.NeedCompress == true {
-			data = compress.GzipCompress(data)
-		}
+	}
+	if msg.NeedCompress == true {
+		data = compress.GzipCompress(data)
+	} else {
+		msg.NeedCompress = false
+	}
+	if msg.NeedEncrypt == true {
 		key := std.GenerateSecretKey(32)
 		data = openpgp.EncryptSymmetrical([]byte(key), data)
 
@@ -122,6 +127,8 @@ func GetPublicKey(targetPeerId string) (*crypto.Key, error) {
 	}
 	return openpgpPub, nil
 }
+
+const CompressLimit = 2048
 
 const (
 	PayloadType_PeerClient   = "peerClient"
