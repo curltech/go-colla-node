@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/curltech/go-colla-core/container"
-	entity2 "github.com/curltech/go-colla-core/entity"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/service"
 	"github.com/curltech/go-colla-core/util/message"
@@ -163,7 +162,8 @@ func (this *PeerEndpointService) PutValue(peerEndpoint *entity.PeerEndpoint) err
 func (this *PeerEndpointService) GetRand(limit int) []*entity.PeerEndpoint {
 	peerEndpoints := make([]*entity.PeerEndpoint, 0)
 	peerEndpoint := &entity.PeerEndpoint{}
-	peerEndpoint.Status = entity2.EntityStatus_Effective
+	//peerEndpoint.Status = entity2.EntityStatus_Effective
+	peerEndpoint.ActiveStatus = entity.ActiveStatus_Up
 	err := this.Find(&peerEndpoints, peerEndpoint, "", 0, limit, "")
 	if err == nil {
 		return peerEndpoints
