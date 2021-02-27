@@ -7,7 +7,9 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/datastore/xorm"
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/chain/action/dht"
+	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
+	"github.com/curltech/go-colla-node/p2p/dht/service"
 	badger "github.com/ipfs/go-ds-badger2"
 	"github.com/ipfs/go-ds-flatfs"
 	"github.com/ipfs/go-ds-leveldb"
@@ -287,17 +289,52 @@ func routingTableFilter(dht *kaddht.IpfsDHT, conns []network.Conn) bool {
 }
 
 func PeerAdded(id peer.ID) {
-	logger.Sugar.Infof("PeerEndpointDHT.RoutingTable add peer: %v", id.Pretty())
-
-	response, err := dht.PeerEndPointAction.PeerEndPoint(id.Pretty())
+	peerId := id.Pretty()
+	logger.Sugar.Infof("PeerEndpointDHT.RoutingTable add peer: %v", peerId)
+	// PeerEndPointAction
+	response, err := dht.PeerEndPointAction.PeerEndPoint(peerId)
 	if response == msgtype.OK {
-		logger.Sugar.Infof("successfully PeerEndPoint: %v", id.Pretty())
+		logger.Sugar.Infof("successfully PeerEndPoint: %v", peerId)
 	} else {
-		logger.Sugar.Errorf("failed to PeerEndPoint: %v, err: %v", id.Pretty(), err)
+		logger.Sugar.Errorf("failed to PeerEndPoint: %v, err: %v", peerId, err)
+	}
+	// 更改状态
+	peerEndPoints, err := service.GetPeerEndpointService().GetLocal(peerId)
+	if err != nil {
+		logger.Sugar.Errorf("failed to GetLocal PeerEndPoint: %v, err: %v", peerId, err)
+	} else {
+		if peerEndPoints != nil && len(peerEndPoints) > 0 {
+			currentTime := time.Now()
+			for _, peerEndPoint := range peerEndPoints {
+				peerEndPoint.Status = entity.ActiveStatus_Up
+				peerEndPoint.LastUpdateTime = &currentTime
+				err := service.GetPeerEndpointService().PutLocal(peerEndPoint)
+				if err != nil {
+					logger.Sugar.Errorf("failed to PutLocal PeerEndPoint: %v, err: %v", peerId, err)
+				}
+			}
+		}
 	}
 }
 
 func PeerRemoved(id peer.ID) {
+	peerId := id.Pretty()
 	logger.Sugar.Infof("PeerEndpointDHT.RoutingTable remove peer: %v", id.Pretty())
-	//更改状态
+	// 更改状态
+	peerEndPoints, err := service.GetPeerEndpointService().GetLocal(peerId)
+	if err != nil {
+		logger.Sugar.Errorf("failed to GetLocal PeerEndPoint: %v, err: %v", peerId, err)
+	} else {
+		if peerEndPoints != nil && len(peerEndPoints) > 0 {
+			currentTime := time.Now()
+			for _, peerEndPoint := range peerEndPoints {
+				peerEndPoint.Status = entity.ActiveStatus_Down
+				peerEndPoint.LastUpdateTime = &currentTime
+				err := service.GetPeerEndpointService().PutLocal(peerEndPoint)
+				if err != nil {
+					logger.Sugar.Errorf("failed to PutLocal PeerEndPoint: %v, err: %v", peerId, err)
+				}
+			}
+		}
+	}
 }
