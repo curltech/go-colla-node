@@ -306,7 +306,7 @@ func PeerAdded(id peer.ID) {
 		if peerEndPoints != nil && len(peerEndPoints) > 0 {
 			currentTime := time.Now()
 			for _, peerEndPoint := range peerEndPoints {
-				peerEndPoint.Status = entity.ActiveStatus_Up
+				peerEndPoint.ActiveStatus = entity.ActiveStatus_Up
 				peerEndPoint.LastUpdateTime = &currentTime
 				err := service.GetPeerEndpointService().PutLocal(peerEndPoint)
 				if err != nil {
@@ -328,7 +328,7 @@ func PeerRemoved(id peer.ID) {
 		if peerEndPoints != nil && len(peerEndPoints) > 0 {
 			currentTime := time.Now()
 			for _, peerEndPoint := range peerEndPoints {
-				peerEndPoint.Status = entity.ActiveStatus_Down
+				peerEndPoint.ActiveStatus = entity.ActiveStatus_Down
 				peerEndPoint.LastUpdateTime = &currentTime
 				err := service.GetPeerEndpointService().PutLocal(peerEndPoint)
 				if err != nil {
