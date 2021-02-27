@@ -319,7 +319,7 @@ func PeerAdded(id peer.ID) {
 
 func PeerRemoved(id peer.ID) {
 	peerId := id.Pretty()
-	logger.Sugar.Infof("PeerEndpointDHT.RoutingTable remove peer: %v", id.Pretty())
+	logger.Sugar.Infof("PeerEndpointDHT.RoutingTable remove peer: %v", peerId)
 	// 更改状态
 	peerEndPoints, err := service.GetPeerEndpointService().GetLocal(peerId)
 	if err != nil {
