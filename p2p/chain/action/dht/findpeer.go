@@ -3,12 +3,11 @@ package dht
 import (
 	"errors"
 	"github.com/curltech/go-colla-core/logger"
-	"github.com/curltech/go-colla-node/libp2p/dht"
+	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/libp2p/go-libp2p-core/peer"
 )
 
 type findPeerAction struct {
@@ -33,17 +32,12 @@ func (this *findPeerAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainM
 		peerId = conditionBean["peerId"].(string)
 	}
 	if len(peerId) > 0 {
-		ID, err := peer.Decode(peerId)
+		addrInfo, err := service.GetPeerEndpointService().FindPeer(peerId)
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
 			return response, nil
 		}
-		addrInfo, err := dht.PeerEndpointDHT.FindPeer(ID)
-		if err != nil {
-			response = handler.Error(chainMessage.MessageType, err)
-			return response, nil
-		}
-		response = handler.Response(chainMessage.MessageType, addrInfo.String())
+		response = handler.Response(chainMessage.MessageType, addrInfo)
 	}
 
 	return response, nil
