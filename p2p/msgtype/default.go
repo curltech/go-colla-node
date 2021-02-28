@@ -37,7 +37,7 @@ const (
 	// PeerClient保存
 	STORECLIENT = "TRANS_STORECLIENT"
 	// DataBlock查找
-	QUERYVALUE = "TRANS_QUERYVALUE"
+	QUERYVALUE = "QUERYVALUE"
 	// DataBlock保存
 	STORE = "CONSENSUS"
 	// PeerTrans查找

@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/curltech/go-colla-core/container"
-	entity2 "github.com/curltech/go-colla-core/entity"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/service"
 	"github.com/curltech/go-colla-core/util/message"
@@ -11,6 +10,8 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"sync"
+	"time"
+	"math/rand"
 )
 
 /**
@@ -163,8 +164,15 @@ func (this *PeerEndpointService) PutValue(peerEndpoint *entity.PeerEndpoint) err
 func (this *PeerEndpointService) GetRand(limit int) []*entity.PeerEndpoint {
 	peerEndpoints := make([]*entity.PeerEndpoint, 0)
 	peerEndpoint := &entity.PeerEndpoint{}
-	peerEndpoint.Status = entity2.EntityStatus_Effective
-	err := this.Find(&peerEndpoints, peerEndpoint, "", 0, limit, "")
+	//peerEndpoint.Status = entity2.EntityStatus_Effective
+	peerEndpoint.ActiveStatus = entity.ActiveStatus_Up
+	count := int(this.Count(peerEndpoint, ""))
+	from := 0
+	if count > limit {
+		rand.Seed(time.Now().UnixNano())
+		from = rand.Intn(count - limit)
+	}
+	err := this.Find(&peerEndpoints, peerEndpoint, "", from, limit, "")
 	if err == nil {
 		return peerEndpoints
 	}

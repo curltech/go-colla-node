@@ -9,6 +9,7 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/libp2p/routingtable"
+	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/gogo/protobuf/proto"
 	"github.com/ipfs/go-cid"
 	ds "github.com/ipfs/go-datastore"
@@ -263,16 +264,21 @@ func (this *PeerEntityDHT) Bootstrap() error {
 }
 
 func (this *PeerEntityDHT) PutMyself() error {
-	//写自己的数据到peerendpoint中
+	// 写自己的数据到peerendpoint中
+	peerEndpoint := entity.PeerEndpoint{}
 	byteMyselfPeer, err := message.Marshal(global.Global.MyselfPeer)
 	if err != nil {
 		return err
 	}
-	/*peerEndpoint := dhtentity.PeerEndpoint{}
 	err = message.Unmarshal(byteMyselfPeer, &peerEndpoint)
 	if err != nil {
 		return err
-	}*/
-	key := ns.GetPeerEndpointKey(global.Global.MyselfPeer.PeerId)
-	return this.PutValue(key, byteMyselfPeer)
+	}
+	peerEndpoint.ActiveStatus = entity.ActiveStatus_Up
+	bytePeerEndpoint, err := message.Marshal(peerEndpoint)
+	if err != nil {
+		return err
+	}
+	key := ns.GetPeerEndpointKey(peerEndpoint.PeerId)
+	return this.PutValue(key, bytePeerEndpoint)
 }
