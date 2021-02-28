@@ -44,18 +44,18 @@ func setupPlugins(externalPluginsPath string) error {
 	plugins, err := loader.NewPluginLoader(filepath.Join(externalPluginsPath, "plugins"))
 	if err != nil {
 		logger.Sugar.Errorf("error loading plugins: %s", err)
-		panic(err)
+		return err
 	}
 
 	// Load preloaded and external plugins
 	if err := plugins.Initialize(); err != nil {
 		logger.Sugar.Errorf("error initializing plugins: %s", err)
-		panic(err)
+		return err
 	}
 
 	if err := plugins.Inject(); err != nil {
 		logger.Sugar.Errorf("error initializing plugins: %s", err)
-		panic(err)
+		return err
 	}
 
 	return nil
@@ -68,7 +68,7 @@ func NewIdentity() (*config.Identity, error) {
 	identity, err := config.CreateIdentity(ioutil.Discard, []options.KeyGenerateOption{options.Key.Type(options.Ed25519Key)})
 	if err != nil {
 		logger.Sugar.Errorf("%v", err)
-		panic(err)
+		return nil, err
 	}
 	return &identity, nil
 }
@@ -118,7 +118,6 @@ func createNode() error {
 		return err
 	}
 
-	// Construct the node
 	// 可以在此配置ipfs的参数并和libp2p节点融合或者独立
 	nodeOptions := &core.BuildCfg{
 		Online:  true,
@@ -188,7 +187,6 @@ func connectToPeers(peers []string) error {
 		if err != nil {
 			return err
 		}
-		//pii, err := peerstore.InfoFromP2pAddr(addr)
 		pii, err := peer.AddrInfoFromP2pAddr(addr)
 		if err != nil {
 			return err
