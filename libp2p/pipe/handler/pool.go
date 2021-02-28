@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/ns"
@@ -42,7 +43,7 @@ func (this *PipePool) GetResponsePipe(peerId string, connectSessionId string) *p
 	} else {
 		conn, ok := this.connectionPool[key]
 		if ok {
-			stream, err := conn.NewStream()
+			stream, err := conn.NewStream(context.Background())
 			if err != nil {
 				logger.Sugar.Errorf(err.Error())
 				return nil
@@ -74,71 +75,71 @@ func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pip
 	if ok {
 		return p
 	} else {*/
-		var id peer.ID
-		if strings.HasPrefix(peerId, "/") {
-			addr, err := ma.NewMultiaddr(peerId)
-			if err != nil {
-				logger.Sugar.Errorf(err.Error())
-				return nil
-			}
-			// Extract the peer ID from the multiaddr.
-			info, err := peer.AddrInfoFromP2pAddr(addr)
-			if err != nil {
-				logger.Sugar.Errorf(err.Error())
-				return nil
-			}
-			// Add the destination's peer multiaddress in the peerstore.
-			// This will be used during connection and stream creation by libp2p.
-			//global.Global.Host.Connect(global.Global.Context, *info)
-			global.Global.Host.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.PermanentAddrTTL)
-			id = info.ID
-		} else {
-			p, err := peer.Decode(peerId)
-			if err != nil {
-				logger.Sugar.Errorf(err.Error())
-				return nil
-			} else {
-				id = p
-			}
-		}
-		//主动创建流和管道与其他peer沟通，发消息，handler用于最终发送前消息的预先处理，或者接收消息后的处理
-		//peerId是带地址信息的/ip4/192.168.0.104/tcp/3721/p2p/12D3KooWPpZrX5bNEpJcHYFACTKkmMMxF39oU6Rm2WeK4rr8mRVp
-		stream, err := global.Global.Host.NewStream(global.Global.Context, id, protocol.ID(protocolId))
+	var id peer.ID
+	if strings.HasPrefix(peerId, "/") {
+		addr, err := ma.NewMultiaddr(peerId)
 		if err != nil {
-			logger.Sugar.Errorf("NewStream failed:%v", err)
+			logger.Sugar.Errorf(err.Error())
+			return nil
+		}
+		// Extract the peer ID from the multiaddr.
+		info, err := peer.AddrInfoFromP2pAddr(addr)
+		if err != nil {
+			logger.Sugar.Errorf(err.Error())
+			return nil
+		}
+		// Add the destination's peer multiaddress in the peerstore.
+		// This will be used during connection and stream creation by libp2p.
+		//global.Global.Host.Connect(global.Global.Context, *info)
+		global.Global.Host.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.PermanentAddrTTL)
+		id = info.ID
+	} else {
+		p, err := peer.Decode(peerId)
+		if err != nil {
+			logger.Sugar.Errorf(err.Error())
 			return nil
 		} else {
-			/**
-			设置通用的收到消息流的处理器，被动接收其他peer发送过来的消息，无论哪种协议类型，都放在HandleRaw中分发
-			*/
-			p, err := pipe.CreatePipe(stream, HandleRaw, msgtype.MsgDirect_Request)
-			if err != nil {
-				logger.Sugar.Errorf(err.Error())
-				return nil
-			}
-			if p != nil {
-				conn := p.GetStream().Conn()
-				if conn != nil {
-					peerId := conn.RemotePeer().Pretty()
-					logger.Sugar.Infof("GetRequestPipe-remote peer: %v %v, steamId: %v", peerId, conn.ID(), stream.ID())
-					/*key := peerId + ":" + conn.ID()
-					logger.Sugar.Infof("GetRequestPipe-key: %v", key)
-					oldConn, ok := this.connectionPool[key]
-					if ok {
-						if conn != oldConn {
-							logger.Sugar.Infof("----------GetRequestPipe-resetConn: v%", key)
-							oldConn.Close()
-							this.connectionPool[key] = conn
-						}
-					} else {
-						logger.Sugar.Infof("----------GetRequestPipe-newConn: %v", key)
-						this.connectionPool[key] = conn
-					}*/
-				}
-				/*this.requestPool[reqKey] = p*/
-				return p
-			}
+			id = p
 		}
+	}
+	//主动创建流和管道与其他peer沟通，发消息，handler用于最终发送前消息的预先处理，或者接收消息后的处理
+	//peerId是带地址信息的/ip4/192.168.0.104/tcp/3721/p2p/12D3KooWPpZrX5bNEpJcHYFACTKkmMMxF39oU6Rm2WeK4rr8mRVp
+	stream, err := global.Global.Host.NewStream(global.Global.Context, id, protocol.ID(protocolId))
+	if err != nil {
+		logger.Sugar.Errorf("NewStream failed:%v", err)
+		return nil
+	} else {
+		/**
+		设置通用的收到消息流的处理器，被动接收其他peer发送过来的消息，无论哪种协议类型，都放在HandleRaw中分发
+		*/
+		p, err := pipe.CreatePipe(stream, HandleRaw, msgtype.MsgDirect_Request)
+		if err != nil {
+			logger.Sugar.Errorf(err.Error())
+			return nil
+		}
+		if p != nil {
+			conn := p.GetStream().Conn()
+			if conn != nil {
+				peerId := conn.RemotePeer().Pretty()
+				logger.Sugar.Infof("GetRequestPipe-remote peer: %v %v, steamId: %v", peerId, conn.ID(), stream.ID())
+				/*key := peerId + ":" + conn.ID()
+				logger.Sugar.Infof("GetRequestPipe-key: %v", key)
+				oldConn, ok := this.connectionPool[key]
+				if ok {
+					if conn != oldConn {
+						logger.Sugar.Infof("----------GetRequestPipe-resetConn: v%", key)
+						oldConn.Close()
+						this.connectionPool[key] = conn
+					}
+				} else {
+					logger.Sugar.Infof("----------GetRequestPipe-newConn: %v", key)
+					this.connectionPool[key] = conn
+				}*/
+			}
+			/*this.requestPool[reqKey] = p*/
+			return p
+		}
+	}
 	/*}*/
 	return nil
 }
