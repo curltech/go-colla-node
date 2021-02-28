@@ -88,7 +88,6 @@ require (
 	github.com/pion/sdp/v2 v2.4.0
 	github.com/pion/stun v0.3.5
 	github.com/pion/turn/v2 v2.0.5
-	github.com/pion/webrtc/v2 v2.2.26
 	github.com/pion/webrtc/v3 v3.0.12
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/valyala/fasthttp v1.16.0
