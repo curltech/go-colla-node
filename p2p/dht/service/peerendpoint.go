@@ -161,52 +161,20 @@ func (this *PeerEndpointService) PutValue(peerEndpoint *entity.PeerEndpoint) err
 	return err
 }
 
-type PeerEndpointPeerId struct {
-	PeerId    string
-}
-
-//origin为原数组，count为随机取出的个数，最终返回一个count容量的目标数组
-func randomSlice(origin []*PeerEndpointPeerId, count int) []*PeerEndpointPeerId {
-	tmpOrigin := make([]*PeerEndpointPeerId, len(origin))
-	copy(tmpOrigin, origin)
-	rand.Seed(time.Now().Unix())
-	rand.Shuffle(len(tmpOrigin), func(i int, j int) {
-		tmpOrigin[i], tmpOrigin[j] = tmpOrigin[j], tmpOrigin[i]
-	})
-
-	result := make([]*PeerEndpointPeerId, 0, count)
-	for index, value := range tmpOrigin {
-		if index == count{
-			break
-		}
-		result = append(result, value)
+func (this *PeerEndpointService) GetRand(limit int) []*entity.PeerEndpoint {
+	peerEndpoints := make([]*entity.PeerEndpoint, 0)
+	peerEndpoint := &entity.PeerEndpoint{}
+	//peerEndpoint.Status = entity2.EntityStatus_Effective
+	peerEndpoint.ActiveStatus = entity.ActiveStatus_Up
+	count := int(this.Count(peerEndpoint, ""))
+	from := 0
+	if count > limit {
+		rand.Seed(time.Now().UnixNano())
+		from = rand.Intn(count - limit)
 	}
-	return result
-}
-
-func (this *PeerEndpointService) GetRand(count int) []*entity.PeerEndpoint {
-	result := make([]*entity.PeerEndpoint, 0)
-	activePeerIds := make([]*PeerEndpointPeerId, 0)
-	conditionBean := &entity.PeerEndpoint{}
-	//conditionBean.Status = entity2.EntityStatus_Effective
-	conditionBean.ActiveStatus = entity.ActiveStatus_Up
-	this.Find(&activePeerIds, conditionBean, "", 0, 0, "")
-	if len(activePeerIds) > 0 {
-		randomPeerIds := randomSlice(activePeerIds, count)
-		for _, randomPeerId := range randomPeerIds {
-			peerId := randomPeerId.PeerId
-			peerEndpoints, err := this.GetLocal(peerId)
-			if err != nil {
-				logger.Sugar.Errorf("failed to GetLocal PeerEndPoint: %v, err: %v", peerId, err)
-			} else {
-				if peerEndpoints != nil && len(peerEndpoints) > 0 {
-					for _, peerEndpoint := range peerEndpoints {
-						result = append(result, peerEndpoint)
-					}
-				}
-			}
-		}
-		return result
+	err := this.Find(&peerEndpoints, peerEndpoint, "", from, limit, "")
+	if err == nil {
+		return peerEndpoints
 	}
 
 	return nil
