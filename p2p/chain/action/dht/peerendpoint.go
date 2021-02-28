@@ -45,6 +45,7 @@ func (this *peerEndPointAction) Receive(chainMessage *msg.ChainMessage) (*msg.Ch
 	var response *msg.ChainMessage = nil
 	if chainMessage.Payload != nil {
 		srcPeerEndpoint := chainMessage.Payload.(*entity.PeerEndpoint)
+		srcPeerEndpoint.ActiveStatus = entity.ActiveStatus_Up
 		key := ns.GetPeerEndpointKey(srcPeerEndpoint.PeerId)
 		byteSrcPeerEndpoint, err := message.Marshal(srcPeerEndpoint)
 		if err != nil {
