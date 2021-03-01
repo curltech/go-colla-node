@@ -8,8 +8,8 @@ import (
 type BlockType string
 
 const (
-	BlockType_Temp = "Temp"
-	BlockType_Permanent = "Permanent"
+	BlockType_ChatAttach = "ChatAttach"
+	BlockType_Collection = "Collection"
 )
 
 type DataBlock struct {

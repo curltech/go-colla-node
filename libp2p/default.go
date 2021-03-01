@@ -38,10 +38,6 @@ import (
 	ws "github.com/libp2p/go-ws-transport"
 	ma "github.com/multiformats/go-multiaddr"
 	"time"
-	//circuit "github.com/libp2p/go-libp2p-circuit"
-	//_ "github.com/mtojek/go-libp2p-webrtc-star"
-	direct "github.com/libp2p/go-libp2p-webrtc-direct"
-	"github.com/pion/webrtc/v2"
 )
 
 /**
@@ -256,15 +252,15 @@ func p2pOptions() []libp2p.Option {
 	// 嵌入webrtc2.0的支持，和js端可以兼容，但只能单独使用
 	// mplex "github.com/whyrusleeping/go-smux-multiplex"需要make deps
 	///ip4/127.0.0.1/tcp/9090/http/p2p-webrtc-direct
-	if config.Libp2pParams.EnableWebrtc {
-		transport := direct.NewTransport(
-			webrtc.Configuration{},
-			new(mplex.Transport),
-		)
-		wrOption := libp2p.Transport(transport)
-		options = append(options, wrOption)
-		logger.Sugar.Infof("start EnableWebrtc option")
-	}
+	//if config.Libp2pParams.EnableWebrtc {
+	//	transport := direct.NewTransport(
+	//		webrtc.Configuration{},
+	//		new(mplex.Transport),
+	//	)
+	//	wrOption := libp2p.Transport(transport)
+	//	options = append(options, wrOption)
+	//	logger.Sugar.Infof("start EnableWebrtc option")
+	//}
 
 	return options
 }

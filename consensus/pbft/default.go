@@ -82,7 +82,8 @@ func (this *PbftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*ms
 	/**
 	 * 交易校验通过，主节点进入预准备状态，记录日志
 	 */
-	this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PBFT_PREPREPARED)
+	log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PBFT_PREPREPARED)
+	//service2.GetConsensusLogService().Insert(log)
 
 	peerIds := this.ChooseConsensusPeer()
 	if peerIds != nil && len(peerIds) > 2 {
@@ -165,6 +166,7 @@ func (this *PbftConsensus) ReceivePreprepared(chainMessage *msg.ChainMessage) (*
 	//service2.GetDataBlockService().Save(dataBlock)
 	// 每个副节点记录自己的Preprepared消息
 	log = this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PBFT_PREPREPARED)
+	//service2.GetConsensusLogService().Insert(log)
 	/**
 	 * 准备CONSENSUS_PREPARED状态的消息
 	 */
