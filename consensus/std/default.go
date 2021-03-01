@@ -60,19 +60,12 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 		}
 	}
 
-	if dataBlock.BlockType != entity.BlockType_Temp {
+	if dataBlock.BlockType != entity.BlockType_ChatAttach {
 		var peerIds []string
 		if config.ConsensusParams.StdMinPeerNum > 0 {
 			peerIds = this.ChooseConsensusPeer()
 		}
 		if peerIds != nil && len(peerIds) > 0 {
-			/**
-			 * 交易校验通过，主节点进入准备状态，记录日志
-			 */
-			log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PREPARED)
-			log.PeerIds = strings.Join(peerIds, ",")
-			logkey := this.GetLogCacheKey(log)
-			MemCache.SetDefault(logkey, log)
 			dataBlock.PeerIds = strings.Join(peerIds, ",")
 			datakey := this.GetDataBlockCacheKey(dataBlock.BlockId, dataBlock.SliceNumber)
 			MemCache.SetDefault(datakey, dataBlock)
@@ -86,11 +79,13 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 				// 封装消息，异步发送
 				go action.ConsensusAction.ConsensusDataBlock(peerId, msgtype.CONSENSUS_COMMITED, dataBlock, "")
 			}
-			response := handler.Ok(msgtype.CONSENSUS_PREPARED)
+			response := handler.Ok(msgtype.CONSENSUS)
 
 			return response, nil
 		}
-	}		
+	}
+	// 保存dataBlock
+	dataBlock.Status = entity2.EntityStatus_Effective
 	service2.GetDataBlockService().Insert(dataBlock)
 	response := handler.Ok(msgtype.CONSENSUS_REPLY)
 
@@ -117,13 +112,9 @@ func (this *StdConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.
 
 	log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_REPLY)
 
-	/**
-	 * 数据块记录有效
-	 */
-	if dataBlock != nil {
-		dataBlock.Status = entity2.EntityStatus_Effective
-		service2.GetDataBlockService().Insert(dataBlock)
-	}
+	// 保存dataBlock
+	dataBlock.Status = entity2.EntityStatus_Effective
+	service2.GetDataBlockService().Insert(dataBlock)
 
 	/**
 	 * 异步返回leader reply
@@ -212,7 +203,7 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 		logger.Sugar.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_REPLY, count)
 		// 收到足够的数目
 		if count == config.ConsensusParams.StdMinPeerNum + 1 {
-			//保存dataBlock
+			// 保存dataBlock
 			dataBlock.Status = entity2.EntityStatus_Effective
 			service2.GetDataBlockService().Insert(dataBlock)
 			log.PeerId = myPeerId
