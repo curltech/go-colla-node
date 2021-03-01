@@ -94,7 +94,7 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 	}
 	// 保存dataBlock
 	dataBlock.Status = entity2.EntityStatus_Effective
-	service2.GetDataBlockService().Insert(dataBlock)
+	service2.GetDataBlockService().Store(dataBlock)
 	response := handler.Ok(msgtype.CONSENSUS_REPLY)
 
 	return response, nil
@@ -123,7 +123,7 @@ func (this *StdConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.
 
 	// 保存dataBlock
 	dataBlock.Status = entity2.EntityStatus_Effective
-	service2.GetDataBlockService().Insert(dataBlock)
+	service2.GetDataBlockService().Store(dataBlock)
 
 	/**
 	 * 异步返回leader reply
@@ -196,6 +196,7 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 		log.SliceNumber = messageLog.SliceNumber
 		log.PrimarySequenceId = messageLog.PrimarySequenceId
 		log.Status = msgtype.CONSENSUS_REPLY
+		keys := make([]string, 0)
 		count := 1
 		for _, id := range peerIds {
 			log.PeerId = id
@@ -204,6 +205,7 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 			cacheLog = nil
 			if found {
 				cacheLog = l.(*entity.ConsensusLog)
+				keys = append(keys, key)
 			}
 			if cacheLog != nil {
 				count++
@@ -214,9 +216,12 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 		if count == config.ConsensusParams.StdMinPeerNum + 1 {
 			// 保存dataBlock
 			dataBlock.Status = entity2.EntityStatus_Effective
-			service2.GetDataBlockService().Insert(dataBlock)
+			service2.GetDataBlockService().Store(dataBlock)
 			log.PeerId = myPeerId
 			go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_REPLY, log, "")
+			for _, key := range keys {
+				MemCache.Delete(key)
+			}
 		}
 	}
 
