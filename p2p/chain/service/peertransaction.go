@@ -4,8 +4,11 @@ import (
 	"github.com/curltech/go-colla-core/container"
 	"github.com/curltech/go-colla-core/service"
 	"github.com/curltech/go-colla-core/util/message"
+	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/chain/entity"
+	"github.com/kataras/golog"
+	"errors"
 )
 
 /**
@@ -49,6 +52,86 @@ func (this *PeerTransactionService) NewEntities(data []byte) (interface{}, error
 	}
 
 	return &entities, err
+}
+
+func (this *PeerTransactionService) GetLocalPTs(keyKind string, srcPeerId string, targetPeerId string) ([]*entity.PeerTransaction, error) {
+	var key string
+	if keyKind == ns.PeerTransaction_Src_KeyKind {
+		if len(srcPeerId) == 0 {
+			return nil, errors.New("NullSrcPeerId")
+		}
+		key = ns.GetPeerTransactionSrcKey(srcPeerId)
+	} else if keyKind == ns.PeerTransaction_Target_KeyKind {
+		if len(targetPeerId) == 0 {
+			return nil, errors.New("NullTargetPeerId")
+		}
+		key = ns.GetPeerTransactionTargetKey(targetPeerId)
+	} else {
+		golog.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
+		return nil, errors.New("InvalidPeerTransactionKeyKind")
+	}
+	rec, err := dht.PeerEndpointDHT.GetLocal(key)
+	if err != nil {
+		golog.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
+		return nil, err
+	}
+	if rec != nil {
+		peerTransactions := make([]*entity.PeerTransaction, 0)
+		err = message.Unmarshal(rec.GetValue(), &peerTransactions)
+		if err != nil {
+			golog.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
+			return nil, err
+		}
+		pts := make([]*entity.PeerTransaction, 0)
+		for _, peerTransaction := range peerTransactions {
+			pts = append(pts, peerTransaction)
+		}
+		return pts, nil
+	}
+
+	return nil, nil
+}
+
+func (this *PeerTransactionService) PutLocalPTs(peerTransactions []*entity.PeerTransaction) error {
+	for _, peerTransaction := range peerTransactions {
+		key := ns.GetPeerTransactionSrcKey(peerTransaction.SrcPeerId)
+		bytePeerTransaction, err := message.Marshal(peerTransaction)
+		if err != nil {
+			return err
+		}
+		err = dht.PeerEndpointDHT.PutLocal(key, bytePeerTransaction)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (this *PeerTransactionService) PutPTs(peerTransaction *entity.PeerTransaction) error {
+	err := this.PutPT(peerTransaction, ns.PeerTransaction_Src_KeyKind)
+	if err != nil {
+		return err
+	}
+	return this.PutPT(peerTransaction, ns.PeerTransaction_Target_KeyKind)
+}
+
+func (this *PeerTransactionService) PutPT(peerTransaction *entity.PeerTransaction, keyKind string) error {
+	bytePeerTransaction, err := message.Marshal(peerTransaction)
+	if err != nil {
+		return err
+	}
+	var key string
+	if keyKind == ns.PeerTransaction_Src_KeyKind {
+		key = ns.GetPeerTransactionSrcKey(peerTransaction.SrcPeerId)
+	} else if keyKind == ns.PeerTransaction_Target_KeyKind {
+		key = ns.GetPeerTransactionTargetKey(peerTransaction.TargetPeerId)
+	} else {
+		golog.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
+		return errors.New("InvalidPeerTransactionKeyKind")
+	}
+
+	return dht.PeerEndpointDHT.PutValue(key, bytePeerTransaction)
 }
 
 func init() {

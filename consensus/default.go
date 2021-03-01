@@ -6,7 +6,6 @@ import (
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/p2p/chain/entity"
-	service2 "github.com/curltech/go-colla-node/p2p/chain/service"
 	entity1 "github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
@@ -92,7 +91,6 @@ func (this *Consensus) CreateConsensusLog(chainMessage *msg.ChainMessage, dataBl
 	log.StatusDate = &t
 	log.CreateDate = &t
 	log.TransactionAmount = dataBlock.TransactionAmount
-	go service2.GetConsensusLogService().Insert(log)
 
 	return log
 }

@@ -60,6 +60,7 @@ func (this *RaftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*ms
 	 * 交易校验通过，主节点进入预准备状态，记录日志
 	 */
 	log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_RAFT_PREPREPARED)
+	//service2.GetConsensusLogService().Insert(log)
 	key := this.GetLogCacheKey(log)
 	MemCache.SetDefault(key, log)
 	key = this.GetDataBlockCacheKey(dataBlock.BlockId, dataBlock.SliceNumber)
@@ -149,6 +150,7 @@ func (this *RaftConsensus) ReceivePreprepared(chainMessage *msg.ChainMessage) (*
 	//service2.GetDataBlockService().Save(dataBlock)
 	// 每个副节点记录自己的Preprepared消息
 	log = this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_RAFT_PREPREPARED)
+	//service2.GetConsensusLogService().Insert(log)
 	/**
 	 * 准备CONSENSUS_PREPARED状态的消息
 	 */
