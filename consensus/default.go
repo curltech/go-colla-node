@@ -4,8 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/curltech/go-colla-core/config"
+	"github.com/curltech/go-colla-core/crypto/std"
+	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/p2p/chain/entity"
+	service2 "github.com/curltech/go-colla-node/p2p/chain/service"
 	entity1 "github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
@@ -13,6 +16,7 @@ import (
 	"github.com/patrickmn/go-cache"
 	"golang.org/x/exp/rand"
 	"time"
+	"unsafe"
 )
 
 type Consensus struct {
@@ -109,6 +113,23 @@ func (this *Consensus) GetDataBlock(chainMessage *msg.ChainMessage) (*entity.Dat
 	}
 	if dataBlock == nil {
 		return nil, errors.New("NoPayload")
+	}
+	// 只针对第一个分片处理一次
+	if dataBlock.SliceNumber == 1 && dataBlock.TransactionKeys == nil {
+		if len(dataBlock.TransportKey) == 0 {
+			return nil, errors.New("NullTransportKey")
+		}
+		transportKey := std.DecodeBase64(dataBlock.TransportKey)
+		transactionKeys := make([]*entity.TransactionKey, 0)
+		err := message.TextUnmarshal(*(*string)(unsafe.Pointer(&transportKey)), &transactionKeys)
+		if err != nil {
+			return nil, errors.New("TransactionKeysTextUnmarshalFailure")
+		}
+		dataBlock.TransactionKeys = transactionKeys
+	}
+	if dataBlock.TransportPayload != "" && dataBlock.TransactionAmount == 0 {
+		transportPayload := std.DecodeBase64(dataBlock.TransportPayload)
+		dataBlock.TransactionAmount = service2.GetDataBlockService().GetTransactionAmount(transportPayload)
 	}
 	return dataBlock, nil
 }
