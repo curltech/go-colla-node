@@ -66,6 +66,14 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 			peerIds = this.ChooseConsensusPeer()
 		}
 		if peerIds != nil && len(peerIds) > 0 {
+			/**
+			 * 交易校验通过，主节点进入准备状态，记录日志
+			 */
+			//log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PREPARED)
+			//log.PeerIds = strings.Join(peerIds, ",")
+			//service2.GetConsensusLogService().Insert(log)
+			//logkey := this.GetLogCacheKey(log)
+			//MemCache.SetDefault(logkey, log)
 			dataBlock.PeerIds = strings.Join(peerIds, ",")
 			datakey := this.GetDataBlockCacheKey(dataBlock.BlockId, dataBlock.SliceNumber)
 			MemCache.SetDefault(datakey, dataBlock)
@@ -111,6 +119,7 @@ func (this *StdConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.
 	}
 
 	log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_REPLY)
+	//service2.GetConsensusLogService().Insert(log)
 
 	// 保存dataBlock
 	dataBlock.Status = entity2.EntityStatus_Effective
