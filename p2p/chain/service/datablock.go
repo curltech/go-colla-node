@@ -1,11 +1,20 @@
 package service
 
 import (
+	"errors"
+	"fmt"
 	"github.com/curltech/go-colla-core/container"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/service"
 	"github.com/curltech/go-colla-core/util/message"
+	"github.com/curltech/go-colla-node/libp2p/dht"
+	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/chain/entity"
+	entity2 "github.com/curltech/go-colla-node/p2p/dht/entity"
+	"github.com/curltech/go-colla-node/p2p/msg"
+	"github.com/kataras/golog"
+	"time"
 )
 
 /**
@@ -51,6 +60,316 @@ func (this *DataBlockService) NewEntities(data []byte) (interface{}, error) {
 	}
 
 	return &entities, err
+}
+
+func (this *DataBlockService) ValidateDB(messagePayload *msg.MessagePayload) error {
+	dataBlock := messagePayload.Payload.(*entity.DataBlock)
+	if dataBlock == nil {
+		return errors.New("NullDataBlock")
+	}
+	srcPeer := messagePayload.SrcPeer.(*entity2.PeerClient)
+	srcPeerId := srcPeer.PeerId
+	createPeerId := dataBlock.PeerId
+	if createPeerId != srcPeerId {
+		return errors.New("CreatePeerIdAndSrcPeerIdAreDifferent")
+	}
+	srcPublicKey := srcPeer.PublicKey
+	createPublicKey := dataBlock.PublicKey
+	if createPublicKey != srcPublicKey {
+		return errors.New("CreatePublicKeyAndSrcPublicKeyAreDifferent")
+	}
+	return nil
+}
+
+func (this *DataBlockService) GetLocalDBs(keyKind string, createPeerId string, blockId string, receiverPeerId string, txSequenceId uint64, sliceNumber uint64) ([]*entity.DataBlock, error) {
+	var key string
+	if keyKind == ns.DataBlock_Owner_KeyKind {
+		if len(createPeerId) == 0 {
+			return nil, errors.New("NullCreatePeerId")
+		}
+		key = ns.GetDataBlockOwnerKey(createPeerId)
+	} else if keyKind == ns.DataBlock_KeyKind {
+		if len(blockId) == 0 {
+			return nil, errors.New("NullBlockId")
+		}
+		key = ns.GetDataBlockKey(blockId)
+	} else {
+		golog.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
+		return nil, errors.New("InvalidDataBlockKeyKind")
+	}
+	rec, err := dht.PeerEndpointDHT.GetLocal(key)
+	if err != nil {
+		golog.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
+		return nil, err
+	}
+	if rec != nil {
+		dataBlocks := make([]*entity.DataBlock, 0)
+		err = message.Unmarshal(rec.GetValue(), &dataBlocks)
+		if err != nil {
+			golog.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
+			return nil, err
+		}
+		dbs := make([]*entity.DataBlock, 0)
+		for _, dataBlock := range dataBlocks {
+			var receivable bool
+			if len(receiverPeerId) > 0 {
+				receivable = false
+				for _, transactionKey := range dataBlock.TransactionKeys {
+					if transactionKey.PeerId == receiverPeerId {
+						receivable = true
+						break
+					}
+				}
+			}
+			if ((len(receiverPeerId) == 0 && len(dataBlock.PayloadKey) == 0) || (len(receiverPeerId) > 0 && receivable == true)) &&
+				(sliceNumber > 0 && dataBlock.SliceNumber == uint64(sliceNumber)) {
+				dbs = append(dbs, dataBlock)
+			}
+		}
+		return dbs, nil
+	}
+
+	return nil, nil
+}
+
+func (this *DataBlockService) PutLocalDBs(dataBlocks []*entity.DataBlock) error {
+	for _, dataBlock := range dataBlocks {
+		key := ns.GetDataBlockKey(dataBlock.BlockId)
+		byteDataBlock, err := message.Marshal(dataBlock)
+		if err != nil {
+			return err
+		}
+		err = dht.PeerEndpointDHT.PutLocal(key, byteDataBlock)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (this *DataBlockService) PutDBs(dataBlock *entity.DataBlock) error {
+	err := this.PutDB(dataBlock, ns.DataBlock_KeyKind)
+	if err != nil {
+		return err
+	}
+	return this.PutDB(dataBlock, ns.DataBlock_Owner_KeyKind)
+}
+
+func (this *DataBlockService) PutDB(dataBlock *entity.DataBlock, keyKind string) error {
+	byteDataBlock, err := message.Marshal(dataBlock)
+	if err != nil {
+		return err
+	}
+	var key string
+	if keyKind == ns.DataBlock_KeyKind {
+		key = ns.GetDataBlockKey(dataBlock.BlockId)
+	} else if keyKind == ns.DataBlock_Owner_KeyKind {
+		key = ns.GetDataBlockOwnerKey(dataBlock.PeerId)
+	} else {
+		golog.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
+		return errors.New("InvalidDataBlockKeyKind")
+	}
+
+	return dht.PeerEndpointDHT.PutValue(key, byteDataBlock)
+}
+
+func (this *DataBlockService) Store(db *entity.DataBlock) error {
+	if db == nil {
+		logger.Sugar.Errorf("NoDataBlock")
+		return errors.New("NoDataBlock")
+	}
+	blockId := db.BlockId
+	if blockId == "" {
+		logger.Sugar.Errorf("NoBlockId")
+		return errors.New("NoBlockId")
+	}
+	sliceNumber := db.SliceNumber
+	if sliceNumber == 0 {
+		logger.Sugar.Errorf("NoSliceNumber")
+		return errors.New("NoSliceNumber")
+	}
+	transactionKeys := db.TransactionKeys
+	if transactionKeys == nil {
+		logger.Sugar.Errorf("NoTransactionKeys")
+		return errors.New("NoTransactionKeys")
+	}
+	currentTime := time.Now()
+	oldDb := &entity.DataBlock{}
+	oldDb.BlockId = blockId
+	oldDb.SliceNumber = sliceNumber
+	dbFound := this.Get(oldDb, false, "", "")
+	if dbFound {
+		db.Id = oldDb.Id
+		// 校验Owner
+		if oldDb.PeerId != db.PeerId {
+			return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldPeerId: %v", db.BlockId, db.PeerId, oldDb.PeerId))
+		}
+		// 负载为空表示删除
+		if len(db.TransportPayload) == 0 {
+			// 只针对第一个分片处理一次
+			if db.SliceNumber == 1 {
+				dbCondition := &entity.DataBlock{}
+				dbCondition.BlockId = db.BlockId
+				dbObsoletes := make([]*entity.DataBlock, 0)
+				this.Find(&dbObsoletes, dbCondition, "", 0, 0, "")
+				this.Delete(dbObsoletes, "")
+				// 删除TransactionKeys
+				for _, transactionKey := range transactionKeys {
+					tkCondition := &entity.TransactionKey{}
+					tkCondition.BlockId = transactionKey.BlockId
+					tkCondition.PeerId = transactionKey.PeerId
+					GetTransactionKeyService().Delete(tkCondition, "")
+				}
+				// 删除PeerTransaction
+				for _, dbObsolete := range dbObsoletes {
+					peerTransaction := entity.PeerTransaction{}
+					peerTransaction.SrcPeerId = dbObsolete.PeerId
+					peerTransaction.SrcPeerType = entity2.PeerType_PeerClient
+					peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
+					peerTransaction.TargetPeerType = entity2.PeerType_PeerEndpoint
+					peerTransaction.BlockId = dbObsolete.BlockId
+					peerTransaction.SliceNumber = dbObsolete.SliceNumber
+					peerTransaction.BusinessNumber = dbObsolete.BusinessNumber
+					peerTransaction.TransactionTime = &currentTime
+					peerTransaction.CreateTimestamp = dbObsolete.CreateTimestamp
+					peerTransaction.Amount = dbObsolete.TransactionAmount
+					peerTransaction.TransactionType = entity2.TransactionType_DataBlock_Delete
+					err := GetPeerTransactionService().PutPTs(&peerTransaction)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			return nil
+		}
+	} else {
+		db.Id = uint64(0)
+		// 负载为空表示删除
+		if len(db.TransportPayload) == 0 {
+			return nil
+		}
+	}
+
+	dbAffected := this.Upsert(db)
+	if dbAffected > 0 {
+		logger.Sugar.Infof("BlockId: %v, upsert DataBlock successfully", blockId)
+		// 只针对第一个分片处理一次
+		if db.SliceNumber == 1 {
+			// 删除多余废弃分片
+			if db.SliceSize < oldDb.SliceSize {
+				dbCondition := &entity.DataBlock{}
+				dbCondition.BlockId = db.BlockId
+				dbObsoletes := make([]*entity.DataBlock, 0)
+				this.Find(dbObsoletes, dbCondition, "", 0, 0, "SliceNumber > ?", db.SliceSize)
+				if len(dbObsoletes) > 0 {
+					// 删除PeerTransaction
+					for _, obsolete := range dbObsoletes {
+						peerTransaction := entity.PeerTransaction{}
+						peerTransaction.SrcPeerId = obsolete.PeerId
+						peerTransaction.SrcPeerType = entity2.PeerType_PeerClient
+						peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
+						peerTransaction.TargetPeerType = entity2.PeerType_PeerEndpoint
+						peerTransaction.BlockId = obsolete.BlockId
+						peerTransaction.SliceNumber = obsolete.SliceNumber
+						peerTransaction.BusinessNumber = obsolete.BusinessNumber
+						peerTransaction.TransactionTime = &currentTime
+						peerTransaction.CreateTimestamp = obsolete.CreateTimestamp
+						peerTransaction.Amount = obsolete.TransactionAmount
+						peerTransaction.TransactionType = entity2.TransactionType_DataBlock_Delete
+						err := GetPeerTransactionService().PutPTs(&peerTransaction)
+						if err != nil {
+							return err
+						}
+					}
+				}
+			}
+			// 保存TransactionKeys
+			for _, tk := range transactionKeys {
+				tkBlockId := tk.BlockId
+				if tkBlockId != blockId {
+					logger.Sugar.Errorf("InvalidTKBlockId")
+					return errors.New("InvalidTKBlockId")
+				}
+				tkPeerId := tk.PeerId
+				if tkPeerId == "" {
+					logger.Sugar.Errorf("NoTKPeerId")
+					return errors.New("NoTKPeerId")
+				}
+				oldTk := &entity.TransactionKey{}
+				oldTk.BlockId = tkBlockId
+				oldTk.PeerId = tkPeerId
+				tkFound := GetTransactionKeyService().Get(oldTk, false, "", "")
+				if tkFound {
+					tk.Id = oldTk.Id
+				} else {
+					tk.Id = uint64(0)
+				}
+
+				tkAffected := GetTransactionKeyService().Upsert(tk)
+				if tkAffected > 0 {
+					logger.Sugar.Infof("BlockId: %v, PeerId: %v, upsert TransactionKey successfully", tkBlockId, tkPeerId)
+				} else {
+					logger.Sugar.Errorf("BlockId: %v, PeerId: %v, upsert TransactionKey fail", tkBlockId, tkPeerId)
+					return errors.New(fmt.Sprintf("BlockId: %v, PeerId: %v, upsert TransactionKey fail", tkBlockId, tkPeerId))
+				}
+			}
+		}
+		// 更新交易金额
+		// MyselfPeer
+		/*global.Global.MyselfPeer.BlockId = db.BlockId
+		global.Global.MyselfPeer.LastTransactionTime = &currentTime
+		global.Global.MyselfPeer.Balance = global.Global.MyselfPeer.Balance + db.TransactionAmount
+		affected := service.GetMyselfPeerService().Update([]interface{}{global.Global.MyselfPeer}, nil, "")
+		if affected == 0 {
+			return errors.New("NoUpdateOfMyselfPeer")
+		}
+		// PeerEndpoint
+		dht.PeerEndpointDHT.PutMyself()
+		// PeerClient
+		pcs, err := service1.GetLocalPCs(ns.PeerClient_KeyKind, db.PeerId, "", "") // 可能查不到或查到的为旧版本
+		if err != nil {
+			return err
+		}
+		for _, pc := range pcs {
+			pc.LastAccessTime = &currentTime
+			pc.BlockId = db.BlockId
+			pc.LastTransactionTime = &currentTime
+			pc.Balance = pc.Balance - db.TransactionAmount
+			err := service1.PutPCs(pc)
+			if err != nil {
+				return err
+			}
+		}*/
+		// PeerTransaction（BlockType_ChatAttach不需要保存PeerTransaction）
+		if db.BlockType != entity.BlockType_ChatAttach {
+			peerTransaction := entity.PeerTransaction{}
+			peerTransaction.SrcPeerId = db.PeerId
+			peerTransaction.SrcPeerType = entity2.PeerType_PeerClient
+			peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
+			peerTransaction.TargetPeerType = entity2.PeerType_PeerEndpoint
+			peerTransaction.BlockId = db.BlockId
+			peerTransaction.SliceNumber = db.SliceNumber
+			peerTransaction.BusinessNumber = db.BusinessNumber
+			peerTransaction.TransactionTime = &currentTime
+			peerTransaction.CreateTimestamp = db.CreateTimestamp
+			peerTransaction.Amount = db.TransactionAmount
+			peerTransaction.TransactionType = entity2.TransactionType_DataBlock
+			err := GetPeerTransactionService().PutPTs(&peerTransaction)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		logger.Sugar.Errorf("BlockId: %v, upsert DataBlock fail", blockId)
+		return errors.New(fmt.Sprintf("BlockId: %v, upsert DataBlock fail", blockId))
+	}
+
+	return nil
+}
+
+func (this *DataBlockService) GetTransactionAmount(transportPayload []byte) float64 {
+	return float64(len(transportPayload)) / float64(1024*1024)
 }
 
 func init() {
