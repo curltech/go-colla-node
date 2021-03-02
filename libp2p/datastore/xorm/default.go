@@ -90,6 +90,11 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				return errors.New("NoSliceNumber")
 			}
 			reflect.SetValue(old, "SliceNumber", sliceNumber)
+			transactionKeys, err := reflect.GetValue(entity, "TransactionKeys")
+			if err != nil || transactionKeys == nil {
+				logger.Sugar.Errorf("NoTransactionKeys")
+				return errors.New("NoTransactionKeys")
+			}
 		} else if namespace == ns.PeerTransaction_Src_Prefix || namespace == ns.PeerTransaction_Target_Prefix {
 			targetPeerId, err := reflect.GetValue(entity, "TargetPeerId")
 			if err != nil || targetPeerId == nil {
@@ -150,43 +155,25 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				if len(p.TransportPayload) == 0 {
 					// 只针对第一个分片处理一次
 					if p.SliceNumber == 1 {
-						condition, _ := req.Service.NewEntity(nil)
-						reflect.SetValue(condition, req.Keyname, keyvalue)
-						obsoletes, _ := req.Service.NewEntities(nil)
-						req.Service.Find(obsoletes, condition, "", 0, 0, "")
-						req.Service.Delete(obsoletes, "")
+						condition := &chainentity.DataBlock{}
+						condition.BlockId = p.BlockId
+						req.Service.Delete(condition, "")
 						// 删除TransactionKeys
-						transactionKeys := p.TransactionKeys
-						if err != nil || transactionKeys == nil {
-							logger.Sugar.Errorf("NoTransactionKeys")
-							return errors.New("NoTransactionKeys")
-						}
 						req2, err := handler.NewPrefixRequest(ns.TransactionKey_Prefix)
 						if err != nil {
 							logger.Sugar.Errorf("TransactionKeys-NewPrefixRequest-Failed")
 							return errors.New("TransactionKeys-NewPrefixRequest-Failed")
 						}
-						for _, transactionKey := range transactionKeys {
-							condition, _ := req2.Service.NewEntity(nil)
-							reflect.SetValue(condition, ns.TransactionKey_BlockId_KeyName, transactionKey.BlockId)
-							reflect.SetValue(condition, ns.TransactionKey_PeerId_KeyName, transactionKey.PeerId)
-							obsoletes, _ := req2.Service.NewEntities(nil)
-							req2.Service.Find(obsoletes, condition, "", 0, 0, "")
-							req2.Service.Delete(obsoletes, "")
-						}
+						condition2 := &chainentity.TransactionKey{}
+						condition2.BlockId = p.BlockId
+						req2.Service.Delete(condition2, "")
 						// 删除PeerTransaction
-						for _, obsolete := range *obsoletes.(*[]*chainentity.DataBlock) {
+						for i := uint64(0); i < oldp.SliceSize; i++ {
 							peerTransaction := chainentity.PeerTransaction{}
-							peerTransaction.SrcPeerId = obsolete.PeerId
-							peerTransaction.SrcPeerType = dhtentity.PeerType_PeerClient
+							peerTransaction.SrcPeerId = p.PeerId
 							peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
-							peerTransaction.TargetPeerType = dhtentity.PeerType_PeerEndpoint
-							peerTransaction.BlockId = obsolete.BlockId
-							peerTransaction.SliceNumber = obsolete.SliceNumber
-							peerTransaction.BusinessNumber = obsolete.BusinessNumber
-							peerTransaction.TransactionTime = &currentTime
-							peerTransaction.CreateTimestamp = obsolete.CreateTimestamp
-							peerTransaction.Amount = obsolete.TransactionAmount
+							peerTransaction.BlockId = p.BlockId
+							peerTransaction.SliceNumber = i
 							peerTransaction.TransactionType = dhtentity.TransactionType_DataBlock_Delete
 							err = service1.GetPeerTransactionService().PutPTs(&peerTransaction)
 							if err != nil {
@@ -247,81 +234,56 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				if p.SliceNumber == 1 {
 					// 删除多余废弃分片
 					if p.SliceSize < oldp.SliceSize {
-						condition, _ := req.Service.NewEntity(nil)
-						reflect.SetValue(condition, req.Keyname, keyvalue)
-						results, _ := req.Service.NewEntities(nil)
-						req.Service.Find(results, condition, "", 0, 0, "")
-						if len(*results.(*[]*chainentity.DataBlock)) > 0 {
-							obsoletes := make([]*chainentity.DataBlock, 0)
-							for _, db := range *results.(*[]*chainentity.DataBlock) {
-								if db.SliceNumber > p.SliceSize && db.SliceNumber <= oldp.SliceSize {
-									obsoletes = append(obsoletes, db)
-								}
-							}
-							req.Service.Delete(obsoletes, "")
-							// 删除PeerTransaction
-							for _, obsolete := range obsoletes {
-								peerTransaction := chainentity.PeerTransaction{}
-								peerTransaction.SrcPeerId = obsolete.PeerId
-								peerTransaction.SrcPeerType = dhtentity.PeerType_PeerClient
-								peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
-								peerTransaction.TargetPeerType = dhtentity.PeerType_PeerEndpoint
-								peerTransaction.BlockId = obsolete.BlockId
-								peerTransaction.SliceNumber = obsolete.SliceNumber
-								peerTransaction.BusinessNumber = obsolete.BusinessNumber
-								peerTransaction.TransactionTime = &currentTime
-								peerTransaction.CreateTimestamp = obsolete.CreateTimestamp
-								peerTransaction.Amount = obsolete.TransactionAmount
-								peerTransaction.TransactionType = dhtentity.TransactionType_DataBlock_Delete
-								err = service1.GetPeerTransactionService().PutPTs(&peerTransaction)
-								if err != nil {
-									return err
-								}
+						condition := &chainentity.DataBlock{}
+						condition.BlockId = p.BlockId
+						req.Service.Delete(condition, "SliceNumber >= ?", p.SliceSize)
+						// 删除PeerTransaction
+						for i := p.SliceSize; i < oldp.SliceSize; i++ {
+							peerTransaction := chainentity.PeerTransaction{}
+							peerTransaction.SrcPeerId = p.PeerId
+							peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
+							peerTransaction.BlockId = p.BlockId
+							peerTransaction.SliceNumber = i
+							peerTransaction.TransactionType = dhtentity.TransactionType_DataBlock_Delete
+							err = service1.GetPeerTransactionService().PutPTs(&peerTransaction)
+							if err != nil {
+								return err
 							}
 						}
 					}
 					// 保存TransactionKeys
-					transactionKeys, err := reflect.GetValue(entity, "TransactionKeys")
-					if err != nil || transactionKeys == nil {
-						logger.Sugar.Errorf("NoTransactionKeys")
-						return errors.New("NoTransactionKeys")
-					}
 					req2, err := handler.NewPrefixRequest(ns.TransactionKey_Prefix)
 					if err != nil {
 						logger.Sugar.Errorf("TransactionKeys-NewPrefixRequest-Failed")
 						return errors.New("TransactionKeys-NewPrefixRequest-Failed")
 					}
-					for _, transactionKey := range transactionKeys.([]*chainentity.TransactionKey) {
-						blockId, err := reflect.GetValue(transactionKey, ns.TransactionKey_BlockId_KeyName)
-						if err != nil || blockId == nil {
-							logger.Sugar.Errorf("NoBlockId")
-							return errors.New("NoBlockId")
+					for _, tk := range p.TransactionKeys {
+						tkBlockId := tk.BlockId
+						if tkBlockId != p.BlockId {
+							logger.Sugar.Errorf("InvalidTKBlockId")
+							return errors.New("InvalidTKBlockId")
 						}
-						peerId, err := reflect.GetValue(transactionKey, ns.TransactionKey_PeerId_KeyName)
-						if err != nil || peerId == nil {
-							logger.Sugar.Errorf("NoPeerId")
-							return errors.New("NoPeerId")
+						tkPeerId := tk.PeerId
+						if tkPeerId == "" {
+							logger.Sugar.Errorf("NoTKPeerId")
+							return errors.New("NoTKPeerId")
 						}
-						old2, _ := req2.Service.NewEntity(nil)
-						reflect.SetValue(old2, ns.TransactionKey_BlockId_KeyName, blockId)
-						reflect.SetValue(old2, ns.TransactionKey_PeerId_KeyName, peerId)
-						found2 := req2.Service.Get(old2, false, "", "")
-						if found2 {
-							id2, err := reflect.GetValue(old2, baseentity.FieldName_Id)
-							if err != nil {
-								id2 = uint64(0)
-							}
-							reflect.SetValue(transactionKey, baseentity.FieldName_Id, id2)
+						oldTk := &chainentity.TransactionKey{}
+						oldTk.BlockId = tkBlockId
+						oldTk.PeerId = tkPeerId
+						tkFound := req2.Service.Get(oldTk, false, "", "")
+						if tkFound {
+							tk.Id = oldTk.Id
 						} else {
-							reflect.SetValue(transactionKey, baseentity.FieldName_Id, uint64(0))
+							tk.Id = uint64(0)
 						}
 
-						affected2 := req2.Service.Upsert(transactionKey)
-						if affected2 > 0 {
-							logger.Sugar.Infof("%v:%v put TransactionKeys successfully", req.Keyname, req.Keyvalue)
+						tkAffected := req2.Service.Upsert(tk)
+						if tkAffected > 0 {
+							logger.Sugar.Infof("BlockId: %v, PeerId: %v, upsert TransactionKey successfully", tkBlockId, tkPeerId)
 						} else {
-							logger.Sugar.Errorf("%v:%v upsert TransactionKeys fail", req.Keyname, req.Keyvalue)
-							return errors.New(fmt.Sprintf("%v:%v upsert TransactionKeys fail", req.Keyname, req.Keyvalue))
+							logger.Sugar.Errorf("BlockId: %v, PeerId: %v, upsert TransactionKey fail", tkBlockId, tkPeerId)
+							return errors.New(fmt.Sprintf("BlockId: %v, PeerId: %v, upsert TransactionKey fail", tkBlockId, tkPeerId))
 						}
 					}
 				}
@@ -525,10 +487,7 @@ func (this *XormDatastore) Delete(key datastore.Key) (err error) {
 		return errors.New("Delete need keyvalue")
 	}
 	reflect.SetValue(entity, req.Keyname, v)
-
-	entities := make([]interface{}, 1)
-	entities[0] = entity
-	affected := req.Service.Delete(entities, "")
+	affected := req.Service.Delete(entity, "")
 	if affected > 0 {
 		logger.Sugar.Infof("%v:%v delete successfully", req.Keyname, req.Keyvalue)
 	} else {
