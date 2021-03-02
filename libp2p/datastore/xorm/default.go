@@ -424,9 +424,6 @@ func (this *XormDatastore) get(req *handler.DispatchRequest) interface{} {
 		} else if req.Name == ns.DataBlock_Owner_Prefix {
 			reflect.SetValue(entity, ns.DataBlock_Owner_KeyKind, v)
 			break
-		} else if req.Name == ns.PeerTransaction_BlockId_Prefix {
-			reflect.SetValue(entity, ns.PeerTransaction_BlockId_KeyKind, v)
-			break
 		} else {
 			err := reflect.SetValue(entity, k, v)
 			if err != nil {
