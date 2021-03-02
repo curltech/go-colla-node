@@ -63,7 +63,8 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 	if dataBlock.BlockType != entity.BlockType_ChatAttach {
 		var peerIds []string
 		if config.ConsensusParams.StdMinPeerNum > 0 {
-			peerIds = this.ChooseConsensusPeer(dataBlock)
+			//peerIds = this.ChooseConsensusPeer(dataBlock)
+			peerIds = this.NearestConsensusPeer(dataBlock.BlockId)
 		}
 		if peerIds != nil && len(peerIds) > 0 {
 			/**
