@@ -353,18 +353,19 @@ func (this *DataBlockService) Store(db *entity.DataBlock) error {
 	return nil
 }
 
-func (this *DataBlockService) Query(dataBlocks *[]*entity.DataBlock, condition *entity.DataBlock) error {
+func (this *DataBlockService) Query(dataBlocks *[]*entity.DataBlock, blockId string, sliceNumber uint64) error {
+	condition := &entity.DataBlock{}
+	condition.BlockId = blockId
+	condition.SliceNumber = sliceNumber
 	this.Find(dataBlocks, condition, "", 0, 0, "")
-	if len(*dataBlocks) > 0 {
+	if len(*dataBlocks) > 0 && sliceNumber == 1 {
 		for _, dataBlock := range *dataBlocks {
-			if dataBlock.SliceNumber == 1 {
-				condition := &entity.TransactionKey{}
-				condition.BlockId = dataBlock.BlockId
-				transactionKeys := make([]*entity.TransactionKey, 0)
-				GetTransactionKeyService().Find(&transactionKeys, condition, "", 0, 0, "")
-				if len(transactionKeys) > 0 {
-					dataBlock.TransactionKeys = transactionKeys
-				}
+			condition := &entity.TransactionKey{}
+			condition.BlockId = dataBlock.BlockId
+			transactionKeys := make([]*entity.TransactionKey, 0)
+			GetTransactionKeyService().Find(&transactionKeys, condition, "", 0, 0, "")
+			if len(transactionKeys) > 0 {
+				dataBlock.TransactionKeys = transactionKeys
 			}
 		}
 	}
