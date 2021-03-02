@@ -113,11 +113,15 @@ func (this *DataBlockService) GetLocalDBs(keyKind string, createPeerId string, b
 		for _, dataBlock := range dataBlocks {
 			var receivable bool
 			if len(receiverPeerId) > 0 {
-				receivable = false
-				for _, transactionKey := range dataBlock.TransactionKeys {
-					if transactionKey.PeerId == receiverPeerId {
-						receivable = true
-						break
+				if sliceNumber != 1 {
+					receivable = true
+				} else {
+					receivable = false
+					for _, transactionKey := range dataBlock.TransactionKeys {
+						if transactionKey.PeerId == receiverPeerId {
+							receivable = true
+							break
+						}
 					}
 				}
 			}
