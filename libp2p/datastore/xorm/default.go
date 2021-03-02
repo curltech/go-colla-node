@@ -84,12 +84,6 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 			}
 			reflect.SetValue(old, "ClientId", clientId)
 		} else if namespace == ns.DataBlock_Prefix || namespace == ns.DataBlock_Owner_Prefix {
-			txSequenceId, err := reflect.GetValue(entity, "TxSequenceId")
-			if err != nil || txSequenceId == 0 {
-				logger.Sugar.Errorf("NoTxSequenceId")
-				return errors.New("NoTxSequenceId")
-			}
-			reflect.SetValue(old, "TxSequenceId", txSequenceId)
 			sliceNumber, err := reflect.GetValue(entity, "SliceNumber")
 			if err != nil || sliceNumber == 0 {
 				logger.Sugar.Errorf("NoSliceNumber")
@@ -109,12 +103,6 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				return errors.New("NoBlockId")
 			}
 			reflect.SetValue(old, "BlockId", blockId)
-			txSequenceId, err := reflect.GetValue(entity, "TxSequenceId")
-			if err != nil || txSequenceId == 0 {
-				logger.Sugar.Errorf("NoTxSequenceId")
-				return errors.New("NoTxSequenceId")
-			}
-			reflect.SetValue(old, "TxSequenceId", txSequenceId)
 			sliceNumber, err := reflect.GetValue(entity, "SliceNumber")
 			if err != nil || sliceNumber == 0 {
 				logger.Sugar.Errorf("NoSliceNumber")
@@ -194,14 +182,13 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 							peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
 							peerTransaction.TargetPeerType = dhtentity.PeerType_PeerEndpoint
 							peerTransaction.BlockId = obsolete.BlockId
-							//peerTransaction.TxSequenceId = obsolete.TxSequenceId
 							peerTransaction.SliceNumber = obsolete.SliceNumber
 							peerTransaction.BusinessNumber = obsolete.BusinessNumber
 							peerTransaction.TransactionTime = &currentTime
 							peerTransaction.CreateTimestamp = obsolete.CreateTimestamp
 							peerTransaction.Amount = obsolete.TransactionAmount
 							peerTransaction.TransactionType = dhtentity.TransactionType_DataBlock_Delete
-							err = service1.PutPTs(&peerTransaction)
+							err = service1.GetPeerTransactionService().PutPTs(&peerTransaction)
 							if err != nil {
 								return err
 							}
@@ -262,7 +249,6 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 					if p.SliceSize < oldp.SliceSize {
 						condition, _ := req.Service.NewEntity(nil)
 						reflect.SetValue(condition, req.Keyname, keyvalue)
-						//reflect.SetValue(condition, "TxSequenceId", p.TxSequenceId)
 						results, _ := req.Service.NewEntities(nil)
 						req.Service.Find(results, condition, "", 0, 0, "")
 						if len(*results.(*[]*chainentity.DataBlock)) > 0 {
@@ -281,14 +267,13 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 								peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
 								peerTransaction.TargetPeerType = dhtentity.PeerType_PeerEndpoint
 								peerTransaction.BlockId = obsolete.BlockId
-								//peerTransaction.TxSequenceId = obsolete.TxSequenceId
 								peerTransaction.SliceNumber = obsolete.SliceNumber
 								peerTransaction.BusinessNumber = obsolete.BusinessNumber
 								peerTransaction.TransactionTime = &currentTime
 								peerTransaction.CreateTimestamp = obsolete.CreateTimestamp
 								peerTransaction.Amount = obsolete.TransactionAmount
 								peerTransaction.TransactionType = dhtentity.TransactionType_DataBlock_Delete
-								err = service1.PutPTs(&peerTransaction)
+								err = service1.GetPeerTransactionService().PutPTs(&peerTransaction)
 								if err != nil {
 									return err
 								}
@@ -374,14 +359,13 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 					peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
 					peerTransaction.TargetPeerType = dhtentity.PeerType_PeerEndpoint
 					peerTransaction.BlockId = p.BlockId
-					//peerTransaction.TxSequenceId = p.TxSequenceId
 					peerTransaction.SliceNumber = p.SliceNumber
 					peerTransaction.BusinessNumber = p.BusinessNumber
 					peerTransaction.TransactionTime = &currentTime
 					peerTransaction.CreateTimestamp = p.CreateTimestamp
 					peerTransaction.Amount = p.TransactionAmount
 					peerTransaction.TransactionType = dhtentity.TransactionType_DataBlock
-					err = service1.PutPTs(&peerTransaction)
+					err = service1.GetPeerTransactionService().PutPTs(&peerTransaction)
 					if err != nil {
 						return err
 					}
