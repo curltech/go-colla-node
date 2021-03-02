@@ -37,7 +37,6 @@ require (
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
 	github.com/jbenet/goprocess v0.1.4
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
-	github.com/kataras/iris/v12 v12.2.0-alpha.0.20201113181155-4d09475c290d
 	github.com/libp2p/go-libp2p v0.13.0
 	github.com/libp2p/go-libp2p-autonat v0.4.0
 	github.com/libp2p/go-libp2p-circuit v0.4.0
@@ -55,7 +54,6 @@ require (
 	github.com/libp2p/go-libp2p-record v0.1.3
 	github.com/libp2p/go-libp2p-secio v0.2.2
 	github.com/libp2p/go-libp2p-tls v0.1.3
-	github.com/libp2p/go-libp2p-webrtc-direct v0.0.0-20200106194403-0a5a6f156e02
 	github.com/libp2p/go-sockaddr v0.1.0 // indirect
 	github.com/libp2p/go-ws-transport v0.4.0
 	github.com/multiformats/go-base32 v0.0.3
@@ -67,14 +65,11 @@ require (
 	github.com/pion/ion-sdk-go v0.1.4
 	github.com/pion/ion-sfu v1.7.7
 	github.com/pion/logging v0.2.2
-	github.com/pion/quic v0.1.4 // indirect
 	github.com/pion/rtcp v1.2.6
 	github.com/pion/rtp v1.6.2
 	github.com/pion/sdp/v2 v2.4.0
-	github.com/pion/srtp v1.5.2 // indirect
 	github.com/pion/stun v0.3.5
 	github.com/pion/turn/v2 v2.0.5
-	github.com/pion/webrtc/v2 v2.2.26
 	github.com/pion/webrtc/v3 v3.0.3
 	github.com/valyala/fasthttp v1.16.0
 	github.com/vulcand/oxy v1.1.0

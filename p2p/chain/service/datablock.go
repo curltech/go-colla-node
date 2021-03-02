@@ -13,7 +13,6 @@ import (
 	"github.com/curltech/go-colla-node/p2p/chain/entity"
 	entity2 "github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/msg"
-	"github.com/kataras/golog"
 	"time"
 )
 
@@ -94,19 +93,19 @@ func (this *DataBlockService) GetLocalDBs(keyKind string, createPeerId string, b
 		}
 		key = ns.GetDataBlockKey(blockId)
 	} else {
-		golog.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
+		logger.Sugar.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
 		return nil, errors.New("InvalidDataBlockKeyKind")
 	}
 	rec, err := dht.PeerEndpointDHT.GetLocal(key)
 	if err != nil {
-		golog.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
+		logger.Sugar.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
 		return nil, err
 	}
 	if rec != nil {
 		dataBlocks := make([]*entity.DataBlock, 0)
 		err = message.Unmarshal(rec.GetValue(), &dataBlocks)
 		if err != nil {
-			golog.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
+			logger.Sugar.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
 			return nil, err
 		}
 		dbs := make([]*entity.DataBlock, 0)
@@ -167,7 +166,7 @@ func (this *DataBlockService) PutDB(dataBlock *entity.DataBlock, keyKind string)
 	} else if keyKind == ns.DataBlock_Owner_KeyKind {
 		key = ns.GetDataBlockOwnerKey(dataBlock.PeerId)
 	} else {
-		golog.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
+		logger.Sugar.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
 		return errors.New("InvalidDataBlockKeyKind")
 	}
 

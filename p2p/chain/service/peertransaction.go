@@ -1,14 +1,14 @@
 package service
 
 import (
+	"errors"
 	"github.com/curltech/go-colla-core/container"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/service"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/chain/entity"
-	"github.com/kataras/golog"
-	"errors"
 )
 
 /**
@@ -67,19 +67,19 @@ func (this *PeerTransactionService) GetLocalPTs(keyKind string, srcPeerId string
 		}
 		key = ns.GetPeerTransactionTargetKey(targetPeerId)
 	} else {
-		golog.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
+		logger.Sugar.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
 		return nil, errors.New("InvalidPeerTransactionKeyKind")
 	}
 	rec, err := dht.PeerEndpointDHT.GetLocal(key)
 	if err != nil {
-		golog.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
+		logger.Sugar.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
 		return nil, err
 	}
 	if rec != nil {
 		peerTransactions := make([]*entity.PeerTransaction, 0)
 		err = message.Unmarshal(rec.GetValue(), &peerTransactions)
 		if err != nil {
-			golog.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
+			logger.Sugar.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
 			return nil, err
 		}
 		pts := make([]*entity.PeerTransaction, 0)
@@ -127,7 +127,7 @@ func (this *PeerTransactionService) PutPT(peerTransaction *entity.PeerTransactio
 	} else if keyKind == ns.PeerTransaction_Target_KeyKind {
 		key = ns.GetPeerTransactionTargetKey(peerTransaction.TargetPeerId)
 	} else {
-		golog.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
+		logger.Sugar.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
 		return errors.New("InvalidPeerTransactionKeyKind")
 	}
 

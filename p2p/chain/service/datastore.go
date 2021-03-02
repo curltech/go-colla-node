@@ -1,13 +1,7 @@
 package service
 
 import (
-	"errors"
-	"github.com/curltech/go-colla-core/logger"
-	"github.com/curltech/go-colla-core/util/message"
-	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/global"
-	"github.com/curltech/go-colla-node/libp2p/ns"
-	entity2 "github.com/curltech/go-colla-node/p2p/chain/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	msg1 "github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
