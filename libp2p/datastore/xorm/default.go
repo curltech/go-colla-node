@@ -313,8 +313,8 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 						return err
 					}
 				}*/
-				// PeerTransaction（聊天附件ExpireDate不为0，不需要保存PeerTransaction，这样queryValue也就不会查出）
-				if p.ExpireDate == 0 {
+				// PeerTransaction（BlockType_ChatAttach不需要保存PeerTransaction）
+				if p.BlockType != chainentity.BlockType_ChatAttach {
 					peerTransaction := chainentity.PeerTransaction{}
 					peerTransaction.SrcPeerId = p.PeerId
 					peerTransaction.SrcPeerType = dhtentity.PeerType_PeerClient
