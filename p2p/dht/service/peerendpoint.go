@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/container"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/service"
@@ -9,9 +10,9 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"math/rand"
 	"sync"
 	"time"
-	"math/rand"
 )
 
 /**
@@ -161,7 +162,8 @@ func (this *PeerEndpointService) PutValue(peerEndpoint *entity.PeerEndpoint) err
 	return err
 }
 
-func (this *PeerEndpointService) GetRand(limit int) []*entity.PeerEndpoint {
+func (this *PeerEndpointService) GetRand(seed int64) []*entity.PeerEndpoint {
+	limit := config.ConsensusParams.PeerNum
 	peerEndpoints := make([]*entity.PeerEndpoint, 0)
 	peerEndpoint := &entity.PeerEndpoint{}
 	//peerEndpoint.Status = entity2.EntityStatus_Effective
@@ -169,7 +171,7 @@ func (this *PeerEndpointService) GetRand(limit int) []*entity.PeerEndpoint {
 	count := int(this.Count(peerEndpoint, ""))
 	from := 0
 	if count > limit {
-		rand.Seed(time.Now().UnixNano())
+		rand.Seed(seed)
 		from = rand.Intn(count - limit)
 	}
 	err := this.Find(&peerEndpoints, peerEndpoint, "", from, limit, "")
