@@ -71,6 +71,8 @@ func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			}
 		}
 	} else if config.Libp2pParams.FaultTolerantLevel == 1 {
+		
+	} else if config.Libp2pParams.FaultTolerantLevel == 2 {
 		// 查询删除local记录
 		var locals []*entity.PeerClient
 		var err error
