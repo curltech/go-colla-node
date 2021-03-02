@@ -10,7 +10,6 @@ import (
 	"github.com/curltech/go-colla-core/logger"
 	session2 "github.com/curltech/go-colla-core/session"
 	"github.com/gorilla/websocket"
-	"github.com/kataras/iris/v12/sessions"
 	"net"
 	"net/http"
 	"sync"
@@ -36,11 +35,6 @@ type Connection struct {
 }
 
 var connectionPool sync.Map
-
-var (
-	cookieNameForSessionID = "irissessionid"
-	irisSessions           = sessions.New(sessions.Config{Cookie: cookieNameForSessionID})
-)
 
 func init() {
 	mode := config.ServerWebsocketParams.Mode
