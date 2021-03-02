@@ -29,6 +29,7 @@ const DataBlock_Owner_KeyKind = "PeerId"
 
 const PeerTransaction_Src_KeyKind = "SrcPeerId"
 const PeerTransaction_Target_KeyKind = "TargetPeerId"
+const PeerTransaction_BlockId_KeyKind = "BlockId"
 
 const TransactionKey_BlockId_KeyName = "BlockId"
 const TransactionKey_PeerId_KeyName = "PeerId"
