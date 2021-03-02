@@ -13,6 +13,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/chain/entity"
 	entity2 "github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/msg"
+	"github.com/kataras/golog"
 	"time"
 )
 
@@ -93,19 +94,19 @@ func (this *DataBlockService) GetLocalDBs(keyKind string, createPeerId string, b
 		}
 		key = ns.GetDataBlockKey(blockId)
 	} else {
-		logger.Sugar.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
+		golog.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
 		return nil, errors.New("InvalidDataBlockKeyKind")
 	}
 	rec, err := dht.PeerEndpointDHT.GetLocal(key)
 	if err != nil {
-		logger.Sugar.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
+		golog.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
 		return nil, err
 	}
 	if rec != nil {
 		dataBlocks := make([]*entity.DataBlock, 0)
 		err = message.Unmarshal(rec.GetValue(), &dataBlocks)
 		if err != nil {
-			logger.Sugar.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
+			golog.Errorf("failed to Unmarshal record value with key: %v, err: %v", key, err)
 			return nil, err
 		}
 		dbs := make([]*entity.DataBlock, 0)
@@ -166,7 +167,7 @@ func (this *DataBlockService) PutDB(dataBlock *entity.DataBlock, keyKind string)
 	} else if keyKind == ns.DataBlock_Owner_KeyKind {
 		key = ns.GetDataBlockOwnerKey(dataBlock.PeerId)
 	} else {
-		logger.Sugar.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
+		golog.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
 		return errors.New("InvalidDataBlockKeyKind")
 	}
 
@@ -221,7 +222,7 @@ func (this *DataBlockService) Store(db *entity.DataBlock) error {
 				tkCondition.BlockId = blockId
 				GetTransactionKeyService().Delete(tkCondition, "")
 				// 删除PeerTransaction
-				for i := uint64(0); i < oldDb.SliceSize; i++ {
+				for i := uint64(1); i <= oldDb.SliceSize; i++ {
 					peerTransaction := entity.PeerTransaction{}
 					peerTransaction.SrcPeerId = db.PeerId
 					peerTransaction.TargetPeerId = myselfPeerId
@@ -253,9 +254,9 @@ func (this *DataBlockService) Store(db *entity.DataBlock) error {
 			if db.SliceSize < oldDb.SliceSize {
 				dbCondition := &entity.DataBlock{}
 				dbCondition.BlockId = blockId
-				this.Delete(dbCondition, "SliceNumber >= ?", db.SliceSize)
+				this.Delete(dbCondition, "SliceNumber > ?", db.SliceSize)
 				// 删除PeerTransaction
-				for i := db.SliceSize; i < oldDb.SliceSize; i++ {
+				for i := db.SliceSize + 1; i <= oldDb.SliceSize; i++ {
 					peerTransaction := entity.PeerTransaction{}
 					peerTransaction.SrcPeerId = db.PeerId
 					peerTransaction.TargetPeerId = myselfPeerId
@@ -347,6 +348,25 @@ func (this *DataBlockService) Store(db *entity.DataBlock) error {
 	} else {
 		logger.Sugar.Errorf("BlockId: %v, upsert DataBlock fail", blockId)
 		return errors.New(fmt.Sprintf("BlockId: %v, upsert DataBlock fail", blockId))
+	}
+
+	return nil
+}
+
+func (this *DataBlockService) Query(dataBlocks *[]*entity.DataBlock, condition *entity.DataBlock) error {
+	this.Find(dataBlocks, condition, "", 0, 0, "")
+	if len(*dataBlocks) > 0 {
+		for _, dataBlock := range *dataBlocks {
+			if dataBlock.SliceNumber == 1 {
+				condition := &entity.TransactionKey{}
+				condition.BlockId = dataBlock.BlockId
+				transactionKeys := make([]*entity.TransactionKey, 0)
+				GetTransactionKeyService().Find(&transactionKeys, condition, "", 0, 0, "")
+				if len(transactionKeys) > 0 {
+					dataBlock.TransactionKeys = transactionKeys
+				}
+			}
+		}
 	}
 
 	return nil
