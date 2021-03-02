@@ -371,11 +371,15 @@ func (this *XormDatastore) Get(key datastore.Key) (value []byte, err error) {
 			return nil, datastore.ErrNotFound
 		}
 		for _, entity := range *entities.(*[]*chainentity.DataBlock) {
-			condition := &chainentity.TransactionKey{}
-			condition.BlockId = entity.BlockId
-			transactionKeys := make([]*chainentity.TransactionKey, 0)
-			service1.GetTransactionKeyService().Find(&transactionKeys, condition, "", 0, 0, "")
-			entity.TransactionKeys = transactionKeys
+			if entity.SliceNumber == 1 {
+				condition := &chainentity.TransactionKey{}
+				condition.BlockId = entity.BlockId
+				transactionKeys := make([]*chainentity.TransactionKey, 0)
+				service1.GetTransactionKeyService().Find(&transactionKeys, condition, "", 0, 0, "")
+				if len(transactionKeys) > 0 {
+					entity.TransactionKeys = transactionKeys
+				}
+			}
 		}
 	} else if namespace == ns.PeerTransaction_Src_Prefix || namespace == ns.PeerTransaction_Target_Prefix {
 		if len(*entities.(*[]*chainentity.PeerTransaction)) == 0 {
