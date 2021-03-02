@@ -168,7 +168,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 						condition2.BlockId = p.BlockId
 						req2.Service.Delete(condition2, "")
 						// 删除PeerTransaction
-						for i := uint64(0); i < oldp.SliceSize; i++ {
+						for i := uint64(1); i <= oldp.SliceSize; i++ {
 							peerTransaction := chainentity.PeerTransaction{}
 							peerTransaction.SrcPeerId = p.PeerId
 							peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
@@ -236,9 +236,9 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 					if p.SliceSize < oldp.SliceSize {
 						condition := &chainentity.DataBlock{}
 						condition.BlockId = p.BlockId
-						req.Service.Delete(condition, "SliceNumber >= ?", p.SliceSize)
+						req.Service.Delete(condition, "SliceNumber > ?", p.SliceSize)
 						// 删除PeerTransaction
-						for i := p.SliceSize; i < oldp.SliceSize; i++ {
+						for i := p.SliceSize + 1; i <= oldp.SliceSize; i++ {
 							peerTransaction := chainentity.PeerTransaction{}
 							peerTransaction.SrcPeerId = p.PeerId
 							peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
