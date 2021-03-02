@@ -82,6 +82,8 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 			}
 		}
 	} else if config.Libp2pParams.FaultTolerantLevel == 1 {
+		
+	} else if config.Libp2pParams.FaultTolerantLevel == 2 {
 		// 查询删除local历史记录
 		locals, err := service.GetPeerClientService().GetLocals(ns.PeerClient_KeyKind, peerId, "", "")
 		if err != nil {
