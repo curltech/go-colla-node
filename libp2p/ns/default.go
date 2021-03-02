@@ -261,7 +261,7 @@ func (v DataBlockValidator) Select(key string, vals [][]byte) (int, error) {
 		return 1, err
 	}
 	for _, existingEntity := range existingEntities {
-		if existingEntity.BlockId == currentEntity.BlockId /* && existingEntity.TxSequenceId == currentEntity.TxSequenceId*/ &&
+		if existingEntity.BlockId == currentEntity.BlockId &&
 			existingEntity.SliceNumber == currentEntity.SliceNumber && currentEntity.CreateTimestamp <= existingEntity.CreateTimestamp {
 			return 1, nil
 		}
