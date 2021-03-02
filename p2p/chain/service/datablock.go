@@ -81,7 +81,7 @@ func (this *DataBlockService) ValidateDB(messagePayload *msg.MessagePayload) err
 	return nil
 }
 
-func (this *DataBlockService) GetLocalDBs(keyKind string, createPeerId string, blockId string, receiverPeerId string, txSequenceId uint64, sliceNumber uint64) ([]*entity.DataBlock, error) {
+func (this *DataBlockService) GetLocalDBs(keyKind string, createPeerId string, blockId string, receiverPeerId string, sliceNumber uint64) ([]*entity.DataBlock, error) {
 	var key string
 	if keyKind == ns.DataBlock_Owner_KeyKind {
 		if len(createPeerId) == 0 {
@@ -194,6 +194,7 @@ func (this *DataBlockService) Store(db *entity.DataBlock) error {
 		logger.Sugar.Errorf("NoTransactionKeys")
 		return errors.New("NoTransactionKeys")
 	}
+	myselfPeerId := global.Global.MyselfPeer.PeerId
 	currentTime := time.Now()
 	oldDb := &entity.DataBlock{}
 	oldDb.BlockId = blockId
@@ -203,37 +204,30 @@ func (this *DataBlockService) Store(db *entity.DataBlock) error {
 		db.Id = oldDb.Id
 		// 校验Owner
 		if oldDb.PeerId != db.PeerId {
-			return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldPeerId: %v", db.BlockId, db.PeerId, oldDb.PeerId))
+			return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldPeerId: %v", blockId, db.PeerId, oldDb.PeerId))
+		}
+		// 检查时间戳
+		if oldDb.SliceNumber == db.SliceNumber && db.CreateTimestamp <= oldDb.CreateTimestamp {
+			return errors.New("can't replace a newer value with an older value")
 		}
 		// 负载为空表示删除
 		if len(db.TransportPayload) == 0 {
 			// 只针对第一个分片处理一次
 			if db.SliceNumber == 1 {
 				dbCondition := &entity.DataBlock{}
-				dbCondition.BlockId = db.BlockId
-				dbObsoletes := make([]*entity.DataBlock, 0)
-				this.Find(&dbObsoletes, dbCondition, "", 0, 0, "")
-				this.Delete(dbObsoletes, "")
+				dbCondition.BlockId = blockId
+				this.Delete(dbCondition, "")
 				// 删除TransactionKeys
-				for _, transactionKey := range transactionKeys {
-					tkCondition := &entity.TransactionKey{}
-					tkCondition.BlockId = transactionKey.BlockId
-					tkCondition.PeerId = transactionKey.PeerId
-					GetTransactionKeyService().Delete(tkCondition, "")
-				}
+				tkCondition := &entity.TransactionKey{}
+				tkCondition.BlockId = blockId
+				GetTransactionKeyService().Delete(tkCondition, "")
 				// 删除PeerTransaction
-				for _, dbObsolete := range dbObsoletes {
+				for i := uint64(0); i < oldDb.SliceSize; i++ {
 					peerTransaction := entity.PeerTransaction{}
-					peerTransaction.SrcPeerId = dbObsolete.PeerId
-					peerTransaction.SrcPeerType = entity2.PeerType_PeerClient
-					peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
-					peerTransaction.TargetPeerType = entity2.PeerType_PeerEndpoint
-					peerTransaction.BlockId = dbObsolete.BlockId
-					peerTransaction.SliceNumber = dbObsolete.SliceNumber
-					peerTransaction.BusinessNumber = dbObsolete.BusinessNumber
-					peerTransaction.TransactionTime = &currentTime
-					peerTransaction.CreateTimestamp = dbObsolete.CreateTimestamp
-					peerTransaction.Amount = dbObsolete.TransactionAmount
+					peerTransaction.SrcPeerId = db.PeerId
+					peerTransaction.TargetPeerId = myselfPeerId
+					peerTransaction.BlockId = blockId
+					peerTransaction.SliceNumber = i
 					peerTransaction.TransactionType = entity2.TransactionType_DataBlock_Delete
 					err := GetPeerTransactionService().PutPTs(&peerTransaction)
 					if err != nil {
@@ -259,28 +253,19 @@ func (this *DataBlockService) Store(db *entity.DataBlock) error {
 			// 删除多余废弃分片
 			if db.SliceSize < oldDb.SliceSize {
 				dbCondition := &entity.DataBlock{}
-				dbCondition.BlockId = db.BlockId
-				dbObsoletes := make([]*entity.DataBlock, 0)
-				this.Find(dbObsoletes, dbCondition, "", 0, 0, "SliceNumber > ?", db.SliceSize)
-				if len(dbObsoletes) > 0 {
-					// 删除PeerTransaction
-					for _, obsolete := range dbObsoletes {
-						peerTransaction := entity.PeerTransaction{}
-						peerTransaction.SrcPeerId = obsolete.PeerId
-						peerTransaction.SrcPeerType = entity2.PeerType_PeerClient
-						peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
-						peerTransaction.TargetPeerType = entity2.PeerType_PeerEndpoint
-						peerTransaction.BlockId = obsolete.BlockId
-						peerTransaction.SliceNumber = obsolete.SliceNumber
-						peerTransaction.BusinessNumber = obsolete.BusinessNumber
-						peerTransaction.TransactionTime = &currentTime
-						peerTransaction.CreateTimestamp = obsolete.CreateTimestamp
-						peerTransaction.Amount = obsolete.TransactionAmount
-						peerTransaction.TransactionType = entity2.TransactionType_DataBlock_Delete
-						err := GetPeerTransactionService().PutPTs(&peerTransaction)
-						if err != nil {
-							return err
-						}
+				dbCondition.BlockId = blockId
+				this.Delete(dbCondition, "SliceNumber >= ?", db.SliceSize)
+				// 删除PeerTransaction
+				for i := db.SliceSize; i < oldDb.SliceSize; i++ {
+					peerTransaction := entity.PeerTransaction{}
+					peerTransaction.SrcPeerId = db.PeerId
+					peerTransaction.TargetPeerId = myselfPeerId
+					peerTransaction.BlockId = blockId
+					peerTransaction.SliceNumber = i
+					peerTransaction.TransactionType = entity2.TransactionType_DataBlock_Delete
+					err := GetPeerTransactionService().PutPTs(&peerTransaction)
+					if err != nil {
+						return err
 					}
 				}
 			}
@@ -317,7 +302,7 @@ func (this *DataBlockService) Store(db *entity.DataBlock) error {
 		}
 		// 更新交易金额
 		// MyselfPeer
-		/*global.Global.MyselfPeer.BlockId = db.BlockId
+		/*global.Global.MyselfPeer.BlockId = blockId
 		global.Global.MyselfPeer.LastTransactionTime = &currentTime
 		global.Global.MyselfPeer.Balance = global.Global.MyselfPeer.Balance + db.TransactionAmount
 		affected := service.GetMyselfPeerService().Update([]interface{}{global.Global.MyselfPeer}, nil, "")
@@ -333,7 +318,7 @@ func (this *DataBlockService) Store(db *entity.DataBlock) error {
 		}
 		for _, pc := range pcs {
 			pc.LastAccessTime = &currentTime
-			pc.BlockId = db.BlockId
+			pc.BlockId = blockId
 			pc.LastTransactionTime = &currentTime
 			pc.Balance = pc.Balance - db.TransactionAmount
 			err := service1.PutPCs(pc)
@@ -346,9 +331,9 @@ func (this *DataBlockService) Store(db *entity.DataBlock) error {
 			peerTransaction := entity.PeerTransaction{}
 			peerTransaction.SrcPeerId = db.PeerId
 			peerTransaction.SrcPeerType = entity2.PeerType_PeerClient
-			peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
+			peerTransaction.TargetPeerId = myselfPeerId
 			peerTransaction.TargetPeerType = entity2.PeerType_PeerEndpoint
-			peerTransaction.BlockId = db.BlockId
+			peerTransaction.BlockId = blockId
 			peerTransaction.SliceNumber = db.SliceNumber
 			peerTransaction.BusinessNumber = db.BusinessNumber
 			peerTransaction.TransactionTime = &currentTime
