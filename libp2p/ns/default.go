@@ -29,6 +29,7 @@ const DataBlock_Owner_KeyKind = "PeerId"
 
 const PeerTransaction_Src_KeyKind = "SrcPeerId"
 const PeerTransaction_Target_KeyKind = "TargetPeerId"
+const PeerTransaction_BlockId_KeyKind = "BlockId"
 
 const TransactionKey_BlockId_KeyName = "BlockId"
 const TransactionKey_PeerId_KeyName = "PeerId"
@@ -261,7 +262,7 @@ func (v DataBlockValidator) Select(key string, vals [][]byte) (int, error) {
 		return 1, err
 	}
 	for _, existingEntity := range existingEntities {
-		if existingEntity.BlockId == currentEntity.BlockId /* && existingEntity.TxSequenceId == currentEntity.TxSequenceId*/ &&
+		if existingEntity.BlockId == currentEntity.BlockId &&
 			existingEntity.SliceNumber == currentEntity.SliceNumber && currentEntity.CreateTimestamp <= existingEntity.CreateTimestamp {
 			return 1, nil
 		}

@@ -21,7 +21,6 @@ type PeerTransaction struct {
 	TargetPeerBeginBalance float64    `json:"targetPeerBeginBalance,omitempty"`
 	TargetPeerEndBalance   float64    `json:"targetPeerEndBalance,omitempty"`
 	BusinessNumber         string     `xorm:"varchar(255)" json:"businessNumber,omitempty"`
-	TxSequenceId           uint64
 	SliceNumber            uint64
 	CreateTimestamp        uint64 `json:"createTimestamp,omitempty"`
 }

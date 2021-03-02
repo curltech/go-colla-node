@@ -441,7 +441,7 @@ func (this *PbftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg
 			 * 数据块记录有效
 			 */
 			var dataBlock *entity.DataBlock
-			//dataBlock = service2.GetDataBlockService().GetCachedDataBlock(blockId, txSequenceId, sliceNumber)
+			//dataBlock = service2.GetDataBlockService().GetCachedDataBlock(blockId, sliceNumber)
 			if dataBlock != nil {
 				status := dataBlock.Status
 				if entity2.EntityStatus_Effective != status {
