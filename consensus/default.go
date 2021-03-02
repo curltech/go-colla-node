@@ -65,7 +65,7 @@ func (this *Consensus) ChooseConsensusPeer(dataBlock *entity.DataBlock) []string
 		return nil
 	}
 	peerIds := make([]string, 0)
-	seed := int64(dataBlock.CreateTimestamp + dataBlock.SliceNumber)
+	seed := int64(dataBlock.CreateTimestamp)
 	peerEndpoints := service.GetPeerEndpointService().GetRand(seed)
 	for _, consensusPeer := range peerEndpoints {
 		peerIds = append(peerIds, consensusPeer.PeerId)
