@@ -19,7 +19,6 @@ const DataBlock_Prefix = "dataBlock"
 const DataBlock_Owner_Prefix = "dataBlockOwner"
 const PeerTransaction_Src_Prefix = "peerTransactionSrc"
 const PeerTransaction_Target_Prefix = "peerTransactionTarget"
-const PeerTransaction_BlockId_Prefix = "peerTransactionBlockId"
 const TransactionKey_Prefix = "transactionKey"
 
 const PeerClient_KeyKind = "PeerId"
@@ -30,7 +29,6 @@ const DataBlock_Owner_KeyKind = "PeerId"
 
 const PeerTransaction_Src_KeyKind = "SrcPeerId"
 const PeerTransaction_Target_KeyKind = "TargetPeerId"
-const PeerTransaction_BlockId_KeyKind = "BlockId"
 
 const TransactionKey_BlockId_KeyName = "BlockId"
 const TransactionKey_PeerId_KeyName = "PeerId"
@@ -86,12 +84,6 @@ func GetPeerTransactionSrcKey(id string) string {
 
 func GetPeerTransactionTargetKey(id string) string {
 	key := fmt.Sprintf("/%v/%v", PeerTransaction_Target_Prefix, id)
-
-	return key
-}
-
-func GetPeerTransactionBlockIdKey(id string) string {
-	key := fmt.Sprintf("/%v/%v", PeerTransaction_BlockId_Prefix, id)
 
 	return key
 }
@@ -289,8 +281,8 @@ func (v PeerTransactionValidator) Validate(key string, value []byte) error {
 	if err != nil {
 		return err
 	}
-	if ns != PeerTransaction_Src_Prefix && ns != PeerTransaction_Target_Prefix && ns != PeerTransaction_BlockId_Prefix {
-		return errors.New("namespace neither '" + PeerTransaction_Src_Prefix + "' nor '" + PeerTransaction_Target_Prefix + "' nor '" + PeerTransaction_BlockId_Prefix + "'")
+	if ns != PeerTransaction_Src_Prefix && ns != PeerTransaction_Target_Prefix {
+		return errors.New("namespace neither '" + PeerTransaction_Src_Prefix + "' nor '" + PeerTransaction_Target_Prefix + "'")
 	}
 
 	return nil
