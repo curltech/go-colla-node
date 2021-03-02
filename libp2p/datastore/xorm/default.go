@@ -159,14 +159,9 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 						condition.BlockId = p.BlockId
 						req.Service.Delete(condition, "")
 						// 删除TransactionKeys
-						req2, err := handler.NewPrefixRequest(ns.TransactionKey_Prefix)
-						if err != nil {
-							logger.Sugar.Errorf("TransactionKeys-NewPrefixRequest-Failed")
-							return errors.New("TransactionKeys-NewPrefixRequest-Failed")
-						}
 						condition2 := &chainentity.TransactionKey{}
 						condition2.BlockId = p.BlockId
-						req2.Service.Delete(condition2, "")
+						service1.GetTransactionKeyService().Delete(condition2, "")
 						// 删除PeerTransaction
 						for i := uint64(1); i <= oldp.SliceSize; i++ {
 							peerTransaction := chainentity.PeerTransaction{}
@@ -252,11 +247,6 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 						}
 					}
 					// 保存TransactionKeys
-					req2, err := handler.NewPrefixRequest(ns.TransactionKey_Prefix)
-					if err != nil {
-						logger.Sugar.Errorf("TransactionKeys-NewPrefixRequest-Failed")
-						return errors.New("TransactionKeys-NewPrefixRequest-Failed")
-					}
 					for _, tk := range p.TransactionKeys {
 						tkBlockId := tk.BlockId
 						if tkBlockId != p.BlockId {
@@ -271,14 +261,14 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 						oldTk := &chainentity.TransactionKey{}
 						oldTk.BlockId = tkBlockId
 						oldTk.PeerId = tkPeerId
-						tkFound := req2.Service.Get(oldTk, false, "", "")
+						tkFound := service1.GetTransactionKeyService().Get(oldTk, false, "", "")
 						if tkFound {
 							tk.Id = oldTk.Id
 						} else {
 							tk.Id = uint64(0)
 						}
 
-						tkAffected := req2.Service.Upsert(tk)
+						tkAffected := service1.GetTransactionKeyService().Upsert(tk)
 						if tkAffected > 0 {
 							logger.Sugar.Infof("BlockId: %v, PeerId: %v, upsert TransactionKey successfully", tkBlockId, tkPeerId)
 						} else {
@@ -380,17 +370,12 @@ func (this *XormDatastore) Get(key datastore.Key) (value []byte, err error) {
 		if len(*entities.(*[]*chainentity.DataBlock)) == 0 {
 			return nil, datastore.ErrNotFound
 		}
-		req2, err := handler.NewPrefixRequest(ns.TransactionKey_Prefix)
-		if err != nil {
-			logger.Sugar.Errorf("TransactionKeys-NewPrefixRequest-Failed")
-			return nil, errors.New("TransactionKeys-NewPrefixRequest-Failed")
-		}
 		for _, entity := range *entities.(*[]*chainentity.DataBlock) {
-			condition, _ := req2.Service.NewEntity(nil)
-			reflect.SetValue(condition, ns.TransactionKey_BlockId_KeyName, entity.BlockId)
-			transactionKeys, _ := req2.Service.NewEntities(nil)
-			req2.Service.Find(transactionKeys, condition, "", 0, 0, "")
-			entity.TransactionKeys = *transactionKeys.(*[]*chainentity.TransactionKey)
+			condition := &chainentity.TransactionKey{}
+			condition.BlockId = entity.BlockId
+			transactionKeys := make([]*chainentity.TransactionKey, 0)
+			service1.GetTransactionKeyService().Find(&transactionKeys, condition, "", 0, 0, "")
+			entity.TransactionKeys = transactionKeys
 		}
 	} else if namespace == ns.PeerTransaction_Src_Prefix || namespace == ns.PeerTransaction_Target_Prefix {
 		if len(*entities.(*[]*chainentity.PeerTransaction)) == 0 {
