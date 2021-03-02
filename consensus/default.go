@@ -60,12 +60,13 @@ func (this *Consensus) NearestConsensusPeer(key string) []string {
 /**
 主节点挑选副节点
 */
-func (this *Consensus) ChooseConsensusPeer() []string {
+func (this *Consensus) ChooseConsensusPeer(dataBlock *entity.DataBlock) []string {
 	if config.ConsensusParams.PeerNum == 0 {
 		return nil
 	}
 	peerIds := make([]string, 0)
-	peerEndpoints := service.GetPeerEndpointService().GetRand(config.ConsensusParams.PeerNum)
+	seed := int64(dataBlock.CreateTimestamp + dataBlock.SliceNumber)
+	peerEndpoints := service.GetPeerEndpointService().GetRand(seed)
 	for _, consensusPeer := range peerEndpoints {
 		peerIds = append(peerIds, consensusPeer.PeerId)
 	}
