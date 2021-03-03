@@ -66,7 +66,7 @@ func (this *RaftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*ms
 	key = this.GetDataBlockCacheKey(dataBlock.BlockId, dataBlock.SliceNumber)
 	MemCache.SetDefault(key, dataBlock)
 
-	peerIds := this.ChooseConsensusPeer()
+	peerIds := this.ChooseConsensusPeer(dataBlock)
 	if peerIds != nil && len(peerIds) > 2 {
 		log.PeerIds = strings.Join(peerIds, ",")
 		/**
