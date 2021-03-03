@@ -67,7 +67,9 @@ func (this *Consensus) NearestConsensusPeer(key string) []string {
 	}
 	peerIds := make([]string, 0)
 	id := kb.ConvertKey(key)
-	ids := dht.PeerEndpointDHT.RoutingTable.NearestPeers(id, config.ConsensusParams.PeerRange)
+	//ids := dht.PeerEndpointDHT.RoutingTable.NearestPeers(id, config.ConsensusParams.PeerRange)
+	bucketSize, _ := config.GetInt("p2p.dht.bucketSize", 20)
+	ids := dht.PeerEndpointDHT.RoutingTable.NearestPeers(id, bucketSize)
 	if len(ids) > 0 {
 		for _, id := range ids {
 			peerIds = append(peerIds, id.Pretty())
