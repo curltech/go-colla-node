@@ -8,6 +8,9 @@ import (
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 )
 
+/**
+订阅主题和订阅者
+*/
 type PubsubTopic struct {
 	Topic *pubsub.Topic
 	Sub   *pubsub.Subscription
@@ -19,6 +22,7 @@ var PubsubTopicPool = make(map[string]*PubsubTopic, 0)
 
 /**
 加入主题，可以向这个主题发消息
+如果主题不存在，创建新的
 */
 func joinTopic(topicname string) (*PubsubTopic, error) {
 	// create a new PubSub service using the GossipSub router
@@ -29,10 +33,13 @@ func joinTopic(topicname string) (*PubsubTopic, error) {
 		if err != nil {
 			return nil, err
 		}
-		pubsubTopic := &PubsubTopic{}
+		pubsubTopic = &PubsubTopic{}
 		PubsubTopicPool[topicname] = pubsubTopic
 	}
-
+	if pubsubTopic.Topic != nil {
+		pubsubTopic.Topic.Close()
+		pubsubTopic.Topic = nil
+	}
 	topic, err := Pubsub.Join(topicname, nil)
 	if err != nil {
 		return nil, err

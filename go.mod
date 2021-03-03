@@ -3,7 +3,6 @@ module github.com/curltech/go-colla-node
 go 1.15
 
 require (
-	github.com/Joker/hpp v1.0.0 // indirect
 	github.com/ProtonMail/gopenpgp/v2 v2.0.1
 	github.com/at-wat/ebml-go v0.11.0
 	github.com/curltech/go-colla-core v0.0.7
@@ -14,7 +13,6 @@ require (
 	github.com/emersion/go-message v0.14.1
 	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21
 	github.com/emersion/go-smtp v0.14.0
-	github.com/flosch/pongo2/v4 v4.0.2 // indirect
 	github.com/foxcpp/maddy v0.4.3
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/uuid v1.1.2
@@ -36,7 +34,7 @@ require (
 	github.com/ipfs/go-log/v2 v2.1.2-0.20200626104915-0016c0b4b3e4 // indirect
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
 	github.com/jbenet/goprocess v0.1.4
-	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
+	github.com/kataras/golog v0.1.7
 	github.com/libp2p/go-libp2p v0.13.0
 	github.com/libp2p/go-libp2p-autonat v0.4.0
 	github.com/libp2p/go-libp2p-circuit v0.4.0
@@ -74,9 +72,7 @@ require (
 	github.com/valyala/fasthttp v1.16.0
 	github.com/vulcand/oxy v1.1.0
 	github.com/whyrusleeping/cbor-gen v0.0.0-20200826160007-0b9f6c5fb163 // indirect
-	github.com/yudai/pp v2.0.1+incompatible // indirect
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
-	golang.org/x/exp v0.0.0-20200513190911-00229845015e
 	golang.org/x/image v0.0.0-20200927104501-e162460cd6b5
 )
 

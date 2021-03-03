@@ -22,19 +22,18 @@ type WebsocketMessage struct {
 }
 
 type Connection struct {
-	session   *session2.Session
-	wsConnect *websocket.Conn
+	Session   *session2.Session
+	WsConnect *websocket.Conn
 	inChan    chan *WebsocketMessage
 	outChan   chan *WebsocketMessage
 	closeChan chan byte
 
 	mutex    sync.Mutex // 对closeChan关闭上锁
 	isClosed bool       // 防止closeChan被关闭多次
-
-	handler func(data []byte) ([]byte, error)
 }
 
 var connectionPool sync.Map
+var messageHandler func(data []byte, conn *Connection) ([]byte, error) = defaultMessageHandle
 
 func init() {
 	mode := config.ServerWebsocketParams.Mode
@@ -48,12 +47,18 @@ func Start() {
 	var listenAddr = config.ServerWebsocketParams.Address
 	http.HandleFunc(websocketPath, websocketHandler)
 	tlsmode := config.TlsParams.Mode
+	var err error
 	if tlsmode == "cert" {
 		cert := config.TlsParams.Cert
 		key := config.TlsParams.Key
-		http.ListenAndServeTLS(listenAddr, cert, key, nil)
+		err = http.ListenAndServeTLS(listenAddr, cert, key, nil)
 	} else {
-		_ = http.ListenAndServe(listenAddr, nil)
+		err = http.ListenAndServe(listenAddr, nil)
+	}
+	if err != nil {
+		logger.Sugar.Errorf("Start websocket server fail:%v", err.Error())
+	} else {
+		logger.Sugar.Infof("Start standalone websocket server successfully %v %v", listenAddr, websocketPath)
 	}
 }
 
@@ -85,8 +90,8 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	session := sessionManager.Start(w, r)
 	var chanBufferSize, _ = config.GetInt("websocket.chanBufferSize", 1024)
 	connection := &Connection{
-		session:   session,
-		wsConnect: conn,
+		Session:   session,
+		WsConnect: conn,
 		inChan:    make(chan *WebsocketMessage, chanBufferSize),
 		outChan:   make(chan *WebsocketMessage, chanBufferSize),
 		closeChan: make(chan byte, 1),
@@ -103,6 +108,9 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+/**
+主动发回信息
+*/
 func SendRaw(sessionId string, data []byte) error {
 	conn, ok := connectionPool.Load(sessionId)
 	if !ok {
@@ -121,27 +129,39 @@ func SendRaw(sessionId string, data []byte) error {
 }
 
 /**
-注册读取数据的处理器，receiver.HandleChainMessage是合适的选择
+注册读取原生数据的处理器，receiver.HandleChainMessage是选择之一
 */
-func (conn *Connection) Regist(handler func(data []byte) ([]byte, error)) {
-	conn.handler = handler
+func Regist(handler func(data []byte, conn *Connection) ([]byte, error)) {
+	messageHandler = handler
 }
 
-func (conn *Connection) Read() (msg *WebsocketMessage, err error) {
+/**
+读取原生数据的处理器处理handler
+*/
+func defaultMessageHandle(data []byte, conn *Connection) ([]byte, error) {
+	remoteAddr := conn.WsConnect.RemoteAddr()
+	sessId := conn.Session.SessionID()
+	logger.Sugar.Infof("receive remote addr:%v,sessionId:%v data", sessId, remoteAddr.String())
+
+	return nil, nil
+}
+
+func (conn *Connection) read() (msg *WebsocketMessage, err error) {
 	select {
 	case msg = <-conn.inChan:
+		if messageHandler != nil {
+			response, err := messageHandler(msg.data, conn)
+			if err != nil {
+				return nil, err
+			}
+			if response != nil {
+				conn.Write(2, response)
+			}
+		}
 	case <-conn.closeChan:
 		err = errors.New("connection is closeed")
 	}
-	if conn.handler != nil {
-		response, err := conn.handler(msg.data)
-		if err != nil {
-			return nil, err
-		}
-		if response != nil {
-			conn.Write(2, response)
-		}
-	}
+
 	return
 }
 
@@ -156,7 +176,7 @@ func (conn *Connection) Write(messageType int, data []byte) (err error) {
 
 func (conn *Connection) Close() {
 	// 线程安全，可多次调用
-	conn.wsConnect.Close()
+	conn.WsConnect.Close()
 	// 利用标记，让closeChan只关闭一次
 	conn.mutex.Lock()
 	defer conn.mutex.Unlock()
@@ -164,7 +184,7 @@ func (conn *Connection) Close() {
 		close(conn.closeChan)
 		conn.isClosed = true
 	}
-	connectionPool.Delete(conn.session.SessionID())
+	connectionPool.Delete(conn.Session.SessionID())
 }
 
 // 内部实现
@@ -176,18 +196,18 @@ func (conn *Connection) loopRead() {
 	)
 	var readTimeout, _ = config.GetInt("websocket.readTimeout", 5000)
 	for {
-		conn.wsConnect.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(readTimeout)))
-		messageType, data, err = conn.wsConnect.ReadMessage()
+		conn.WsConnect.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(readTimeout)))
+		messageType, data, err = conn.WsConnect.ReadMessage()
 		if err != nil {
 			// 判断是不是超时
 			if netErr, ok := err.(net.Error); ok {
 				if netErr.Timeout() {
-					logger.Sugar.Errorf("ReadMessage timeout remote: %v\n", conn.wsConnect.RemoteAddr())
+					logger.Sugar.Errorf("ReadMessage timeout remote: %v\n", conn.WsConnect.RemoteAddr())
 				}
 			}
 			// 其他错误，如果是 1001 和 1000 就不打印日志
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
-				logger.Sugar.Errorf("ReadMessage other remote:%v error: %v \n", conn.wsConnect.RemoteAddr(), err)
+				logger.Sugar.Errorf("ReadMessage other remote:%v error: %v \n", conn.WsConnect.RemoteAddr(), err)
 			}
 			conn.Close()
 		} else {
@@ -197,6 +217,7 @@ func (conn *Connection) loopRead() {
 				messageType: messageType,
 				data:        data,
 			}:
+				conn.read()
 			case <-conn.closeChan: // closeChan 感知 conn断开
 				conn.Close()
 			}
@@ -216,7 +237,7 @@ func (conn *Connection) loopWrite() {
 		case <-conn.closeChan:
 			conn.Close()
 		}
-		if err = conn.wsConnect.WriteMessage(msg.messageType, msg.data); err != nil {
+		if err = conn.WsConnect.WriteMessage(msg.messageType, msg.data); err != nil {
 			conn.Close()
 		}
 	}
