@@ -14,7 +14,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/msg"
 	kb "github.com/libp2p/go-libp2p-kbucket"
 	"github.com/patrickmn/go-cache"
-	"golang.org/x/exp/rand"
+	"math/rand"
 	"time"
 	"unsafe"
 )
@@ -39,6 +39,25 @@ func (this *Consensus) GetDataBlockCacheKey(blockId string, sliceNumber uint64) 
 	return key
 }
 
+//origin为原数组，count为随机取出的个数，最终返回一个count容量的目标数组
+func randomSlice(origin []string, count int) []string {
+	tmpOrigin := make([]string, len(origin))
+	copy(tmpOrigin, origin)
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(tmpOrigin), func(i int, j int) {
+		tmpOrigin[i], tmpOrigin[j] = tmpOrigin[j], tmpOrigin[i]
+	})
+
+	result := make([]string, 0, count)
+	for index, value := range tmpOrigin {
+		if index == count{
+			break
+		}
+		result = append(result, value)
+	}
+	return result
+}
+
 /**
 获取最近的peer集合
 */
@@ -49,12 +68,16 @@ func (this *Consensus) NearestConsensusPeer(key string) []string {
 	peerIds := make([]string, 0)
 	id := kb.ConvertKey(key)
 	ids := dht.PeerEndpointDHT.RoutingTable.NearestPeers(id, config.ConsensusParams.PeerRange)
-	for i := 0; i < config.ConsensusParams.PeerNum; i++ {
-		r := rand.Intn(len(ids))
-		peerIds = append(peerIds, ids[r].Pretty())
+	if len(ids) > 0 {
+		for _, id := range ids {
+			peerIds = append(peerIds, id.Pretty())
+		}
 	}
-
-	return peerIds
+	if len(ids) > config.ConsensusParams.PeerNum {
+		return randomSlice(peerIds, config.ConsensusParams.PeerNum)
+	} else {
+		return peerIds
+	}
 }
 
 /**
