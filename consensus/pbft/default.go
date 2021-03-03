@@ -82,10 +82,11 @@ func (this *PbftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*ms
 	/**
 	 * 交易校验通过，主节点进入预准备状态，记录日志
 	 */
-	log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PBFT_PREPREPARED)
+	this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PBFT_PREPREPARED)
+	//log := this.CreateConsensusLog(chainMessage, dataBlock, myselfPeer, msgtype.CONSENSUS_PBFT_PREPREPARED)
 	//service2.GetConsensusLogService().Insert(log)
 
-	peerIds := this.ChooseConsensusPeer()
+	peerIds := this.ChooseConsensusPeer(dataBlock)
 	if peerIds != nil && len(peerIds) > 2 {
 		dataBlock.PeerIds = strings.Join(peerIds, ",")
 		/**
