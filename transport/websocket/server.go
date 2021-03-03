@@ -48,6 +48,7 @@ func Start() {
 	http.HandleFunc(websocketPath, websocketHandler)
 	tlsmode := config.TlsParams.Mode
 	var err error
+	logger.Sugar.Infof("Start standalone websocket server %v %v", listenAddr, websocketPath)
 	if tlsmode == "cert" {
 		cert := config.TlsParams.Cert
 		key := config.TlsParams.Key
@@ -57,8 +58,6 @@ func Start() {
 	}
 	if err != nil {
 		logger.Sugar.Errorf("Start websocket server fail:%v", err.Error())
-	} else {
-		logger.Sugar.Infof("Start standalone websocket server successfully %v %v", listenAddr, websocketPath)
 	}
 }
 
