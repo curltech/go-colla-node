@@ -40,10 +40,10 @@ func (this *Consensus) GetDataBlockCacheKey(blockId string, sliceNumber uint64) 
 }
 
 //origin为原数组，count为随机取出的个数，最终返回一个count容量的目标数组
-func randomSlice(origin []string, count int) []string {
+func randomSlice(origin []string, count int, seed int64) []string {
 	tmpOrigin := make([]string, len(origin))
 	copy(tmpOrigin, origin)
-	rand.Seed(time.Now().UnixNano())
+	rand.Seed(seed)
 	rand.Shuffle(len(tmpOrigin), func(i int, j int) {
 		tmpOrigin[i], tmpOrigin[j] = tmpOrigin[j], tmpOrigin[i]
 	})
@@ -61,7 +61,7 @@ func randomSlice(origin []string, count int) []string {
 /**
 获取最近的peer集合
 */
-func (this *Consensus) NearestConsensusPeer(key string) []string {
+func (this *Consensus) NearestConsensusPeer(key string, createTimestamp uint64) []string {
 	if config.ConsensusParams.PeerNum == 0 {
 		return nil
 	}
@@ -76,7 +76,7 @@ func (this *Consensus) NearestConsensusPeer(key string) []string {
 		}
 	}
 	if len(ids) > config.ConsensusParams.PeerNum {
-		return randomSlice(peerIds, config.ConsensusParams.PeerNum)
+		return randomSlice(peerIds, config.ConsensusParams.PeerNum, int64(createTimestamp))
 	} else {
 		return peerIds
 	}
