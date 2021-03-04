@@ -12,7 +12,7 @@ type PeerTransaction struct {
 	SrcPeerType            string     `xorm:"varchar(255)" json:"srcPeerType,omitempty"`
 	TargetPeerId           string     `xorm:"varchar(255)" json:"targetPeerId,omitempty"`
 	TargetPeerType         string     `xorm:"varchar(255)" json:"targetPeerType,omitempty"`
-	BlockId                string     `xorm:"varchar(255)" json:"blockId,omitempty"`
+	BlockId                string     `xorm:"varchar(255) notnull" json:"blockId,omitempty"`
 	Amount                 float64    `json:"amount,omitempty"`
 	Currency               string     `xorm:"varchar(32)" json:"currency,omitempty"`
 	TransactionTime        *time.Time `json:"transactionTime,omitempty"`
@@ -21,8 +21,8 @@ type PeerTransaction struct {
 	TargetPeerBeginBalance float64    `json:"targetPeerBeginBalance,omitempty"`
 	TargetPeerEndBalance   float64    `json:"targetPeerEndBalance,omitempty"`
 	BusinessNumber         string     `xorm:"varchar(255)" json:"businessNumber,omitempty"`
-	SliceNumber            uint64
-	CreateTimestamp        uint64 `json:"createTimestamp,omitempty"`
+	SliceNumber            uint64	  `xorm:"notnull" json:"sliceNumber"`
+	CreateTimestamp        uint64     `json:"createTimestamp,omitempty"`
 }
 
 func (PeerTransaction) TableName() string {
