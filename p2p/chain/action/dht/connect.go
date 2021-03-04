@@ -10,6 +10,7 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/ns"
+	handler2 "github.com/curltech/go-colla-node/libp2p/pipe/handler"
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
@@ -184,7 +185,11 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 					chat["srcPeerId"] = peerClient.PeerId
 					chat["srcClientType"] = peerClient.ClientType
 					chat["createDate"] = &currentTime
-					go ChatAction.Chat("", chat, pc.PeerId, pc.ConnectSessionId)
+					var connectSessionId string = ""
+					if handler2.GetPeerId(pc.ConnectPeerId) == global.Global.MyselfPeer.PeerId {
+						connectSessionId = pc.ConnectSessionId
+					}
+					go ChatAction.Chat("", chat, pc.PeerId, connectSessionId)
 				}
 			}
 		}
