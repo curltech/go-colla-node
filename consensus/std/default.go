@@ -64,7 +64,7 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 		var peerIds []string
 		if config.ConsensusParams.StdMinPeerNum > 0 {
 			//peerIds = this.ChooseConsensusPeer(dataBlock)
-			peerIds = this.NearestConsensusPeer(dataBlock.BlockId)
+			peerIds = this.NearestConsensusPeer(dataBlock.BlockId, dataBlock.CreateTimestamp)
 		}
 		if peerIds != nil && len(peerIds) > 0 {
 			/**
