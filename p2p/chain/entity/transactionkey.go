@@ -4,8 +4,8 @@ import "github.com/curltech/go-colla-core/entity"
 
 type TransactionKey struct {
 	entity.BaseEntity `xorm:"extends"`
-	BlockId           string `xorm:"varchar(255)" json:"blockId,omitempty"`
-	PeerId            string `xorm:"varchar(255)" json:"peerId,omitempty"`
+	BlockId           string `xorm:"varchar(255) notnull" json:"blockId,omitempty"`
+	PeerId            string `xorm:"varchar(255) notnull" json:"peerId,omitempty"`
 	/**
 	 * 经过目标peer的公钥加密过的对称秘钥，这个对称秘钥是随机生成，每次不同，用于加密payload
 	 */
