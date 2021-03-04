@@ -194,6 +194,10 @@ func (conn *Connection) loopRead() {
 	)
 	var _, _ = config.GetInt("websocket.readTimeout", 0)
 	for {
+		if conn.isClosed {
+			logger.Sugar.Errorf("websocket connection:%v is closed!", conn.Session.SessionID())
+			return
+		}
 		//conn.WsConnect.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(readTimeout)))
 		conn.WsConnect.SetReadDeadline(time.Time{})
 		messageType, data, err = conn.WsConnect.ReadMessage()
@@ -231,7 +235,10 @@ func (conn *Connection) loopWrite() {
 		msg *WebsocketMessage
 		err error
 	)
-
+	if conn.isClosed {
+		logger.Sugar.Errorf("websocket connection:%v is closed!", conn.Session.SessionID())
+		return
+	}
 	for {
 		select {
 		case msg = <-conn.outChan:
@@ -251,6 +258,10 @@ func (conn *Connection) loopWrite() {
 // 发送存活心跳
 func (conn *Connection) loopHeartbeat() {
 	var heartbeatInterval = config.ServerWebsocketParams.HeartbeatInteval
+	if conn.isClosed {
+		logger.Sugar.Errorf("websocket connection:%v is closed!", conn.Session.SessionID())
+		return
+	}
 	for {
 		time.Sleep(time.Duration(heartbeatInterval) * time.Second)
 		if err := conn.Write(websocket.BinaryMessage, []byte("heartbeat from server")); err != nil {
