@@ -67,7 +67,7 @@ type ChainMessage struct {
 	/**
 	 * 不跨网络传输，是transportPayload检验过后还原的对象，传输时通过转换成transportPayload传输
 	 */
-	Payload interface{} `json:"-,omitempty"`
+	Payload interface{} `json:"-"`
 	Tip     string      `json:",omitempty"`
 	/**
 	 * 负载json的源peer的签名
