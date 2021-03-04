@@ -186,7 +186,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 					chat["srcClientType"] = peerClient.ClientType
 					chat["createDate"] = &currentTime
 					var connectSessionId string = ""
-					if handler2.GetPeerId(pc.ConnectPeerId) == global.Global.MyselfPeer.PeerId {
+					if global.IsMyself(pc.ConnectPeerId) {
 						connectSessionId = pc.ConnectSessionId
 					}
 					go ChatAction.Chat("", chat, pc.PeerId, connectSessionId)
