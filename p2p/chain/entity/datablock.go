@@ -14,7 +14,7 @@ const (
 
 type DataBlock struct {
 	//entity.StatusEntity `xorm:"extends"`
-	Id         uint64     `xorm:"pk" json:"-,omitempty"`
+	Id         uint64     `xorm:"pk" json:"-"`
 	CreateDate *time.Time `xorm:"created" json:"createDate,omitempty"`
 	UpdateDate *time.Time `xorm:"updated" json:"updateDate,omitempty"`
 	EntityId   string     `xorm:"-" json:"entityId,omitempty"`
