@@ -64,7 +64,7 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 		var peerIds []string
 		if config.ConsensusParams.StdMinPeerNum > 0 {
 			//peerIds = this.ChooseConsensusPeer(dataBlock)
-			peerIds = this.NearestConsensusPeer(dataBlock.BlockId)
+			peerIds = this.NearestConsensusPeer(dataBlock.BlockId, 0)
 		}
 		if peerIds != nil && len(peerIds) > 0 {
 			/**
@@ -214,7 +214,7 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 		}
 		logger.Sugar.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_REPLY, count)
 		// 收到足够的数目
-		if count == config.ConsensusParams.StdMinPeerNum + 1 {
+		if count == config.ConsensusParams.StdMinPeerNum+1 {
 			// 保存dataBlock
 			dataBlock.Status = entity2.EntityStatus_Effective
 			service2.GetDataBlockService().Store(dataBlock)

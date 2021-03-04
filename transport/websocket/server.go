@@ -5,7 +5,6 @@ package websocket
 */
 import (
 	"errors"
-	"fmt"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/logger"
 	session2 "github.com/curltech/go-colla-core/session"
@@ -68,13 +67,13 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 		ReadBufferSize:  readBufferSize,
 		WriteBufferSize: writeBufferSize,
 		CheckOrigin: func(r *http.Request) bool {
-			if r.Method != "POST" {
-				fmt.Println("method is not GET")
+			if r.Method != "POST" && r.Method != "GET" {
+				logger.Sugar.Errorf("method is not POST or GET")
 				return false
 			}
 			var websocketPath = config.ServerWebsocketParams.Path
 			if r.URL.Path != websocketPath {
-				fmt.Println("path error")
+				logger.Sugar.Errorf("path error")
 				return false
 			}
 			return true
@@ -82,7 +81,7 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	conn, err := upgrade.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Println("websocket error:", err)
+		logger.Sugar.Errorf("websocket error:", err)
 		return
 	}
 	sessionManager := session2.GetDefault()
@@ -96,7 +95,7 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 		closeChan: make(chan byte, 1),
 	}
 	sessionId := session.SessionID()
-	connectionPool.Store(sessionId, conn)
+	connectionPool.Store(sessionId, connection)
 	// 启动读协程
 	go connection.loopRead()
 	// 启动写协程
@@ -140,7 +139,7 @@ func Regist(handler func(data []byte, conn *Connection) ([]byte, error)) {
 func defaultMessageHandle(data []byte, conn *Connection) ([]byte, error) {
 	remoteAddr := conn.WsConnect.RemoteAddr()
 	sessId := conn.Session.SessionID()
-	logger.Sugar.Infof("receive remote addr:%v,sessionId:%v data", sessId, remoteAddr.String())
+	logger.Sugar.Infof("receive remote addr:%v,sessionId:%v data:%v", remoteAddr.String(), sessId, string(data))
 
 	return nil, nil
 }
@@ -193,9 +192,10 @@ func (conn *Connection) loopRead() {
 		data        []byte
 		err         error
 	)
-	var readTimeout, _ = config.GetInt("websocket.readTimeout", 5000)
+	var _, _ = config.GetInt("websocket.readTimeout", 0)
 	for {
-		conn.WsConnect.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(readTimeout)))
+		//conn.WsConnect.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(readTimeout)))
+		conn.WsConnect.SetReadDeadline(time.Time{})
 		messageType, data, err = conn.WsConnect.ReadMessage()
 		if err != nil {
 			// 判断是不是超时
@@ -209,6 +209,7 @@ func (conn *Connection) loopRead() {
 				logger.Sugar.Errorf("ReadMessage other remote:%v error: %v \n", conn.WsConnect.RemoteAddr(), err)
 			}
 			conn.Close()
+			return
 		} else {
 			//阻塞在这里，等待inChan有空闲位置
 			select {
@@ -219,6 +220,7 @@ func (conn *Connection) loopRead() {
 				conn.read()
 			case <-conn.closeChan: // closeChan 感知 conn断开
 				conn.Close()
+				return
 			}
 		}
 	}
@@ -235,9 +237,13 @@ func (conn *Connection) loopWrite() {
 		case msg = <-conn.outChan:
 		case <-conn.closeChan:
 			conn.Close()
+			return
 		}
-		if err = conn.WsConnect.WriteMessage(msg.messageType, msg.data); err != nil {
-			conn.Close()
+		if msg != nil {
+			if err = conn.WsConnect.WriteMessage(msg.messageType, msg.data); err != nil {
+				conn.Close()
+				return
+			}
 		}
 	}
 }
