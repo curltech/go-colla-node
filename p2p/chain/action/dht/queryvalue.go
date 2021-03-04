@@ -147,7 +147,7 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			}
 		}
 		//limit := conditionBean["limit"].(uint64)
-		//service1.GetDataBlockService().Query(&dataBlocks, blockId, sliceNumber)
+		//service1.GetDataBlockService().QueryValue(&dataBlocks, blockId, sliceNumber)
 		key := ns.GetDataBlockKey(blockId)
 		if config.Libp2pParams.FaultTolerantLevel == 0 {
 			recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)

@@ -178,7 +178,7 @@ func (this *DataBlockService) PutDB(dataBlock *entity.DataBlock, keyKind string)
 	return dht.PeerEndpointDHT.PutValue(key, byteDataBlock)
 }
 
-func (this *DataBlockService) Store(db *entity.DataBlock) error {
+func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 	if db == nil {
 		logger.Sugar.Errorf("NoDataBlock")
 		return errors.New("NoDataBlock")
@@ -357,7 +357,7 @@ func (this *DataBlockService) Store(db *entity.DataBlock) error {
 	return nil
 }
 
-func (this *DataBlockService) Query(dataBlocks *[]*entity.DataBlock, blockId string, sliceNumber uint64) error {
+func (this *DataBlockService) QueryValue(dataBlocks *[]*entity.DataBlock, blockId string, sliceNumber uint64) error {
 	condition := &entity.DataBlock{}
 	condition.BlockId = blockId
 	condition.SliceNumber = sliceNumber
