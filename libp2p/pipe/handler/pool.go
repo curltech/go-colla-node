@@ -67,9 +67,9 @@ func (this *PipePool) GetResponsePipe(peerId string, connectSessionId string) *p
 主动发送消息获取管道，如果流不存在，创建一个
 */
 func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pipe {
-	this.lock.Lock()
+	/*this.lock.Lock()
 	defer this.lock.Unlock()
-	/*reqKey := GetPeerId(peerId) + ":" + protocolId
+	reqKey := GetPeerId(peerId) + ":" + protocolId
 	logger.Sugar.Infof("GetRequestPipe-reqKey: %v", reqKey)
 	p, ok := this.requestPool[reqKey]
 	if ok {
@@ -119,7 +119,7 @@ func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pip
 			if conn != nil {
 				peerId := conn.RemotePeer().Pretty()
 				logger.Sugar.Infof("GetRequestPipe-remote peer: %v %v, steamId: %v", peerId, conn.ID(), stream.ID())
-				key := peerId + ":" + conn.ID()
+				/*key := peerId + ":" + conn.ID()
 				logger.Sugar.Infof("GetRequestPipe-key: %v", key)
 				oldConn, ok := this.connectionPool[key]
 				if ok {
@@ -131,7 +131,7 @@ func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pip
 				} else {
 					logger.Sugar.Infof("----------GetRequestPipe-newConn: %v", key)
 					this.connectionPool[key] = conn
-				}
+				}*/
 			}
 			/*this.requestPool[reqKey] = p*/
 			return p
@@ -195,6 +195,7 @@ func (this *PipePool) Close(peerId string, protocolId string, connectSessionId s
 			delete(this.responsePool, key)
 		}
 	}
+
 	/*reqKey := peerId + ":" + protocolId
 	logger.Sugar.Infof("Close-reqKey: %v", reqKey)
 	p, ok = this.requestPool[reqKey]
