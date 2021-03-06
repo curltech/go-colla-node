@@ -12,7 +12,6 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/chain/entity"
 	entity2 "github.com/curltech/go-colla-node/p2p/dht/entity"
-	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/kataras/golog"
 	"time"
 )
@@ -60,25 +59,6 @@ func (this *DataBlockService) NewEntities(data []byte) (interface{}, error) {
 	}
 
 	return &entities, err
-}
-
-func (this *DataBlockService) ValidateDB(messagePayload *msg.MessagePayload) error {
-	dataBlock := messagePayload.Payload.(*entity.DataBlock)
-	if dataBlock == nil {
-		return errors.New("NullDataBlock")
-	}
-	srcPeer := messagePayload.SrcPeer.(*entity2.PeerClient)
-	srcPeerId := srcPeer.PeerId
-	createPeerId := dataBlock.PeerId
-	if createPeerId != srcPeerId {
-		return errors.New("CreatePeerIdAndSrcPeerIdAreDifferent")
-	}
-	srcPublicKey := srcPeer.PublicKey
-	createPublicKey := dataBlock.PublicKey
-	if createPublicKey != srcPublicKey {
-		return errors.New("CreatePublicKeyAndSrcPublicKeyAreDifferent")
-	}
-	return nil
 }
 
 func (this *DataBlockService) GetLocalDBs(keyKind string, createPeerId string, blockId string, receiverPeerId string, sliceNumber uint64) ([]*entity.DataBlock, error) {
