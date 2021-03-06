@@ -3,7 +3,6 @@ package msg
 import (
 	"github.com/curltech/go-colla-core/crypto"
 	"github.com/curltech/go-colla-core/util/message"
-	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 	"time"
 )
@@ -104,120 +103,5 @@ func Receive(chainMessage *ChainMessage) {
 }
 
 func Send(chainMessage *ChainMessage) {
-
-}
-
-////////////////////
-
-/**
-与peerclient通信使用原chainmessage消息格式
-*/
-type PCChainMessage struct {
-	/**
-	 * 双方的公钥不能被加密传输，因为需要根据公钥决定配对的是哪一个版本的私钥
-	 *
-	 * 对方的公钥有可能不存在，这时候数据没有加密，对称密钥也不存在
-	 *
-	 * 自己的公钥始终存在，因此签名始终可以验证
-	 */
-	SrcPublicKey    string `json:"srcPublicKey,omitempty"`
-	TargetPublicKey string `json:"targetPublicKey,omitempty"`
-	/**
-	 * 消息负载的寄送格式，经过加密，签名，压缩，base64处理后的字符串
-	 */
-	TransportMessagePayload string `json:"transportMessagePayload,omitempty"`
-	NeedCompress            string `json:"needCompress,omitempty"`
-	NeedEncrypt             bool   `json:"needEncrypt,omitempty"`
-	/**
-	 * 负载json的源peer的签名
-	 */
-	PayloadSignature string `json:"payloadSignature,omitempty"`
-	/**
-	 * 经过目标peer的公钥加密过的对称秘钥，这个对称秘钥是随机生成，每次不同，用于加密payload
-	 */
-	PayloadKey            string                  `json:"payloadKey,omitempty"`
-	SecurityContextString string                  `json:"securityContext,omitempty"`
-	SecurityContext       *crypto.SecurityContext `json:"-,omitempty"`
-	/**
-	 * 不跨网络传输，是transportPayload检验过后还原的对象，传输时通过转换成transportPayload传输
-	 */
-	MessagePayload *MessagePayload `json:"-,omitempty"`
-}
-
-type MessagePayload struct {
-	UUID string `json:"uuid,omitempty"`
-	/**
-	以下三个字段方便对消息处理时寻找目的节点，topic是发送给主题的，TargetPeerId是发送给目标peer的
-	*/
-	//Topic         string            `json:",omitempty"`
-	TargetPeerId  string `json:"targetPeerId,omitempty"`
-	TargetAddress string `json:"targetAddress,omitempty"`
-	////TargetPeerType peertype.PeerType `json:",omitempty"`
-	//ConnectionId  string            `json:",omitempty"`
-	MessageType msgtype.MsgType `json:"messageType,omitempty"`
-	//MessageDirect msgtype.MsgDirect `json:",omitempty"`
-	/**
-	 * 经过目标peer的公钥加密过的对称秘钥，这个对称秘钥是随机生成，每次不同，用于加密payload
-	 */
-	//PayloadKey      string                  `json:",omitempty"`
-	//NeedCompress    bool                    `json:",omitempty"`
-	//NeedEncrypt     bool                    `json:",omitempty"`
-	//SecurityContext *crypto.SecurityContext `json:",omitempty"`
-	/**
-	 * 消息负载序列化后的寄送格式，再经过客户端自己的加密方式比如openpgp（更安全）加密，签名，压缩，base64处理后的字符串
-	 */
-	TransportPayload string `json:"transportPayload,omitempty"`
-	/**
-	 * 不跨网络传输，是transportPayload检验过后还原的对象，传输时通过转换成transportPayload传输
-	 */
-	Payload interface{} `json:"-,omitempty"`
-	//Tip     string      `json:",omitempty"`
-	/**
-	 * 负载json的源peer的签名
-	 */
-	//PayloadSignature string `json:",omitempty"`
-	/**
-	 * 根据此字段来把TransportPayload对应的字节还原成Payload的对象，最简单的就是字符串
-	 * 也可以是一个复杂的结构，但是dht的数据结构（peerendpoint），通用网络块存储（datablock）一般不用这种方式操作
-	 * 而采用getvalue和putvalue的方式操作
-	 */
-	//PayloadType     string     `json:",omitempty"`
-	PayloadClass string `json:"payloadClass,omitempty"`
-	////PeerKeyType
-	////payloadClass
-	CreateTimestamp *time.Time `json:"createTimestamp,omitempty"`
-	////SrcPeerType peertype.PeerType json:",omitempty"`
-	SrcPeer interface{} `json:"srcPeer,omitempty"`
-}
-
-type WebsocketChainMessage struct {
-	MessageType      string                  `json:"messageType,omitempty"`
-	MessageSubType   string                  `json:"messageSubType,omitempty"`
-	SrcPeerClient    *entity.PeerClient      `json:"srcPeerClient,omitempty"`
-	TargetPeerClient *entity.PeerClient      `json:"targetPeerClient,omitempty"`
-	Payload          *map[string]interface{} `json:"payload,omitempty"`
-}
-
-func (this *PCChainMessage) Marshal() ([]byte, error) {
-	return message.Marshal(this)
-}
-
-func (this *PCChainMessage) Unmarshal(data []byte) {
-	message.Unmarshal(data, this)
-}
-
-func (this *PCChainMessage) TextMarshal() (string, error) {
-	return message.TextMarshal(this)
-}
-
-func (this *PCChainMessage) TextUnmarshal(data string) {
-	message.TextUnmarshal(data, this)
-}
-
-func ReceivePC(chainMessage *PCChainMessage) {
-
-}
-
-func SendPC(chainMessage *PCChainMessage) {
 
 }
