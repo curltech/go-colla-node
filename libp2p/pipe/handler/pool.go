@@ -37,10 +37,10 @@ func (this *PipePool) GetResponsePipe(peerId string, connectSessionId string) *p
 	defer this.lock.Unlock()
 	key := peerId + ":" + connectSessionId
 	logger.Sugar.Infof("GetResponsePipe-key: %v", key)
-	/*p, ok := this.responsePool[key]
+	p, ok := this.responsePool[key]
 	if ok {
 		return p
-	} else {*/
+	} else {
 		conn, ok := this.connectionPool[key]
 		if ok {
 			stream, err := conn.NewStream(context.Background())
@@ -55,11 +55,11 @@ func (this *PipePool) GetResponsePipe(peerId string, connectSessionId string) *p
 				return nil
 			}
 			if p != nil {
-				/*this.responsePool[key] = p*/
+				this.responsePool[key] = p
 				return p
 			}
 		}
-	/*}*/
+	}
 	return nil
 }
 
@@ -167,12 +167,12 @@ func (this *PipePool) CreatePipe(stream network.Stream, direct string) *pipe.Pip
 				logger.Sugar.Infof("----------CreatePipe-newConn: %v", key)
 				this.connectionPool[key] = conn
 			}
-			/*_, ok = this.responsePool[key]
+			_, ok = this.responsePool[key]
 			if !ok {
 				this.responsePool[key] = p
 			}
 
-			reqKey := peerId + ":" + string(p.GetStream().Protocol())
+			/*reqKey := peerId + ":" + string(p.GetStream().Protocol())
 			logger.Sugar.Infof("CreatePipe-reqKey: %v", reqKey)
 			_, ok = this.requestPool[reqKey]
 			if !ok {
@@ -185,7 +185,7 @@ func (this *PipePool) CreatePipe(stream network.Stream, direct string) *pipe.Pip
 }
 
 func (this *PipePool) Close(peerId string, protocolId string, connectSessionId string, streamId string) {
-	/*this.lock.Lock()
+	this.lock.Lock()
 	defer this.lock.Unlock()
 	key := peerId + ":" + connectSessionId
 	logger.Sugar.Infof("Close-key: %v", key)
@@ -195,7 +195,7 @@ func (this *PipePool) Close(peerId string, protocolId string, connectSessionId s
 			delete(this.responsePool, key)
 		}
 	}
-	reqKey := peerId + ":" + protocolId
+	/*reqKey := peerId + ":" + protocolId
 	logger.Sugar.Infof("Close-reqKey: %v", reqKey)
 	p, ok = this.requestPool[reqKey]
 	if ok {
