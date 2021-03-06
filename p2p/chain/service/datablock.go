@@ -191,7 +191,7 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 			return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldPeerId: %v", blockId, db.PeerId, oldDb.PeerId))
 		}
 		// 检查时间戳
-		if oldDb.SliceNumber == db.SliceNumber && db.CreateTimestamp <= oldDb.CreateTimestamp {
+		if db.CreateTimestamp <= oldDb.CreateTimestamp {
 			return errors.New("can't replace a newer value with an older value")
 		}
 		// 负载为空表示删除
