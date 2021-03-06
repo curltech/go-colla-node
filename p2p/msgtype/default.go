@@ -30,8 +30,6 @@ const (
 	PEERENDPOINT = "PEERENDPOINT"
 	// PeerClient连接
 	CONNECT = "CONNECT"
-	// PeerClient断开连接
-	DISCONNECT = "DISCONNECT"
 	// DataBlock查找
 	QUERYVALUE = "QUERYVALUE"
 	// PeerTrans查找
