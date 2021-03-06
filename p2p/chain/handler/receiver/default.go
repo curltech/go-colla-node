@@ -54,33 +54,3 @@ responseProcess:
 
 	return nil, nil
 }
-
-////////////////////
-
-/**
-p2p的chain协议处理handler，将原始数据还原成PCChainMessage，然后根据消息类型进行分支处理
-*/
-func HandlePCChainMessage(data []byte) ([]byte, error) {
-	chainMessage := &msg1.PCChainMessage{}
-	err := message.Unmarshal(data, chainMessage)
-	if err != nil {
-		return nil, err
-	}
-	response, err := service.ReceivePC(chainMessage)
-	if err != nil {
-		return nil, err
-	}
-	if response != nil {
-		response, err = handler.EncryptPC(response)
-		if err != nil {
-			return nil, err
-		}
-		data, err = message.Marshal(response)
-		if err != nil {
-			return nil, err
-		}
-		return data, nil
-	}
-
-	return nil, nil
-}
