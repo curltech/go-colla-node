@@ -37,10 +37,10 @@ func (this *PipePool) GetResponsePipe(peerId string, connectSessionId string) *p
 	defer this.lock.Unlock()
 	key := peerId + ":" + connectSessionId
 	logger.Sugar.Infof("GetResponsePipe-key: %v", key)
-	p, ok := this.responsePool[key]
+	/*p, ok := this.responsePool[key]
 	if ok {
 		return p
-	} else {
+	} else {*/
 		conn, ok := this.connectionPool[key]
 		if ok {
 			stream, err := conn.NewStream(context.Background())
@@ -55,11 +55,11 @@ func (this *PipePool) GetResponsePipe(peerId string, connectSessionId string) *p
 				return nil
 			}
 			if p != nil {
-				this.responsePool[key] = p
+				/*this.responsePool[key] = p*/
 				return p
 			}
 		}
-	}
+	/*}*/
 	return nil
 }
 
@@ -67,9 +67,9 @@ func (this *PipePool) GetResponsePipe(peerId string, connectSessionId string) *p
 主动发送消息获取管道，如果流不存在，创建一个
 */
 func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pipe {
-	/*this.lock.Lock()
+	this.lock.Lock()
 	defer this.lock.Unlock()
-	reqKey := GetPeerId(peerId) + ":" + protocolId
+	/*reqKey := GetPeerId(peerId) + ":" + protocolId
 	logger.Sugar.Infof("GetRequestPipe-reqKey: %v", reqKey)
 	p, ok := this.requestPool[reqKey]
 	if ok {
@@ -102,16 +102,13 @@ func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pip
 			id = p
 		}
 	}
-	//主动创建流和管道与其他peer沟通，发消息，handler用于最终发送前消息的预先处理，或者接收消息后的处理
-	//peerId是带地址信息的/ip4/192.168.0.104/tcp/3721/p2p/12D3KooWPpZrX5bNEpJcHYFACTKkmMMxF39oU6Rm2WeK4rr8mRVp
+	// 主动创建流和管道与其他peer沟通，发消息，handler用于最终发送前消息的预先处理，或者接收消息后的处理
 	stream, err := global.Global.Host.NewStream(global.Global.Context, id, protocol.ID(protocolId))
 	if err != nil {
 		logger.Sugar.Errorf("NewStream failed:%v", err)
 		return nil
 	} else {
-		/**
-		设置通用的收到消息流的处理器，被动接收其他peer发送过来的消息，无论哪种协议类型，都放在HandleRaw中分发
-		*/
+		// 设置通用的收到消息流的处理器，被动接收其他peer发送过来的消息，无论哪种协议类型，都放在HandleRaw中分发
 		p, err := pipe.CreatePipe(stream, HandleRaw, msgtype.MsgDirect_Request)
 		if err != nil {
 			logger.Sugar.Errorf(err.Error())
@@ -122,7 +119,7 @@ func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pip
 			if conn != nil {
 				peerId := conn.RemotePeer().Pretty()
 				logger.Sugar.Infof("GetRequestPipe-remote peer: %v %v, steamId: %v", peerId, conn.ID(), stream.ID())
-				/*key := peerId + ":" + conn.ID()
+				key := peerId + ":" + conn.ID()
 				logger.Sugar.Infof("GetRequestPipe-key: %v", key)
 				oldConn, ok := this.connectionPool[key]
 				if ok {
@@ -134,7 +131,7 @@ func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pip
 				} else {
 					logger.Sugar.Infof("----------GetRequestPipe-newConn: %v", key)
 					this.connectionPool[key] = conn
-				}*/
+				}
 			}
 			/*this.requestPool[reqKey] = p*/
 			return p
@@ -147,7 +144,6 @@ func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pip
 func (this *PipePool) CreatePipe(stream network.Stream, direct string) *pipe.Pipe {
 	this.lock.Lock()
 	defer this.lock.Unlock()
-	logger.Sugar.Infof("CreatePipe")
 	p, err := pipe.CreatePipe(stream, HandleRaw, direct)
 	if err != nil {
 		logger.Sugar.Errorf(err.Error())
@@ -171,7 +167,7 @@ func (this *PipePool) CreatePipe(stream network.Stream, direct string) *pipe.Pip
 				logger.Sugar.Infof("----------CreatePipe-newConn: %v", key)
 				this.connectionPool[key] = conn
 			}
-			_, ok = this.responsePool[key]
+			/*_, ok = this.responsePool[key]
 			if !ok {
 				this.responsePool[key] = p
 			}
@@ -181,7 +177,7 @@ func (this *PipePool) CreatePipe(stream network.Stream, direct string) *pipe.Pip
 			_, ok = this.requestPool[reqKey]
 			if !ok {
 				this.requestPool[reqKey] = p
-			}
+			}*/
 		}
 		return p
 	}
@@ -189,7 +185,7 @@ func (this *PipePool) CreatePipe(stream network.Stream, direct string) *pipe.Pip
 }
 
 func (this *PipePool) Close(peerId string, protocolId string, connectSessionId string, streamId string) {
-	this.lock.Lock()
+	/*this.lock.Lock()
 	defer this.lock.Unlock()
 	key := peerId + ":" + connectSessionId
 	logger.Sugar.Infof("Close-key: %v", key)
@@ -206,7 +202,7 @@ func (this *PipePool) Close(peerId string, protocolId string, connectSessionId s
 		if p.GetStream().ID() == streamId {
 			delete(this.requestPool, reqKey)
 		}
-	}
+	}*/
 }
 
 func (this *PipePool) Disconnect(peerId string, connectSessionId string) {
