@@ -5,7 +5,6 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/curltech/go-colla-core/crypto/openpgp"
 	"github.com/curltech/go-colla-core/crypto/std"
-	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/compress"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/global"
@@ -15,7 +14,6 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	msg1 "github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"unsafe"
 )
 
 /**
@@ -144,8 +142,6 @@ const (
 
 	PayloadType_String = "string"
 	PayloadType_Map    = "map"
-
-	PayloadType_WebsocketChainMessage = "websocketChainMessage"
 )
 
 func Decrypt(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
@@ -194,8 +190,6 @@ func Decrypt(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 		payload = &entity2.DataBlock{}
 	case PayloadType_ConsensusLog:
 		payload = &entity2.ConsensusLog{}
-	case PayloadType_WebsocketChainMessage:
-		payload = &msg1.WebsocketChainMessage{}
 	default: // PayloadType_Map
 		payload = make(map[string]interface{})
 	}
@@ -246,141 +240,4 @@ func SetResponse(request *msg1.ChainMessage, response *msg1.ChainMessage) {
 	response.ConnectPeerId = request.LocalConnectPeerId
 	response.ConnectSessionId = request.ConnectSessionId
 	response.Topic = request.Topic
-}
-
-////////////////////
-
-func EncryptPC(msg *msg1.PCChainMessage) (*msg1.PCChainMessage, error) {
-	payload, err := message.TextMarshal(msg.MessagePayload.Payload)
-	if err != nil {
-		return nil, errors.New("PayloadTextMarshalFailure")
-	}
-	msg.MessagePayload.TransportPayload = payload
-	msg.MessagePayload.Payload = nil
-	messagePayload, err := message.TextMarshal(msg.MessagePayload)
-	if err != nil {
-		return nil, errors.New("MessagePayloadTextMarshalFailure")
-	}
-	data := []byte(messagePayload)
-	msg.MessagePayload = nil
-
-	signature := openpgp.Sign(global.Global.PrivateKey, nil, data)
-	msg.PayloadSignature = std.EncodeBase64(signature)
-	if msg.NeedCompress != "none" {
-		data = compress.GzipCompress(data)
-	}
-	if msg.NeedEncrypt == true {
-		key := std.GenerateSecretKey(32)
-		data = openpgp.EncryptSymmetrical([]byte(key), data)
-		openpgpPublicKey := std.DecodeBase64(msg.TargetPublicKey)
-		openpgpPub, err := openpgp.LoadPublicKey(openpgpPublicKey)
-		if err != nil {
-			return nil, errors.New("LoadSrcPublicKeyFailure")
-		}
-		payloadKey := openpgp.EncryptKey([]byte(key), openpgpPub)
-		msg.PayloadKey = std.EncodeBase64(payloadKey)
-	}
-	msg.TransportMessagePayload = std.EncodeBase64(data)
-
-	return msg, nil
-}
-
-// ChainMessage PayloadClass
-
-const (
-	// PeerClient
-	PayloadClass_PeerClient = "com.castalia.blockchain.client.domain.PeerClient"
-	// Block
-	PayloadClass_DataBlock = "com.castalia.blockchain.client.domain.DataBlock"
-	// WebsocketChainMessage
-	PayloadClass_WebsocketChainMessage = "com.castalia.blockchain.websocket.domain.WebsocketChainMessage"
-	// Map
-	PayloadClass_Map = "java.util.Map"
-)
-
-func DecryptPC(msg *msg1.PCChainMessage) (*msg1.PCChainMessage, error) {
-	data := std.DecodeBase64(msg.TransportMessagePayload)
-	if msg.NeedEncrypt == true {
-		payloadKey := std.DecodeBase64(msg.PayloadKey)
-		secretKey := openpgp.DecryptKey(payloadKey, global.Global.PrivateKey)
-		data = openpgp.DecryptSymmetrical(secretKey, data)
-	}
-	if msg.NeedCompress != "none" {
-		data = compress.GzipUncompress(data)
-	}
-	byteSrcPublicKey := std.DecodeBase64(msg.SrcPublicKey)
-	srcPublicKey, err := openpgp.LoadPublicKey(byteSrcPublicKey)
-	if err != nil {
-		return nil, errors.New("LoadSrcPublicKeyFailure")
-	}
-	payloadSignature := std.DecodeBase64(msg.PayloadSignature)
-	pass := openpgp.Verify(srcPublicKey, data, payloadSignature)
-	if pass != true {
-		return nil, errors.New("PayloadVerifyFailure")
-	}
-	transportMessagePayload := (*string)(unsafe.Pointer(&data))
-	messagePayload := &msg1.MessagePayload{}
-	messagePayload.SrcPeer = &entity.PeerClient{}
-	err = message.TextUnmarshal(*transportMessagePayload, messagePayload)
-	if err != nil {
-		return nil, errors.New("MessagePayloadTextUnmarshalFailure")
-	}
-	msg.MessagePayload = messagePayload
-	msg.TransportMessagePayload = ""
-	if msg.MessagePayload.PayloadClass == PayloadClass_PeerClient {
-		payload := &entity.PeerClient{}
-		err = message.TextUnmarshal(msg.MessagePayload.TransportPayload, payload)
-		msg.MessagePayload.Payload = payload
-	} else if msg.MessagePayload.PayloadClass == PayloadClass_Map {
-		payload := make(map[string]interface{}, 0)
-		err = message.TextUnmarshal(msg.MessagePayload.TransportPayload, &payload)
-		msg.MessagePayload.Payload = payload
-	} else if msg.MessagePayload.PayloadClass == PayloadClass_WebsocketChainMessage {
-		payload := &msg1.WebsocketChainMessage{}
-		err = message.TextUnmarshal(msg.MessagePayload.TransportPayload, payload)
-		msg.MessagePayload.Payload = payload
-	} else if msg.MessagePayload.PayloadClass == PayloadClass_DataBlock {
-		payload := &entity2.DataBlock{}
-		err = message.TextUnmarshal(msg.MessagePayload.TransportPayload, payload)
-		msg.MessagePayload.Payload = payload
-	} else {
-		logger.Sugar.Errorf("InvalidPayloadClass: %v", msg.MessagePayload.PayloadClass)
-		err = errors.New("InvalidPayloadClass")
-	}
-	if err != nil {
-		return nil, err
-	}
-	msg.MessagePayload.TransportPayload = ""
-
-	return msg, nil
-}
-
-func ErrorPC(msgType msgtype.MsgType, err error) *msg1.PCChainMessage {
-	errMessage := msg1.PCChainMessage{}
-	errMessage.MessagePayload.Payload = msgtype.ERROR
-	//errMessage.Tip = err.Error()
-	errMessage.MessagePayload.MessageType = msgType
-	//errMessage.MessageDirect = msgtype.MsgDirect_Response
-
-	return &errMessage
-}
-
-func ResponsePC(msgType msgtype.MsgType) *msg1.PCChainMessage {
-	responseMessage := msg1.PCChainMessage{}
-	responseMessage.MessagePayload.Payload = msgtype.RESPONSE
-	//responseMessage.Tip = "async response"
-	responseMessage.MessagePayload.MessageType = msgType
-	//responseMessage.MessageDirect = msgtype.MsgDirect_Response
-
-	return &responseMessage
-}
-
-func OkPC(msgType msgtype.MsgType) *msg1.PCChainMessage {
-	okMessage := msg1.PCChainMessage{}
-	okMessage.MessagePayload.Payload = msgtype.OK
-	//okMessage.Tip = "OK"
-	okMessage.MessagePayload.MessageType = msgType
-	//okMessage.MessageDirect = msgtype.MsgDirect_Response
-
-	return &okMessage
 }
