@@ -174,7 +174,7 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 		return errors.New("NoSliceNumber")
 	}
 	transactionKeys := db.TransactionKeys
-	if transactionKeys == nil {
+	if sliceNumber == 1 && transactionKeys == nil {
 		logger.Sugar.Errorf("NoTransactionKeys")
 		return errors.New("NoTransactionKeys")
 	}
@@ -197,7 +197,7 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 		// 负载为空表示删除
 		if len(db.TransportPayload) == 0 {
 			// 只针对第一个分片处理一次
-			if db.SliceNumber == 1 {
+			if sliceNumber == 1 {
 				dbCondition := &entity.DataBlock{}
 				dbCondition.BlockId = blockId
 				this.Delete(dbCondition, "")
@@ -233,7 +233,7 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 	if dbAffected > 0 {
 		logger.Sugar.Infof("BlockId: %v, upsert DataBlock successfully", blockId)
 		// 只针对第一个分片处理一次
-		if db.SliceNumber == 1 {
+		if sliceNumber == 1 {
 			// 删除多余废弃分片
 			if db.SliceSize < oldDb.SliceSize {
 				dbCondition := &entity.DataBlock{}
@@ -318,7 +318,7 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 			peerTransaction.TargetPeerId = myselfPeerId
 			peerTransaction.TargetPeerType = entity2.PeerType_PeerEndpoint
 			peerTransaction.BlockId = blockId
-			peerTransaction.SliceNumber = db.SliceNumber
+			peerTransaction.SliceNumber = sliceNumber
 			peerTransaction.BusinessNumber = db.BusinessNumber
 			peerTransaction.TransactionTime = &currentTime
 			peerTransaction.CreateTimestamp = db.CreateTimestamp
