@@ -9,6 +9,7 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/pipe/handler"
 	"github.com/curltech/go-colla-node/libp2p/pubsub"
 	handler1 "github.com/curltech/go-colla-node/p2p/chain/handler"
+	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	msg1 "github.com/curltech/go-colla-node/p2p/msg"
 )
@@ -138,23 +139,24 @@ func RelaySend(chainMessage *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 		peerClients, err := service.GetPeerClientService().GetValues(targetPeerId, "")
 		if err == nil && len(peerClients) > 0 {
 			for _, peerClient := range peerClients {
-				// 如果PeerClient的连接节点是自己，下一步就是最终目标，将目标会话放入消息中
-				if global.IsMyself(peerClient.ConnectPeerId) {
-					chainMessage.TargetConnectSessionId = peerClient.ConnectSessionId
-					chainMessage.TargetConnectPeerId = peerClient.ConnectPeerId
-					chainMessage.ConnectPeerId = chainMessage.TargetPeerId
-				} else { // 否则下一步就是连接节点
-					chainMessage.TargetConnectSessionId = peerClient.ConnectSessionId
-					chainMessage.TargetConnectPeerId = peerClient.ConnectPeerId
-					chainMessage.ConnectPeerId = peerClient.ConnectPeerId
+				if peerClient.ActiveStatus == entity.ActiveStatus_Up {
+					// 如果PeerClient的连接节点是自己，下一步就是最终目标，将目标会话放入消息中
+					if global.IsMyself(peerClient.ConnectPeerId) {
+						chainMessage.TargetConnectSessionId = peerClient.ConnectSessionId
+						chainMessage.TargetConnectPeerId = peerClient.ConnectPeerId
+						chainMessage.ConnectPeerId = chainMessage.TargetPeerId
+					} else { // 否则下一步就是连接节点
+						chainMessage.TargetConnectSessionId = peerClient.ConnectSessionId
+						chainMessage.TargetConnectPeerId = peerClient.ConnectPeerId
+						chainMessage.ConnectPeerId = peerClient.ConnectPeerId
+					}
+					go send(chainMessage)
 				}
-				go send(chainMessage)
 			}
 			return chainMessage, nil
 		} else {
 			// 如果PeerClient不是最终目标，那么查找最终目标是否是定位器节点，如果是，下一步是定位器节点
 			connectPeerId, _ := service.GetPeerEndpointService().FindPeer(targetPeerId)
-
 			if connectPeerId != "" {
 				if chainMessage.ConnectPeerId == "" {
 					chainMessage.ConnectPeerId = chainMessage.TargetPeerId
