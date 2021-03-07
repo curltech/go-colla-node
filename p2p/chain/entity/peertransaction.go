@@ -10,6 +10,7 @@ type PeerTransaction struct {
 	TransactionType        string     `xorm:"varchar(255)" json:"transactionType,omitempty"`
 	SrcPeerId              string     `xorm:"varchar(255)" json:"srcPeerId,omitempty"`
 	SrcPeerType            string     `xorm:"varchar(255)" json:"srcPeerType,omitempty"`
+	PrimaryPeerId		   string     `xorm:"varchar(255)" json:"primaryPeerId,omitempty"`
 	TargetPeerId           string     `xorm:"varchar(255)" json:"targetPeerId,omitempty"`
 	TargetPeerType         string     `xorm:"varchar(255)" json:"targetPeerType,omitempty"`
 	BlockId                string     `xorm:"varchar(255) notnull" json:"blockId,omitempty"`
