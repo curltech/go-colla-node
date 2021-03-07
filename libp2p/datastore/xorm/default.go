@@ -308,6 +308,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 					peerTransaction := chainentity.PeerTransaction{}
 					peerTransaction.SrcPeerId = p.PeerId
 					peerTransaction.SrcPeerType = dhtentity.PeerType_PeerClient
+					peerTransaction.PrimaryPeerId = p.PrimaryPeerId
 					peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
 					peerTransaction.TargetPeerType = dhtentity.PeerType_PeerEndpoint
 					peerTransaction.BlockId = p.BlockId
