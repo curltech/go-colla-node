@@ -110,7 +110,7 @@ func (pipe *Pipe) Write(data []byte, sync bool) (*Pipe, <-chan []byte, error) {
 	data = append(data, '\n')
 	streamId := pipe.stream.ID()
 	connId := pipe.stream.Conn().ID()
-	logger.Sugar.Infof("streamId:%v, connId:%v", streamId, connId)
+	logger.Sugar.Debugf("streamId:%v, connId:%v", streamId, connId)
 	_, err = pipe.stream.Write(data)
 	if err != nil {
 		logger.Sugar.Errorf("Error writing to buffer")

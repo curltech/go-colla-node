@@ -84,28 +84,28 @@ func p2pOptions() []libp2p.Option {
 	if config.Libp2pParams.EnableTls {
 		tlsOption := libp2p.Security(libp2ptls.ID, libp2ptls.New)
 		options = append(options, tlsOption)
-		logger.Sugar.Infof("start tls option")
+		logger.Sugar.Debugf("start tls option")
 	}
 
 	// support noise connections
 	if config.Libp2pParams.EnableNoise {
 		noiseOption := libp2p.Security(noise.ID, noise.New)
 		options = append(options, noiseOption)
-		logger.Sugar.Infof("start noise option")
+		logger.Sugar.Debugf("start noise option")
 	}
 
 	// support secio connections
 	if config.Libp2pParams.EnableSecio {
 		secioOption := libp2p.Security(secio.ID, secio.New)
 		options = append(options, secioOption)
-		logger.Sugar.Infof("start secio option")
+		logger.Sugar.Debugf("start secio option")
 	}
 
 	// support QUIC - experimental
 	if config.Libp2pParams.EnableQuic {
 		quicOption := libp2p.Transport(libp2pquic.NewTransport)
 		options = append(options, quicOption)
-		logger.Sugar.Infof("start quic option")
+		logger.Sugar.Debugf("start quic option")
 	}
 
 	// Let's prevent our peer from having too many
@@ -119,7 +119,7 @@ func p2pOptions() []libp2p.Option {
 	global.Global.ConnectionManager = monitorConnMgr
 	connectionManagerOption := libp2p.ConnectionManager(global.Global.ConnectionManager)
 	options = append(options, connectionManagerOption)
-	logger.Sugar.Infof("start ConnectionManager option")
+	logger.Sugar.Debugf("start ConnectionManager option")
 
 	//是否用缺省的ping服务
 	defaultPing, _ := config.GetBool("p2p.dht.defaultPing", true)
@@ -134,7 +134,7 @@ func p2pOptions() []libp2p.Option {
 	if config.Libp2pParams.EnableNatPortMap {
 		natPortMap := libp2p.NATPortMap()
 		options = append(options, natPortMap)
-		logger.Sugar.Infof("start NATPortMap option")
+		logger.Sugar.Debugf("start NATPortMap option")
 	}
 
 	// Attempt to open EnableNATService，实施回拨确认机制
@@ -142,7 +142,7 @@ func p2pOptions() []libp2p.Option {
 		enableNATService := libp2p.EnableNATService()
 		//libp2p.AutoNATServiceRateLimit()
 		options = append(options, enableNATService)
-		logger.Sugar.Infof("start EnableNATService option")
+		logger.Sugar.Debugf("start EnableNATService option")
 	}
 
 	//if config.Libp2pParams.NATManager {
@@ -155,19 +155,19 @@ func p2pOptions() []libp2p.Option {
 	if config.Libp2pParams.ConnectionGater {
 		connectionGater := libp2p.ConnectionGater(nil)
 		options = append(options, connectionGater)
-		logger.Sugar.Infof("start ConnectionGater option")
+		logger.Sugar.Debugf("start ConnectionGater option")
 	}
 
 	if config.Libp2pParams.ForceReachabilityPublic {
 		forceReachabilityPublic := libp2p.ForceReachabilityPublic()
 		options = append(options, forceReachabilityPublic)
-		logger.Sugar.Infof("start ForceReachabilityPublic option")
+		logger.Sugar.Debugf("start ForceReachabilityPublic option")
 	}
 
 	if config.Libp2pParams.ForceReachabilityPrivate {
 		forceReachabilityPrivate := libp2p.ForceReachabilityPrivate()
 		options = append(options, forceReachabilityPrivate)
-		logger.Sugar.Infof("start ForceReachabilityPrivate option")
+		logger.Sugar.Debugf("start ForceReachabilityPrivate option")
 	}
 
 	// Let this host use the DHT to find other hosts
@@ -176,13 +176,13 @@ func p2pOptions() []libp2p.Option {
 			return global.Global.PeerEndpointDHT, nil
 		})
 		options = append(options, routing)
-		logger.Sugar.Infof("start Routing option")
+		logger.Sugar.Debugf("start Routing option")
 	}
 
 	if config.Libp2pParams.EnableRelay {
 		relay := libp2p.EnableRelay(relay.OptHop)
 		options = append(options, relay)
-		logger.Sugar.Infof("start EnableRelay option")
+		logger.Sugar.Debugf("start EnableRelay option")
 	}
 
 	// 1. When this libp2p node is configured to act as a relay "hop"
@@ -194,7 +194,7 @@ func p2pOptions() []libp2p.Option {
 	if config.Libp2pParams.EnableAutoRelay {
 		relay := libp2p.EnableAutoRelay()
 		options = append(options, relay)
-		logger.Sugar.Infof("start EnableAutoRelay option")
+		logger.Sugar.Debugf("start EnableAutoRelay option")
 	}
 
 	/**
@@ -230,7 +230,7 @@ func p2pOptions() []libp2p.Option {
 				}
 				addressFactoryOption := libp2p.AddrsFactory(addressFactory)
 				options = append(options, addressFactoryOption)
-				logger.Sugar.Infof("start addressFactory option")
+				logger.Sugar.Debugf("start addressFactory option")
 			}
 		}
 	}
@@ -239,7 +239,7 @@ func p2pOptions() []libp2p.Option {
 	if config.Libp2pParams.EnableWebsocket {
 		wsOption := libp2p.Transport(ws.New)
 		options = append(options, wsOption)
-		logger.Sugar.Infof("start EnableWebsocket option")
+		logger.Sugar.Debugf("start EnableWebsocket option")
 	}
 
 	// support any other default transports (TCP)

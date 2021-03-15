@@ -29,8 +29,8 @@ func HandleRaw(data []byte, p *pipe.Pipe) ([]byte, error) {
 	data, err = protocolMessageHandler.ReceiveHandler(data, p)
 	//如果处理器返回了Response，则写回到原来的管道，并关闭管道
 	if data != nil {
-		logger.Sugar.Infof("read data:%v", string(data))
-		logger.Sugar.Infof("read protocolID:%v", protocolID)
+		logger.Sugar.Debugf("read data:%v", string(data))
+		logger.Sugar.Debugf("read protocolID:%v", protocolID)
 		_, _, err := p.Write(data, false)
 		if err != nil {
 			logger.Sugar.Errorf("HandleRaw-pipe.Write failure: %v", err)

@@ -132,7 +132,7 @@ func (this *PeerEntityDHT) PutValue(key string, value []byte, opts ...routing.Op
 }
 
 func (this *PeerEntityDHT) GetLocal(key string) (*recpb.Record, error) {
-	logger.Sugar.Infof("finding value in local datastore by key %v", key)
+	logger.Sugar.Debugf("finding value in local datastore by key %v", key)
 
 	dsKey := ds.NewKey(base32.RawStdEncoding.EncodeToString([]byte(key)))
 	//buf, err := dht.datastore.Get(dskey)
