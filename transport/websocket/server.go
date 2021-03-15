@@ -265,7 +265,7 @@ func (conn *Connection) loopHeartbeat() {
 	for {
 		time.Sleep(time.Duration(heartbeatInterval) * time.Second)
 		if err := conn.Write(websocket.BinaryMessage, []byte("heartbeat from server")); err != nil {
-			logger.Sugar.Errorf("heartbeat fail")
+			logger.Sugar.Errorf("heartbeat fail:%v", err.Error())
 			conn.Close()
 			break
 		}

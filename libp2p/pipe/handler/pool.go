@@ -188,7 +188,7 @@ func (this *PipePool) Close(peerId string, protocolId string, connectSessionId s
 	this.lock.Lock()
 	defer this.lock.Unlock()
 	key := peerId + ":" + connectSessionId
-	logger.Sugar.Infof("Close-key: %v", key)
+	logger.Sugar.Debugf("Close-key: %v", key)
 	p, ok := this.responsePool[key]
 	if ok {
 		if p.GetStream().ID() == streamId {
