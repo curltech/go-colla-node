@@ -8,8 +8,8 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/chain/action/dht"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
-	"github.com/curltech/go-colla-node/p2p/msgtype"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
+	"github.com/curltech/go-colla-node/p2p/msgtype"
 	badger "github.com/ipfs/go-ds-badger2"
 	"github.com/ipfs/go-ds-flatfs"
 	"github.com/ipfs/go-ds-leveldb"
@@ -319,7 +319,7 @@ func PeerAdded(id peer.ID) {
 
 func PeerRemoved(id peer.ID) {
 	peerId := id.Pretty()
-	logger.Sugar.Infof("PeerEndpointDHT.RoutingTable remove peer: %v", peerId)
+	logger.Sugar.Debugf("PeerEndpointDHT.RoutingTable remove peer: %v", peerId)
 	// 更改状态
 	peerEndPoints, err := service.GetPeerEndpointService().GetLocal(peerId)
 	if err != nil {

@@ -18,7 +18,7 @@ func RegistDatastore(name string, ds datastore.Datastore) {
 	_, ok := c[name]
 	if !ok {
 		c[name] = ds
-		logger.Sugar.Infof("bean:%v registed", name)
+		logger.Sugar.Debugf("bean:%v registed", name)
 	} else {
 		logger.Sugar.Warnf("bean:%v exist", name)
 	}

@@ -153,18 +153,18 @@ func (this *PipePool) CreatePipe(stream network.Stream, direct string) *pipe.Pip
 		conn := p.GetStream().Conn()
 		if conn != nil {
 			peerId := conn.RemotePeer().Pretty()
-			logger.Sugar.Infof("CreatePipe-remote peer: %v %v, steamId: %v", peerId, conn.ID(), stream.ID())
+			logger.Sugar.Debugf("CreatePipe-remote peer: %v %v, steamId: %v", peerId, conn.ID(), stream.ID())
 			key := peerId + ":" + conn.ID()
-			logger.Sugar.Infof("CreatePipe-key: %v", key)
+			logger.Sugar.Debugf("CreatePipe-key: %v", key)
 			oldConn, ok := this.connectionPool[key]
 			if ok {
 				if conn != oldConn {
-					logger.Sugar.Infof("----------CreatePipe-resetConn: v%", key)
+					logger.Sugar.Debugf("----------CreatePipe-resetConn: v%", key)
 					oldConn.Close()
 					this.connectionPool[key] = conn
 				}
 			} else {
-				logger.Sugar.Infof("----------CreatePipe-newConn: %v", key)
+				logger.Sugar.Debugf("----------CreatePipe-newConn: %v", key)
 				this.connectionPool[key] = conn
 			}
 			_, ok = this.responsePool[key]
@@ -188,7 +188,7 @@ func (this *PipePool) Close(peerId string, protocolId string, connectSessionId s
 	this.lock.Lock()
 	defer this.lock.Unlock()
 	key := peerId + ":" + connectSessionId
-	logger.Sugar.Infof("Close-key: %v", key)
+	logger.Sugar.Debugf("Close-key: %v", key)
 	p, ok := this.responsePool[key]
 	if ok {
 		if p.GetStream().ID() == streamId {

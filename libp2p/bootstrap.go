@@ -100,7 +100,7 @@ func Bootstrap() error {
 			if strings.Contains(peerId, "127.0.0.1") || strings.Contains(peerId, "localhost") {
 				return
 			}
-			logger.Sugar.Infof("will connect %v", peerId)
+			logger.Sugar.Debugf("will connect %v", peerId)
 			if err := global.Global.Host.Connect(global.Global.Context, peerInfo); err != nil {
 				logger.Sugar.Errorf("Failed to connect to bootstrap node: %v, err: %v", peerInfo, err)
 			} else {

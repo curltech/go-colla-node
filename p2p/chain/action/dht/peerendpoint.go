@@ -41,7 +41,7 @@ func (this *peerEndPointAction) PeerEndPoint(targetPeerId string) (interface{}, 
 }
 
 func (this *peerEndPointAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
-	logger.Sugar.Infof("Receive %v message", this.MsgType)
+	logger.Sugar.Debugf("Receive %v message", this.MsgType)
 	var response *msg.ChainMessage = nil
 	if chainMessage.Payload != nil {
 		srcPeerEndpoint := chainMessage.Payload.(*entity.PeerEndpoint)
