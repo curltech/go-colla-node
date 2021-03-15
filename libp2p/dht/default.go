@@ -72,7 +72,7 @@ func (this *PeerEntityDHT) GetClosestPeers(key string) (<-chan peer.ID, error) {
 }
 
 func (this *PeerEntityDHT) PutLocal(key string, value []byte, opts ...routing.Option) (err error) {
-	logger.Sugar.Infof("putting value in local datastore by key %v", key)
+	logger.Sugar.Debugf("putting value in local datastore by key %v", key)
 
 	// don't even allow local users to put bad values.
 	if err := this.DHT.Validator.Validate(key, value); err != nil {
