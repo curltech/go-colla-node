@@ -66,7 +66,7 @@ func send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 		if targetPeerId != "" && targetConnectSessionId != "" && (targetConnectPeerId == "" || global.IsMyself(targetConnectPeerId)) {
 			pipe := handler.GetPipePool().GetResponsePipe(targetPeerId, targetConnectSessionId)
 			if pipe != nil {
-				logger.Sugar.Infof("Write data length:%v", len(data))
+				logger.Sugar.Debugf("Write data length:%v", len(data))
 				_, _, err = pipe.Write(data, false)
 				if err != nil {
 					logger.Sugar.Errorf("pipe.Write failure: %v", err)

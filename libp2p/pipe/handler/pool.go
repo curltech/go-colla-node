@@ -36,7 +36,7 @@ func (this *PipePool) GetResponsePipe(peerId string, connectSessionId string) *p
 	this.lock.Lock()
 	defer this.lock.Unlock()
 	key := peerId + ":" + connectSessionId
-	logger.Sugar.Infof("GetResponsePipe-key: %v", key)
+	logger.Sugar.Debugf("GetResponsePipe-key: %v", key)
 	p, ok := this.responsePool[key]
 	if ok {
 		return p
@@ -210,10 +210,10 @@ func (this *PipePool) Disconnect(peerId string, connectSessionId string) {
 	this.lock.Lock()
 	defer this.lock.Unlock()
 	key := peerId + ":" + connectSessionId
-	logger.Sugar.Infof("Disconnect-key: %v", key)
+	logger.Sugar.Debugf("Disconnect-key: %v", key)
 	_, ok := this.connectionPool[key]
 	if ok {
-		logger.Sugar.Infof("----------deleteConn: %v", key)
+		logger.Sugar.Debugf("----------deleteConn: %v", key)
 		delete(this.connectionPool, key)
 		// 更新信息
 		peerClients, err := service.GetPeerClientService().GetLocals(ns.PeerClient_KeyKind, peerId, "", "")
