@@ -118,7 +118,7 @@ func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pip
 			conn := p.GetStream().Conn()
 			if conn != nil {
 				peerId := conn.RemotePeer().Pretty()
-				logger.Sugar.Infof("GetRequestPipe-remote peer: %v %v, steamId: %v", peerId, conn.ID(), stream.ID())
+				logger.Sugar.Debugf("GetRequestPipe-remote peer: %v %v, steamId: %v", peerId, conn.ID(), stream.ID())
 				/*key := peerId + ":" + conn.ID()
 				logger.Sugar.Infof("GetRequestPipe-key: %v", key)
 				oldConn, ok := this.connectionPool[key]
