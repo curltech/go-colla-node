@@ -221,7 +221,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 
 		affected := req.Service.Upsert(entity)
 		if affected > 0 {
-			logger.Sugar.Infof("%v:%v put successfully", req.Keyname, req.Keyvalue)
+			logger.Sugar.Debugf("%v:%v put successfully", req.Keyname, req.Keyvalue)
 			if namespace == ns.DataBlock_Prefix || namespace == ns.DataBlock_Owner_Prefix {
 				oldp := old.(*chainentity.DataBlock)
 				p := entity.(*chainentity.DataBlock)
