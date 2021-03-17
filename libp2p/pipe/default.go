@@ -63,10 +63,11 @@ func (pipe *Pipe) Read() []byte {
 		data []byte
 		err  error
 	)
-	var readTimeout = config.Libp2pParams.ReadTimeout
-	pipe.stream.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(readTimeout)))
+	//var readTimeout = config.Libp2pParams.ReadTimeout
+	//pipe.stream.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(readTimeout)))
+	pipe.stream.SetReadDeadline(time.Time{})
 	data, err = pipe.rw.ReadBytes('\n')
-	logger.Sugar.Infof("Read data length:%v", len(data))
+	logger.Sugar.Infof("Read data length:%v", string(data))
 	if err != nil {
 		// 判断是不是超时
 		if netErr, ok := err.(net.Error); ok {
