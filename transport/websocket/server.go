@@ -192,14 +192,17 @@ func (conn *Connection) loopRead() {
 		data        []byte
 		err         error
 	)
-	var _, _ = config.GetInt("websocket.readTimeout", 0)
+	var readTimeout, _ = config.GetInt("websocket.readTimeout", 0)
 	for {
 		if conn.isClosed {
 			logger.Sugar.Errorf("websocket connection:%v is closed!", conn.Session.SessionID())
 			return
 		}
-		//conn.WsConnect.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(readTimeout)))
-		conn.WsConnect.SetReadDeadline(time.Time{})
+		if readTimeout > 0 {
+			conn.WsConnect.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(readTimeout)))
+		} else {
+			conn.WsConnect.SetReadDeadline(time.Time{})
+		}
 		messageType, data, err = conn.WsConnect.ReadMessage()
 		if err != nil {
 			// 判断是不是超时

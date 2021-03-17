@@ -63,11 +63,14 @@ func (pipe *Pipe) Read() []byte {
 		data []byte
 		err  error
 	)
-	//var readTimeout = config.Libp2pParams.ReadTimeout
-	//pipe.stream.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(readTimeout)))
-	pipe.stream.SetReadDeadline(time.Time{})
+	var readTimeout = config.Libp2pParams.ReadTimeout
+	if readTimeout > 0 {
+		pipe.stream.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(readTimeout)))
+	} else {
+		pipe.stream.SetReadDeadline(time.Time{})
+	}
 	data, err = pipe.rw.ReadBytes('\n')
-	logger.Sugar.Infof("Read data length:%v", string(data))
+	logger.Sugar.Infof("Read data length:%v", len(data))
 	if err != nil {
 		// 判断是不是超时
 		if netErr, ok := err.(net.Error); ok {
@@ -107,7 +110,11 @@ func (pipe *Pipe) Write(data []byte, sync bool) (*Pipe, <-chan []byte, error) {
 		err error
 	)
 	var writeTimeout = config.Libp2pParams.WriteTimeout
-	pipe.stream.SetWriteDeadline(time.Now().Add(time.Millisecond * time.Duration(writeTimeout)))
+	if writeTimeout > 0 {
+		pipe.stream.SetWriteDeadline(time.Now().Add(time.Millisecond * time.Duration(writeTimeout)))
+	} else {
+		pipe.stream.SetWriteDeadline(time.Time{})
+	}
 	data = append(data, '\n')
 	streamId := pipe.stream.ID()
 	connId := pipe.stream.Conn().ID()
