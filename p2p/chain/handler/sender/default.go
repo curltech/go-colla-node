@@ -79,7 +79,7 @@ func send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 			if connectPeerId != "" && !global.IsMyself(connectPeerId) {
 				pipe := handler.GetPipePool().GetRequestPipe(connectPeerId, config.P2pParams.ChainProtocolID)
 				if pipe != nil {
-					logger.Sugar.Infof("Write data length:%v", len(data))
+					logger.Sugar.Debugf("Write data length:%v", len(data))
 					_, _, err := pipe.Write(data, false)
 					if err != nil {
 						logger.Sugar.Errorf("pipe.Write failure: %v", err)
