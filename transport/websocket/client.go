@@ -4,9 +4,8 @@ package websocket
 基于gorilla websocket的客户端
 */
 import (
-	"fmt"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/gorilla/websocket"
-	"log"
 	"net/url"
 	"sync"
 	"time"
@@ -45,15 +44,15 @@ func NewWsClient(schema string, ip string, port string, path string, timeout tim
 func (this *thislient) dail() {
 	var err error
 	u := url.URL{Scheme: "ws", Host: *this.addr, Path: this.path}
-	log.Printf("connecting to %s", u.String())
+	logger.Sugar.Infof("connecting to %s", u.String())
 	this.conn, _, err = websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
-		fmt.Println(err)
+		logger.Sugar.Errorf(err.Error())
 		return
 
 	}
 	this.isAlive = true
-	log.Printf("connecting to %s 链接成功！！！", u.String())
+	logger.Sugar.Infof("connecting to %s 链接成功！！！", u.String())
 
 }
 
@@ -64,7 +63,7 @@ func (this *thislient) sendMsgThread() {
 			msg := <-this.sendMsgChan
 			err := this.conn.WriteMessage(websocket.TextMessage, []byte(msg))
 			if err != nil {
-				log.Println("write:", err)
+				logger.Sugar.Errorf("write:", err.Error())
 				continue
 			}
 		}
@@ -78,12 +77,12 @@ func (this *thislient) readMsgThread() {
 			if this.conn != nil {
 				_, message, err := this.conn.ReadMessage()
 				if err != nil {
-					log.Println("read:", err)
+					logger.Sugar.Errorf("read:", err.Error())
 					this.isAlive = false
 					// 出现错误，退出读取，尝试重连
 					break
 				}
-				log.Printf("recv: %s", message)
+				logger.Sugar.Infof("recv: %s", message)
 				// 需要读取数据，不然会阻塞
 				this.recvMsgChan <- string(message)
 			}

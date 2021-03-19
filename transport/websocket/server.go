@@ -242,7 +242,12 @@ func (conn *Connection) loopWrite() {
 		logger.Sugar.Errorf("websocket connection:%v is closed!", conn.Session.SessionID())
 		return
 	}
+	var writeTimeout, _ = config.GetInt("websocket.writeTimeout", 0)
 	for {
+		if conn.isClosed {
+			logger.Sugar.Errorf("websocket connection:%v is closed!", conn.Session.SessionID())
+			return
+		}
 		select {
 		case msg = <-conn.outChan:
 		case <-conn.closeChan:
@@ -250,7 +255,23 @@ func (conn *Connection) loopWrite() {
 			return
 		}
 		if msg != nil {
-			if err = conn.WsConnect.WriteMessage(msg.messageType, msg.data); err != nil {
+			if writeTimeout > 0 {
+				conn.WsConnect.SetWriteDeadline(time.Now().Add(time.Millisecond * time.Duration(writeTimeout)))
+			} else {
+				conn.WsConnect.SetWriteDeadline(time.Time{})
+			}
+			err = conn.WsConnect.WriteMessage(msg.messageType, msg.data)
+			if err != nil {
+				// 判断是不是超时
+				if netErr, ok := err.(net.Error); ok {
+					if netErr.Timeout() {
+						logger.Sugar.Errorf("WriteMessage timeout remote: %v\n", conn.WsConnect.RemoteAddr())
+					}
+				}
+				// 其他错误，如果是 1001 和 1000 就不打印日志
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
+					logger.Sugar.Errorf("WriteMessage other remote:%v error: %v \n", conn.WsConnect.RemoteAddr(), err)
+				}
 				conn.Close()
 				return
 			}

@@ -104,9 +104,17 @@ func (channel *Channel) loopRead() {
 		data string
 		err  error
 	)
-	var readTimeout, _ = config.GetInt("p2p.readTimeout", 5000)
+	var readTimeout, _ = config.GetInt("p2p.readTimeout", 0)
 	for {
-		channel.stream.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(readTimeout)))
+		if channel.isClosed {
+			logger.Sugar.Errorf("websocket connection:%v is closed!", channel.stream.ID())
+			return
+		}
+		if readTimeout > 0 {
+			channel.stream.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(readTimeout)))
+		} else {
+			channel.stream.SetReadDeadline(time.Time{})
+		}
 		data, err = channel.rw.ReadString('\n')
 		if err != nil {
 			// 判断是不是超时
@@ -135,21 +143,30 @@ func (channel *Channel) loopWrite() {
 		msg *P2PMessage
 		err error
 	)
-
+	var writeTimeout, _ = config.GetInt("p2p.writeTimeout", 0)
 	for {
 		select {
 		case msg = <-channel.outChan:
 		case <-channel.closeChan:
 			channel.Close()
 		}
+		if channel.isClosed {
+			logger.Sugar.Errorf("websocket connection:%v is closed!", channel.stream.ID())
+			return
+		}
+		if writeTimeout > 0 {
+			channel.stream.SetWriteDeadline(time.Now().Add(time.Millisecond * time.Duration(writeTimeout)))
+		} else {
+			channel.stream.SetWriteDeadline(time.Time{})
+		}
 		_, err = channel.rw.WriteString(fmt.Sprintf("%s\n", msg.data))
 		if err != nil {
-			fmt.Println("Error writing to buffer")
+			logger.Sugar.Errorf("Error writing to buffer")
 			channel.Close()
 		}
 		err = channel.rw.Flush()
 		if err != nil {
-			fmt.Println("Error flushing buffer")
+			logger.Sugar.Errorf("Error flushing buffer")
 			channel.Close()
 		}
 	}
@@ -161,7 +178,7 @@ func (channel *Channel) loopHeartbeat() {
 	for {
 		time.Sleep(time.Duration(heartbeatInterval) * time.Second)
 		if err := channel.Write(1, "heartbeat from server"); err != nil {
-			fmt.Println("heartbeat fail")
+			logger.Sugar.Errorf("heartbeat fail")
 			channel.Close()
 			break
 		}
