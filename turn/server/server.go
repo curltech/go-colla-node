@@ -6,19 +6,25 @@ import (
 	"github.com/pion/stun"
 	"github.com/pion/turn/v2"
 	"net"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
+var server *turn.Server
+
+/**
+缺省的turn验证，不做验证
+*/
 func authHandler(username string, realm string, srcAddr net.Addr) ([]byte, bool) {
 	return []byte(username), true
 }
 
+/**
+启动turn server
+*/
 func Start() {
 	host := config.TurnParams.Host
 	if len(host) == 0 {
 		logger.Sugar.Errorf("'host' is required")
+		return
 	}
 	udpport := config.TurnParams.UdpPort
 	// Create a UDP listener to pass into pion/turn
@@ -45,7 +51,10 @@ func Start() {
 		logger.Sugar.Errorf("'host' is required")
 		return
 	}
-	s, err := turn.NewServer(turn.ServerConfig{
+	/**
+	创建新的turn服务器
+	*/
+	server, err = turn.NewServer(turn.ServerConfig{
 		Realm: realm,
 		// Set AuthHandler callback
 		// This is called everytime a user tries to authenticate with the TURN server
@@ -77,13 +86,10 @@ func Start() {
 		logger.Sugar.Errorf("Failed to create TURN server: %s", err)
 		return
 	}
+}
 
-	// Block until user sends SIGINT or SIGTERM
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	<-sigs
-
-	if err = s.Close(); err != nil {
+func Close() {
+	if err := server.Close(); err != nil {
 		logger.Sugar.Errorf("Failed to close TURN server: %s", err)
 		return
 	}
@@ -101,6 +107,7 @@ func (s *stunLogger) WriteTo(p []byte, addr net.Addr) (n int, err error) {
 	if n, err = s.PacketConn.WriteTo(p, addr); err == nil && stun.IsMessage(p) {
 		msg := &stun.Message{Raw: p}
 		if err = msg.Decode(); err != nil {
+			logger.Sugar.Errorf(err.Error())
 			return
 		}
 
@@ -114,6 +121,7 @@ func (s *stunLogger) ReadFrom(p []byte) (n int, addr net.Addr, err error) {
 	if n, addr, err = s.PacketConn.ReadFrom(p); err == nil && stun.IsMessage(p) {
 		msg := &stun.Message{Raw: p}
 		if err = msg.Decode(); err != nil {
+			logger.Sugar.Errorf(err.Error())
 			return
 		}
 
