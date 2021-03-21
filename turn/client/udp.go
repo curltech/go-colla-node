@@ -2,7 +2,7 @@ package client
 
 import (
 	"fmt"
-	"log"
+	"github.com/curltech/go-colla-core/logger"
 	"net"
 	"strings"
 	"time"
@@ -24,7 +24,8 @@ func (this *udpClient) Dial(host string, port string, user string, realm string)
 	// TURN client won't create a local listening socket by itself.
 	conn, err := net.ListenPacket("udp4", "0.0.0.0:0")
 	if err != nil {
-		panic(err)
+		logger.Sugar.Errorf(err.Error())
+		return
 	}
 	defer func() {
 		if closeErr := conn.Close(); closeErr != nil {
@@ -46,13 +47,15 @@ func (this *udpClient) Dial(host string, port string, user string, realm string)
 
 	client, err := turn.NewClient(cfg)
 	if err != nil {
-		panic(err)
+		logger.Sugar.Errorf(err.Error())
+		return
 	}
 
 	// Start listening on the conn provided.
 	err = client.Listen()
 	if err != nil {
-		panic(err)
+		logger.Sugar.Errorf(err.Error())
+		return
 	}
 
 	// Allocate a relay socket on the TURN server. On success, it
@@ -60,29 +63,33 @@ func (this *udpClient) Dial(host string, port string, user string, realm string)
 	// socket.
 	relayConn, err := client.Allocate()
 	if err != nil {
-		panic(err)
+		logger.Sugar.Errorf(err.Error())
+		return
 	}
 
 	// The relayConn's local address is actually the transport
 	// address assigned on the TURN server.
-	log.Printf("relayed-address=%s", relayConn.LocalAddr().String())
+	logger.Sugar.Infof("relayed-address=%s", relayConn.LocalAddr().String())
 }
 
 func (this *udpClient) Ping() error {
 	// Send BindingRequest to learn our external IP
 	mappedAddr, err := this.client.SendBindingRequest()
 	if err != nil {
+		logger.Sugar.Errorf(err.Error())
 		return err
 	}
 
 	// Set up pinger socket (pingerConn)
 	pingerConn, err := net.ListenPacket("udp4", "0.0.0.0:0")
 	if err != nil {
-		panic(err)
+		logger.Sugar.Errorf(err.Error())
+		return err
 	}
 	defer func() {
 		if closeErr := pingerConn.Close(); closeErr != nil {
-			panic(closeErr)
+			logger.Sugar.Errorf(closeErr.Error())
+			return
 		}
 	}()
 
@@ -92,6 +99,7 @@ func (this *udpClient) Ping() error {
 	// the TURN server.
 	_, err = this.relayConn.WriteTo([]byte("Hello"), mappedAddr)
 	if err != nil {
+		logger.Sugar.Errorf(err.Error())
 		return err
 	}
 
@@ -101,13 +109,14 @@ func (this *udpClient) Ping() error {
 		for {
 			n, from, pingerErr := pingerConn.ReadFrom(buf)
 			if pingerErr != nil {
+				logger.Sugar.Errorf(pingerErr.Error())
 				break
 			}
 
 			msg := string(buf[:n])
 			if sentAt, pingerErr := time.Parse(time.RFC3339Nano, msg); pingerErr == nil {
 				rtt := time.Since(sentAt)
-				log.Printf("%d bytes from from %s time=%d ms\n", n, from.String(), int(rtt.Seconds()*1000))
+				logger.Sugar.Infof("%d bytes from from %s time=%d ms\n", n, from.String(), int(rtt.Seconds()*1000))
 			}
 		}
 	}()
@@ -118,11 +127,13 @@ func (this *udpClient) Ping() error {
 		for {
 			n, from, readerErr := this.relayConn.ReadFrom(buf)
 			if readerErr != nil {
+				logger.Sugar.Errorf(readerErr.Error())
 				break
 			}
 
 			// Echo back
 			if _, readerErr = this.relayConn.WriteTo(buf[:n], from); readerErr != nil {
+				logger.Sugar.Errorf(readerErr.Error())
 				break
 			}
 		}
@@ -135,6 +146,7 @@ func (this *udpClient) Ping() error {
 		msg := time.Now().Format(time.RFC3339Nano)
 		_, err = pingerConn.WriteTo([]byte(msg), this.relayConn.LocalAddr())
 		if err != nil {
+			logger.Sugar.Errorf(err.Error())
 			return err
 		}
 
