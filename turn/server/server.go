@@ -27,11 +27,13 @@ func Start() {
 	packetConn, err := net.ListenPacket("udp4", host+":"+udpport)
 	if err != nil {
 		logger.Sugar.Errorf("Failed to create TURN server listener: %s", err)
+		return
 	}
 	tcpport := config.TurnParams.TcpPort
 	tcpListener, err := net.Listen("tcp4", host+":"+tcpport)
 	if err != nil {
 		logger.Sugar.Errorf("Failed to create TURN server listener: %s", err)
+		return
 	}
 	realm := config.TurnParams.Realm
 	// NewLongTermAuthHandler takes a pion.LeveledLogger. This allows you to intercept messages
@@ -41,6 +43,7 @@ func Start() {
 	if len(publicIp) == 0 {
 		publicIp = host
 		logger.Sugar.Errorf("'host' is required")
+		return
 	}
 	s, err := turn.NewServer(turn.ServerConfig{
 		Realm: realm,
@@ -72,6 +75,7 @@ func Start() {
 	})
 	if err != nil {
 		logger.Sugar.Errorf("Failed to create TURN server: %s", err)
+		return
 	}
 
 	// Block until user sends SIGINT or SIGTERM
@@ -81,6 +85,7 @@ func Start() {
 
 	if err = s.Close(); err != nil {
 		logger.Sugar.Errorf("Failed to close TURN server: %s", err)
+		return
 	}
 
 	//turn.GenerateLongTermCredentials(*authSecret, time.Minute)
