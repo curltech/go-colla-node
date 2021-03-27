@@ -41,8 +41,9 @@ func NewKeyRequest(key datastore.Key) (*DispatchRequest, error) {
 	if err != nil {
 		return nil, err
 	}
+	segs2 := strings.Split(path, "/" + prefix + "/")
 	/**
-	在delete，put操作的时候，segs[2]也就是key必须是唯一确定数据的主键和唯一索引，因为它决定了要删除和保存的数据存放的节点
+	在delete，put操作的时候，segs2[1]也就是key必须是唯一确定数据的主键和唯一索引，因为它决定了要删除和保存的数据存放的节点
 	最近节点是根据这个决定的
 	在get的时候，最好也是主键或者唯一索引，并且与put的时候的值相同，假如需要作更复杂的搜索，可以让key成为一个json
 	但是，网络在递归搜索节点的时候会根据key的值来决定搜索的节点，因此是盲目的，搜索量会很大，
@@ -50,9 +51,9 @@ func NewKeyRequest(key datastore.Key) (*DispatchRequest, error) {
 	如果自己实现递归搜索也是一种方案
 	*/
 	Keyvalue := make(map[string]string, 0)
-	err = message.TextUnmarshal(segs[2], &Keyvalue)
+	err = message.TextUnmarshal(segs2[1], &Keyvalue)
 	if err != nil {
-		Keyvalue[request.Keyname] = segs[2]
+		Keyvalue[request.Keyname] = segs2[1]
 	}
 	request.Keyvalue = Keyvalue
 
