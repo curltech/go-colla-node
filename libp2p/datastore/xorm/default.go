@@ -510,22 +510,22 @@ func init() {
 	handler.RegistKeyname(ns.PeerClient_Prefix, dhtentity.PeerClient{}.KeyName())
 
 	handler.RegistDatastore(ns.PeerClient_Mobile_Prefix, NewXormDatastore())
-	handler.RegistKeyname(ns.PeerClient_Mobile_Prefix, dhtentity.PeerClient{}.KeyName())
+	handler.RegistKeyname(ns.PeerClient_Mobile_Prefix, ns.PeerClient_Mobile_KeyKind)
 
-	handler.RegistDatastore(ns.ChainApp_Prefix, NewXormDatastore())
-	handler.RegistKeyname(ns.ChainApp_Prefix, dhtentity.ChainApp{}.KeyName())
+ 	handler.RegistDatastore(ns.ChainApp_Prefix, NewXormDatastore())
+ 	handler.RegistKeyname(ns.ChainApp_Prefix, dhtentity.ChainApp{}.KeyName())
 
-	handler.RegistDatastore(ns.DataBlock_Prefix, NewXormDatastore())
-	handler.RegistKeyname(ns.DataBlock_Prefix, chainentity.DataBlock{}.KeyName())
+ 	handler.RegistDatastore(ns.DataBlock_Prefix, NewXormDatastore())
+ 	handler.RegistKeyname(ns.DataBlock_Prefix, chainentity.DataBlock{}.KeyName())
 
-	handler.RegistDatastore(ns.DataBlock_Owner_Prefix, NewXormDatastore())
-	handler.RegistKeyname(ns.DataBlock_Owner_Prefix, chainentity.DataBlock{}.KeyName())
+ 	handler.RegistDatastore(ns.DataBlock_Owner_Prefix, NewXormDatastore())
+ 	handler.RegistKeyname(ns.DataBlock_Owner_Prefix, ns.DataBlock_Owner_KeyKind)
 
-	handler.RegistDatastore(ns.PeerTransaction_Src_Prefix, NewXormDatastore())
-	handler.RegistKeyname(ns.PeerTransaction_Src_Prefix, chainentity.PeerTransaction{}.KeyName())
+ 	handler.RegistDatastore(ns.PeerTransaction_Src_Prefix, NewXormDatastore())
+ 	handler.RegistKeyname(ns.PeerTransaction_Src_Prefix, ns.PeerTransaction_Src_KeyKind)
 
-	handler.RegistDatastore(ns.PeerTransaction_Target_Prefix, NewXormDatastore())
-	handler.RegistKeyname(ns.PeerTransaction_Target_Prefix, chainentity.PeerTransaction{}.KeyName())
+ 	handler.RegistDatastore(ns.PeerTransaction_Target_Prefix, NewXormDatastore())
+ 	handler.RegistKeyname(ns.PeerTransaction_Target_Prefix, ns.PeerTransaction_Target_KeyKind)
 
 	handler.RegistDatastore(ns.TransactionKey_Prefix, NewXormDatastore())
 	handler.RegistKeyname(ns.TransactionKey_Prefix, chainentity.TransactionKey{}.KeyName())
