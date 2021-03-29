@@ -230,7 +230,24 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			}
 			if len(dbs) > 0 {
 				for _, db := range dbs {
-					dataBlocks = append(dataBlocks, db)
+					var receivable bool
+					if len(receiverPeerId) > 0 {
+						if sliceNumber != 1 {
+							receivable = true
+						} else {
+							receivable = false
+							for _, transactionKey := range db.TransactionKeys {
+								if transactionKey.PeerId == receiverPeerId {
+									receivable = true
+									break
+								}
+							}
+						}
+					}
+					if ((len(receiverPeerId) == 0 && len(db.PayloadKey) == 0) || (len(receiverPeerId) > 0 && receivable == true)) &&
+						(sliceNumber > 0 && db.SliceNumber == uint64(sliceNumber)) {
+						dataBlocks = append(dataBlocks, db)
+					}
 				}
 			}
 		}
