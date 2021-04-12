@@ -1,5 +1,5 @@
 app:
-  name: peer2
+  name: peer1
   serialize: json
   sessionLog: false
   template: html
