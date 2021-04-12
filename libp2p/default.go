@@ -462,6 +462,9 @@ func upsertMyselfPeer(priv libp2pcrypto.PrivKey, myself *entity.MyselfPeer) (nee
 		if wssErr != nil {
 			logger.Sugar.Errorf("Error creating wssMultiAddr: %v\n", wssErr)
 		} else if wssMultiAddr != nil {
+			if myself.PeerId == "" {
+				myself.PeerId = global.Global.Host.ID().String()
+			}
 			discoveryAddress = fmt.Sprintf(global.GeneralP2pAddrFormat, wssMultiAddr.String(), myself.PeerId)
 		}
 	}
