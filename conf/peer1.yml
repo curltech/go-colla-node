@@ -1,49 +1,45 @@
 app:
-  name: peer1
+  name: peer2
   serialize: json
   sessionLog: false
   template: html
 server:
-  name: camsi-boot-peer1
-  email: hujs@colla.cc
-  runmode: dev
-  password: "123456"
+  name: peer1
+  email: user@mailbox
+  password: password
 log:
   level: info
   encoder: console
 http:
   port: 8081
-  addr:
-  externalAddr: localhost
-  externalPort: 8089
+  externalAddr: peer1.domain
+  externalPort: 9091
   tls:
+    mode: none
     port: 9091
-    url: curltech.io
-    email: hujs@colla.cc
-    cert: conf/camsi-server-ec.crt
-    key: conf/camsi-server-ec.key
+    url: peer1.domain
+    email: user@mailbox
+    cert: conf/peer1.domain.crt
+    key: conf/peer1.domain.key
   proxy:
     mode: tls
-    address: localhost:5720
-    target: http://localhost:4720
-    redirect: false
+    address: :5720
+    target: http://peer1.domain:4720
+    redirect: true
 database:
   drivername: sqlite3 #postgres
-  dsn: /Users/hujingsong/peer1.db
+  dsn: /home/azureuser/colla/peer1.db
   host: localhost
-  port: 5433
+  port: 5432
   dbname: peer1
-  user: postgres
-  password: 123456
+  user: user
+  password: password
   orm: xorm
   sequence: table
   showSQL: false
+
 content:
-  path: /Users/hujingsong/content/peer1
-rbac:
-  accessTokenMaxAge: 1000
-workflow:
-  enable: false
+  path: /home/azureuser/colla/content/peer1
 libp2p:
   enable: true
   enableWebrtc: false
@@ -51,24 +47,26 @@ libp2p:
   port: 3720
   wsPort: 4720
   dht:
-    bootstraps: /ip4/192.168.1.125/tcp/3720/p2p/12D3KooWH5WqYgZBnnrtrKjSt7zGX7nH11MRfShLkKg3MifawLHF
+    bootstraps: /dns4/peer0.domain/tcp/3720/p2p/peerId0,/dns4/peer2.domain/tcp/3720/p2p/peerId2
   enableAddressFactory: true
-  externalAddr: localhost
+  externalAddr: peer1.domain
   externalPort: 3720
   externalWsPort: 4720
   externalWssPort: 5720
   enableAutoRelay: false
+  readTimeout: 300000
+  writeTimeout: 300000
 ipfs:
   enable: false
-  repoPath: /Users/hujingsong/content/peer1
+  repoPath: /home/azureuser/colla/content/peer1
 turn:
-  enable: false
-  realm: ion
-  host: localhost
-  ip: 0.0.0.0
+  enable: true
+  realm: peer1.domain
+  host: hostname
+  ip: 10.1.1.4
   tcpport: 3478
   udpport: 3478
-  credentials: pion=ion,pion2=ion2
+  credentials: user=password
   # cert: path/to/cert.pem
   # key: path/to/key.pem
 sfu:
@@ -83,6 +81,9 @@ sfu:
   maxport: 5200
   sdpsemantics: unified-plan
   level: trace
-  urls: stun:192.168.1.104:3478:turn:192.168.1.104:3478
-  username: :wf
-  credential: :wf123
+  urls: stun:10.1.1.4:3478:turn:10.1.1.4:3478
+  username: :user
+  credential: :password
+consensus:
+  peerNum: 3
+  stdMinPeerNum: 1
