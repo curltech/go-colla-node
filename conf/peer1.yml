@@ -37,7 +37,10 @@ database:
   orm: xorm
   sequence: table
   showSQL: false
-
+  sslmode: disable
+  maxIdleConns: 10
+  maxOpenConns: 30
+  connMaxLifetime: 30000
 content:
   path: /home/azureuser/colla/content/peer1
 libp2p:
