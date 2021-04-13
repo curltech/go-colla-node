@@ -64,6 +64,7 @@ func GetICEServers() []webrtc.ICEServer {
 				iceServer.Credential = credential
 			}
 		}
+		ICEServers = append(ICEServers, iceServer)
 	}
 
 	return ICEServers
