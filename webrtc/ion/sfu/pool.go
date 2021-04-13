@@ -65,6 +65,7 @@ func GetICEServerConfigs() []sfu.ICEServerConfig {
 				iceServer.Credential = credential
 			}
 		}
+		ICEServers = append(ICEServers, iceServer)
 	}
 
 	return ICEServers
