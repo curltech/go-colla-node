@@ -216,7 +216,8 @@ func (this *PipePool) Disconnect(peerId string, connectSessionId string) {
 		logger.Sugar.Debugf("----------deleteConn: %v", key)
 		delete(this.connectionPool, key)
 		// 更新信息
-		peerClients, err := service.GetPeerClientService().GetLocals(ns.PeerClient_KeyKind, peerId, "", "")
+		k := ns.GetPeerClientKey(peerId)
+		peerClients, err := service.GetPeerClientService().GetLocals(k, "")
 		if err != nil {
 			logger.Sugar.Errorf("failed to GetLocalPCs by peerId: %v, err: %v", peerId, err)
 		} else {
