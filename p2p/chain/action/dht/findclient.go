@@ -2,14 +2,9 @@ package dht
 
 import (
 	"errors"
-	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/logger"
-	"github.com/curltech/go-colla-core/util/message"
-	"github.com/curltech/go-colla-node/libp2p/dht"
-	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
-	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
