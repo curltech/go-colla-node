@@ -31,7 +31,6 @@ func (this *putValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainM
 	var response *msg.ChainMessage = nil
 	v := chainMessage.Payload
 	peerClient, ok := v.(*entity.PeerClient)
-	var key string
 	if ok {
 		err := service.GetPeerClientService().Validate(peerClient)
 		if err != nil {
@@ -52,7 +51,8 @@ func (this *putValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainM
 		expireDate := peerClient.ExpireDate
 
 		// 更新信息
-		pcs, err := service.GetPeerClientService().GetLocals(ns.PeerClient_KeyKind, peerId, "", "")
+		key := ns.GetPeerClientKey(peerId)
+		pcs, err := service.GetPeerClientService().GetLocals(key, "")
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
 			return response, nil
@@ -96,6 +96,7 @@ func (this *putValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainM
 		response = handler.Ok(chainMessage.MessageType)
 		return response, nil
 	} else {
+		var key string
 		peerEndpoint, ok := v.(*entity.PeerEndpoint)
 		if ok {
 			key = "/" + ns.PeerEndpoint_Prefix + "/" + peerEndpoint.PeerId
