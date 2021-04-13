@@ -15,11 +15,19 @@ azureuser@myVM:~$ sudo wget https://github.com/curltech/go-colla-node/releases/d
 azureuser@myVM:~$ sudo tar zxvf go-colla-node-linux-0.0.1.tar.gz
 azureuser@myVM:~$ cd go-colla-node
 azureuser@myVM:~/go-colla-node$ vi conf/peer1.yml
-azureuser@myVM:~/go-colla-node$ ./main (or ./main -appname peer3)
+azureuser@myVM:~/go-colla-node$ ./main (or ./main -appname peer1)
+```
+
+Use Custom Node
+```
 azureuser@myVM:~/go-colla-node$ sqlite3 peer1.db
 sqlite> select discoveryaddress from blc_myselfpeer;
-/dns4/peer3.curltech.cc/tcp/5720/wss/p2p/12D3KooWNwQ9pHZzmfjk8rZp4a1k5gXhibKxZMBdkdg1mTJEAYse
+/dns4/peer1.curltech.cc/tcp/5720/wss/p2p/12D3KooWNwQ9pHZzmfjk8rZp4a1k5gXhibKxZMBdkdg1mTJEAYse
 ```
+
+![login](https://github.com/curltech/go-colla-node/blob/main/readmeImg/login-customNode.png)
+
+![accountInformation](https://github.com/curltech/go-colla-node/blob/main/readmeImg/accountInformation-customNode.png)
 
 ## Windows
 windows installation
