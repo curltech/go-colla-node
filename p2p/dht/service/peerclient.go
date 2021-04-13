@@ -104,22 +104,7 @@ func (this *PeerClientService) Validate(peerClient *entity.PeerClient) error {
 	return nil
 }
 
-func (this *PeerClientService) GetLocals(keyKind string, peerId string, mobile string, clientId string) ([]*entity.PeerClient, error) {
-	var key string
-	if keyKind == ns.PeerClient_KeyKind {
-		if len(peerId) == 0 {
-			return nil, errors.New("NullPeerId")
-		}
-		key = ns.GetPeerClientKey(peerId)
-	} else if keyKind == ns.PeerClient_Mobile_KeyKind {
-		if len(mobile) == 0 {
-			return nil, errors.New("NullMobile")
-		}
-		key = ns.GetPeerClientMobileKey(mobile)
-	} else {
-		logger.Sugar.Errorf("InvalidPeerClientKeyKind: %v", keyKind)
-		return nil, errors.New("InvalidPeerClientKeyKind")
-	}
+func (this *PeerClientService) GetLocals(key string, clientId string) ([]*entity.PeerClient, error) {
 	rec, err := dht.PeerEndpointDHT.GetLocal(key)
 	if err != nil {
 		logger.Sugar.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
@@ -170,7 +155,7 @@ func (this *PeerClientService) GetValues(peerId string, mobile string) ([]*entit
 	if len(peerId) > 0 {
 		key = ns.GetPeerClientKey(peerId)
 	} else if len(mobile) > 0 {
-		key = ns.GetPeerClientMobileKey(mobile)
+		key = ns.GetPeerClientMobileKey(mobile, false)
 	} else {
 		logger.Sugar.Errorf("InvalidPeerClientKey")
 		return nil, errors.New("InvalidPeerClientKey")
@@ -202,13 +187,7 @@ func (this *PeerClientService) GetValues(peerId string, mobile string) ([]*entit
 		}
 	} else if config.Libp2pParams.FaultTolerantLevel == 2 {
 		// 查询删除local记录
-		var locals []*entity.PeerClient
-		var err error
-		if len(peerId) > 0 {
-			locals, err = this.GetLocals(ns.PeerClient_KeyKind, peerId, "", "")
-		} else if len(mobile) > 0 {
-			locals, err = this.GetLocals(ns.PeerClient_Mobile_KeyKind, "", mobile, "")
-		}
+		locals, err := this.GetLocals(key,"")
 		if err != nil {
 			return nil, err
 		}
@@ -262,7 +241,7 @@ func (this *PeerClientService) PutValue(peerClient *entity.PeerClient, keyKind s
 	if keyKind == ns.PeerClient_KeyKind {
 		key = ns.GetPeerClientKey(peerClient.PeerId)
 	} else if keyKind == ns.PeerClient_Mobile_KeyKind {
-		key = ns.GetPeerClientMobileKey(peerClient.Mobile)
+		key = ns.GetPeerClientMobileKey(peerClient.Mobile, true)
 	} else {
 		logger.Sugar.Errorf("InvalidPeerClientKeyKind: %v", keyKind)
 		return errors.New("InvalidPeerClientKeyKind")
