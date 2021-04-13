@@ -45,8 +45,11 @@ func GetPeerClientKey(peerId string) string {
 	return key
 }
 
-func GetPeerClientMobileKey(mobile string) string {
-	mobileHash := std.EncodeBase64(std.Hash(mobile, "sha3_256"))
+func GetPeerClientMobileKey(mobile string, hashed bool) string {
+	mobileHash := mobile
+	if hashed == false {
+		mobileHash = std.EncodeBase64(std.Hash(mobile, "sha3_256"))
+	}
 	key := fmt.Sprintf("/%v/%v", PeerClient_Mobile_Prefix, mobileHash)
 
 	return key
