@@ -41,81 +41,10 @@ func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 		mobileNumber = conditionBean["mobileNumber"].(string)
 	}
 
-	peerClients := make([]*entity.PeerClient, 0)
-	var key string
-	if len(peerId) > 0 {
-		key = ns.GetPeerClientKey(peerId)
-	} else if len(mobileNumber) > 0 {
-		key = ns.GetPeerClientMobileKey(mobileNumber)
-	} else {
-		logger.Sugar.Errorf("InvalidPeerClientKey")
-		response = handler.Error(chainMessage.MessageType, errors.New("InvalidPeerClientKey"))
+	peerClients, err := service.GetPeerClientService().GetValues(peerId, mobileNumber)
+	if err != nil {
+		response = handler.Error(chainMessage.MessageType, err)
 		return response, nil
-	}
-	if config.Libp2pParams.FaultTolerantLevel == 0 {
-		recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)
-		if err != nil {
-			response = handler.Error(chainMessage.MessageType, err)
-			return response, nil
-		}
-		for _, recvdVal := range recvdVals {
-			pcs := make([]*entity.PeerClient, 0)
-			err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
-			if err != nil {
-				logger.Sugar.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
-				response = handler.Error(chainMessage.MessageType, err)
-				return response, nil
-			}
-			for _, pc := range pcs {
-				peerClients = append(peerClients, pc)
-			}
-		}
-	} else if config.Libp2pParams.FaultTolerantLevel == 1 {
-		
-	} else if config.Libp2pParams.FaultTolerantLevel == 2 {
-		// 查询删除local记录
-		var locals []*entity.PeerClient
-		var err error
-		if len(peerId) > 0 {
-			locals, err = service.GetPeerClientService().GetLocals(ns.PeerClient_KeyKind, peerId, "", "")
-		} else if len(mobileNumber) > 0 {
-			locals, err = service.GetPeerClientService().GetLocals(ns.PeerClient_Mobile_KeyKind, "", mobileNumber, "")
-		}
-		if err != nil {
-			response = handler.Error(chainMessage.MessageType, err)
-			return response, nil
-		}
-		if len(locals) > 0 {
-			for _, local := range locals {
-				peerClients = append(peerClients, local)
-			}
-			service.GetPeerClientService().Delete(locals, "")
-		}
-		// 查询non-local记录
-		recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)
-		if err != nil {
-			response = handler.Error(chainMessage.MessageType, err)
-			return response, nil
-		}
-		// 恢复local记录
-		err = service.GetPeerClientService().PutLocals(locals)
-		if err != nil {
-			response = handler.Error(chainMessage.MessageType, err)
-			return response, nil
-		}
-		// 整合记录
-		for _, recvdVal := range recvdVals {
-			pcs := make([]*entity.PeerClient, 0)
-			err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
-			if err != nil {
-				logger.Sugar.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
-				response = handler.Error(chainMessage.MessageType, err)
-				return response, nil
-			}
-			for _, pc := range pcs {
-				peerClients = append(peerClients, pc)
-			}
-		}
 	}
 	response = handler.Response(chainMessage.MessageType, peerClients)
 	response.PayloadType = handler.PayloadType_PeerClients
