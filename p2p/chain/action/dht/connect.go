@@ -85,7 +85,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 		
 	} else if config.Libp2pParams.FaultTolerantLevel == 2 {
 		// 查询删除local历史记录
-		locals, err := service.GetPeerClientService().GetLocals(ns.PeerClient_KeyKind, peerId, "", "")
+		locals, err := service.GetPeerClientService().GetLocals(key, "")
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
 			return response, nil
@@ -122,7 +122,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 			}
 		}
 		// 再次查询local历史记录
-		pcs, err = service.GetPeerClientService().GetLocals(ns.PeerClient_KeyKind, peerId, "", "")
+		pcs, err = service.GetPeerClientService().GetLocals(key, "")
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
 			return response, nil
