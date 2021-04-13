@@ -75,8 +75,14 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 			return errors.New("NoKeyValue")
 		}
 		old, _ := req.Service.NewEntity(nil)
-		reflect.SetValue(old, req.Keyname, keyvalue)
+		//reflect.SetValue(old, req.Keyname, keyvalue)
 		if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix {
+			peerId, err := reflect.GetValue(entity, "PeerId")
+			if err != nil || peerId == nil {
+				logger.Sugar.Errorf("NoPeerId")
+				return errors.New("NoPeerId")
+			}
+			reflect.SetValue(old, "PeerId", peerId)
 			clientId, err := reflect.GetValue(entity, "ClientId")
 			if err != nil || clientId == nil {
 				logger.Sugar.Errorf("NoClientId")
@@ -84,17 +90,18 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 			}
 			reflect.SetValue(old, "ClientId", clientId)
 		} else if namespace == ns.DataBlock_Prefix || namespace == ns.DataBlock_Owner_Prefix {
+			blockId, err := reflect.GetValue(entity, "BlockId")
+			if err != nil || blockId == nil {
+				logger.Sugar.Errorf("NoBlockId")
+				return errors.New("NoBlockId")
+			}
+			reflect.SetValue(old, "BlockId", blockId)
 			sliceNumber, err := reflect.GetValue(entity, "SliceNumber")
 			if err != nil || sliceNumber == 0 {
 				logger.Sugar.Errorf("NoSliceNumber")
 				return errors.New("NoSliceNumber")
 			}
 			reflect.SetValue(old, "SliceNumber", sliceNumber)
-			transactionKeys, err := reflect.GetValue(entity, "TransactionKeys")
-			if err != nil || transactionKeys == nil {
-				logger.Sugar.Errorf("NoTransactionKeys")
-				return errors.New("NoTransactionKeys")
-			}
 		} else if namespace == ns.PeerTransaction_Src_Prefix || namespace == ns.PeerTransaction_Target_Prefix {
 			targetPeerId, err := reflect.GetValue(entity, "TargetPeerId")
 			if err != nil || targetPeerId == nil {
