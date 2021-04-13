@@ -7,12 +7,12 @@
 Colla Network is a decentralized peer-to-peer communication and storage network, Colla App (e.g. CollaChat) connects to Colla Network via selected Colla Node, there is no centralized storage and control of user data, user can specify which node or even easily setup own node(s) to connect to.
 
 # Installation
-Get ready your server, domain and certificate first. You may use a free instance  from rent a cloud server from CSP, buy a domain and use [ACME](https://github.com/acmesh-official/acme.sh) to automatically issue & renew the free certificates from Let's Encrypt.
+Get ready your server, domain and certificate first. You may rent a cloud server from CSP (or try on from a free instance), buy a domain or get a free one, use [ACME](https://github.com/acmesh-official/acme.sh) to automatically issue & renew the free certificates from Let's Encrypt.
 
 ## Tested OS
 No  | OS  | Version and Spec.
  ---- | ----- | ------  
- 1  | Ubuntu | 16.04/18.04/20.04, 1vCPUs + 1GiB
+ 1  | Ubuntu | 16.04/18.04/20.04, minimal(1vCPUs + 1GiB)
  2  | Windows | Windows Server 2016
 
 ## Linux
