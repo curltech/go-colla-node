@@ -84,9 +84,9 @@ sfu:
   maxport: 5200
   sdpsemantics: unified-plan
   level: trace
-  urls: stun:10.1.1.4:3478:turn:10.1.1.4:3478
-  username: :user
-  credential: :password
+  urls: stun:10.1.1.4:3478;turn:10.1.1.4:3478
+  username: ;user
+  credential: ;password
 consensus:
   peerNum: 3
   stdMinPeerNum: 1
