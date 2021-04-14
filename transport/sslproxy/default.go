@@ -74,12 +74,6 @@ func Start() error {
 	if config.ProxyParams.Mode == "none" {
 		return nil
 	}
-	if config.ProxyParams.Mode == "tls" {
-		// Determine if we need to generate self-signed certs
-		if config.TlsParams.Cert == "" && config.TlsParams.Key == "" && config.TlsParams.Domain == "" {
-			return errors.New("NoCert")
-		}
-	}
 
 	// 设置代理的目标地址
 	if !strings.HasPrefix(config.ProxyParams.Target, HTTPPrefix) && !strings.HasPrefix(config.ProxyParams.Target, HTTPSPrefix) {
@@ -151,6 +145,9 @@ func Start() error {
 		} else {
 			// 没有域名，使用自己生成的证书
 			if config.ProxyParams.Mode == "tls" {
+				if config.TlsParams.Cert == "" || config.TlsParams.Key == "" {
+					panic("NoTLSCertKey")
+				}
 				logger.Sugar.Infof("Proxying calls from https://%s to %s started!", config.ProxyParams.Address, toURL)
 				err = http.ListenAndServeTLS(config.ProxyParams.Address, config.TlsParams.Cert, config.TlsParams.Key, mux)
 				if err != nil {
