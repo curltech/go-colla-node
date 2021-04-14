@@ -4,7 +4,7 @@
 - [License](#license)
 
 # Introduction
-Colla Network is a decentralized peer-to-peer communication and storage network, Colla App (e.g. [CollaChat](https://github.com/curltech/CollaChat)) connects to Colla Network via selected Colla Node, there is no centralized storage and control of user data, user can specify which node or even easily setup own node(s) to connect to.
+Colla Network is a decentralized peer-to-peer communication and storage network, Colla DApp (e.g. [CollaChat](https://github.com/curltech/CollaChat)) connects to Colla Network via selected Colla Node, there is no centralized storage and control of user data, user can specify which node or even easily setup own node(s) to connect to.
 
 # Installation
 Get ready your server, domain and certificate first. You may rent a cloud server from CSP (or try on from a free instance), buy a domain or get a free one, use [ACME](https://github.com/acmesh-official/acme.sh) to automatically issue & renew the free certificates from Let's Encrypt.
@@ -29,7 +29,7 @@ azureuser@myVM:~/go-colla-node$ vi conf/peer1.yml
 azureuser@myVM:~/go-colla-node$ ./main (or ./main -appname peer1)
 ```
 
-3. Use custom node in Colla App (e.g. [CollaChat](https://github.com/curltech/CollaChat))
+3. Use custom node in Colla DApp (e.g. [CollaChat](https://github.com/curltech/CollaChat))
 ```
 azureuser@myVM:~/go-colla-node$ sqlite3 peer1.db
 sqlite> select discoveryaddress from blc_myselfpeer;
