@@ -1,7 +1,6 @@
 package sslproxy
 
 import (
-	"errors"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/logger"
 	"golang.org/x/crypto/acme/autocert"
