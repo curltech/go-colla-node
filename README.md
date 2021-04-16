@@ -47,7 +47,7 @@ sqlite> select discoveryaddress from blc_myselfpeer;
 ![accountInformation](https://github.com/curltech/go-colla-node/blob/main/readmeImg/customNode-accountInformation.png)
 
 ## Windows
-windows installation
+Use zip file for Windows instead of tar.gz file for Linux, and follow the same steps as above.
 
 # License
 Copyright 2020-2021 CURL TECH PTE. LTD.
