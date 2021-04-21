@@ -1,3 +1,9 @@
+### The backend node of Colla Network, a decentralized peer-to-peer communication and storage network.
+
+[![use](https://img.shields.io/badge/use-go--libp2p-yellowgreen.svg)](https://github.com/libp2p/go-libp2p)
+[![use](https://img.shields.io/badge/use-go--ipfs-blue.svg)](https://github.com/ipfs/go-ipfs)
+[![use](https://img.shields.io/badge/use-pion-red.svg)](https://github.com/pion)
+
 # Table of Contents
 - [Introduction](#introduction)
 - [Installation](#installation)
@@ -41,7 +47,7 @@ sqlite> select discoveryaddress from blc_myselfpeer;
 ![accountInformation](https://github.com/curltech/go-colla-node/blob/main/readmeImg/customNode-accountInformation.png)
 
 ## Windows
-windows installation
+Use zip file for Windows instead of tar.gz file for Linux, and follow the same steps as above.
 
 # License
 Copyright 2020-2021 CURL TECH PTE. LTD.
