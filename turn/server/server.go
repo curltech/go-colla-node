@@ -5,8 +5,8 @@ import (
    "github.com/curltech/go-colla-core/logger"
    "github.com/curltech/go-colla-core/util/message"
    "github.com/curltech/go-colla-node/libp2p/dht"
-   "github.com/curltech/go-colla-node/p2p/dht/entity"
    "github.com/curltech/go-colla-node/libp2p/ns"
+   "github.com/curltech/go-colla-node/p2p/dht/entity"
    "github.com/pion/stun"
    "github.com/pion/turn/v2"
    "net"
@@ -116,6 +116,15 @@ func Start() {
       logger.Sugar.Errorf("Failed to create TURN server: %s", err)
       return
    }
+   defer func() {
+      if err == nil {
+         if p := recover(); p != nil {
+            logger.Sugar.Errorf("recover failed", p)
+            Close()
+            panic(p) // re-throw panic when recover failed
+         }
+      }
+   }()
 }
 
 func Close() {
@@ -138,6 +147,7 @@ func (s *stunLogger) WriteTo(p []byte, addr net.Addr) (n int, err error) {
       msg := &stun.Message{Raw: p}
       if err = msg.Decode(); err != nil {
          logger.Sugar.Errorf(err.Error())
+         logger.Sugar.Errorf("Outbound STUN: %s \n", msg.String())
          return
       }
 
@@ -152,6 +162,7 @@ func (s *stunLogger) ReadFrom(p []byte) (n int, addr net.Addr, err error) {
       msg := &stun.Message{Raw: p}
       if err = msg.Decode(); err != nil {
          logger.Sugar.Errorf(err.Error())
+         logger.Sugar.Errorf("Inbound STUN: %s \n", msg.String())
          return
       }
 
