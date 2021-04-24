@@ -116,15 +116,6 @@ func Start() {
       logger.Sugar.Errorf("Failed to create TURN server: %s", err)
       return
    }
-   defer func() {
-      if err == nil {
-         if p := recover(); p != nil {
-            logger.Sugar.Errorf("recover failed", p)
-            Close()
-            panic(p) // re-throw panic when recover failed
-         }
-      }
-   }()
 }
 
 func Close() {
