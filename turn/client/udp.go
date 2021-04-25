@@ -19,7 +19,21 @@ type udpClient struct {
 var UdpClient = &udpClient{}
 
 func (this *udpClient) Dial(host string, port string, user string, realm string) {
+	if len(host) == 0 {
+		logger.Sugar.Errorf("'host' is required")
+		return
+	}
+
+	if len(user) == 0 {
+		logger.Sugar.Errorf("'user' is required")
+		return
+	}
+
 	cred := strings.SplitN(user, "=", 2)
+	if len(cred) != 2 {
+		logger.Sugar.Errorf("'user' must be a=b format")
+		return
+	}
 
 	// TURN client won't create a local listening socket by itself.
 	conn, err := net.ListenPacket("udp4", "0.0.0.0:0")
@@ -29,7 +43,8 @@ func (this *udpClient) Dial(host string, port string, user string, realm string)
 	}
 	defer func() {
 		if closeErr := conn.Close(); closeErr != nil {
-			panic(closeErr)
+			logger.Sugar.Errorf(closeErr.Error())
+			return
 		}
 	}()
 
@@ -45,14 +60,14 @@ func (this *udpClient) Dial(host string, port string, user string, realm string)
 		LoggerFactory:  logging.NewDefaultLoggerFactory(),
 	}
 
-	client, err := turn.NewClient(cfg)
+	this.client, err = turn.NewClient(cfg)
 	if err != nil {
 		logger.Sugar.Errorf(err.Error())
 		return
 	}
 
 	// Start listening on the conn provided.
-	err = client.Listen()
+	err = this.client.Listen()
 	if err != nil {
 		logger.Sugar.Errorf(err.Error())
 		return
@@ -61,7 +76,7 @@ func (this *udpClient) Dial(host string, port string, user string, realm string)
 	// Allocate a relay socket on the TURN server. On success, it
 	// will return a net.PacketConn which represents the remote
 	// socket.
-	relayConn, err := client.Allocate()
+	this.relayConn, err = this.client.Allocate()
 	if err != nil {
 		logger.Sugar.Errorf(err.Error())
 		return
@@ -69,7 +84,20 @@ func (this *udpClient) Dial(host string, port string, user string, realm string)
 
 	// The relayConn's local address is actually the transport
 	// address assigned on the TURN server.
-	logger.Sugar.Infof("relayed-address=%s", relayConn.LocalAddr().String())
+	logger.Sugar.Infof("relayed-address=%s", this.relayConn.LocalAddr().String())
+}
+
+func (this *udpClient) Close() (err error) {
+	if this.relayConn != nil {
+		if err = this.relayConn.Close(); err != nil {
+			logger.Sugar.Errorf(err.Error())
+		}
+	}
+	if this.client != nil {
+		this.client.Close()
+	}
+
+	return
 }
 
 func (this *udpClient) Ping() error {
