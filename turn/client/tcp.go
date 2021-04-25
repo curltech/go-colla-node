@@ -19,6 +19,22 @@ type tcpClient struct {
 var TcpClient = &tcpClient{}
 
 func (this *tcpClient) Dial(host string, port string, user string, realm string) {
+	if len(host) == 0 {
+		logger.Sugar.Errorf("'host' is required")
+		return
+	}
+
+	if len(user) == 0 {
+		logger.Sugar.Errorf("'user' is required")
+		return
+	}
+
+	cred := strings.SplitN(user, "=", 2)
+	if len(cred) != 2 {
+		logger.Sugar.Errorf("'user' must be a=b format")
+		return
+	}
+
 	// Dial TURN Server
 	addr := fmt.Sprintf("%s:%d", host, port)
 	conn, err := net.Dial("tcp", addr)
@@ -26,8 +42,6 @@ func (this *tcpClient) Dial(host string, port string, user string, realm string)
 		logger.Sugar.Errorf(err.Error())
 		return
 	}
-
-	cred := strings.SplitN(user, "=", 2)
 	// Start a new TURN Client and wrap our net.Conn in a STUNConn
 	// This allows us to simulate datagram based communication over a net.Conn
 	cfg := &turn.ClientConfig{
@@ -40,15 +54,14 @@ func (this *tcpClient) Dial(host string, port string, user string, realm string)
 		LoggerFactory:  logging.NewDefaultLoggerFactory(),
 	}
 
-	client, err := turn.NewClient(cfg)
+	this.client, err = turn.NewClient(cfg)
 	if err != nil {
 		logger.Sugar.Errorf(err.Error())
 		return
 	}
-	this.client = client
 
 	// Start listening on the conn provided.
-	err = client.Listen()
+	err = this.client.Listen()
 	if err != nil {
 		logger.Sugar.Errorf(err.Error())
 		return
@@ -57,23 +70,26 @@ func (this *tcpClient) Dial(host string, port string, user string, realm string)
 	// Allocate a relay socket on the TURN server. On success, it
 	// will return a net.PacketConn which represents the remote
 	// socket.
-	relayConn, err := client.Allocate()
+	this.relayConn, err = this.client.Allocate()
 	if err != nil {
 		logger.Sugar.Errorf(err.Error())
 		return
 	}
-	this.relayConn = relayConn
 
 	// The relayConn's local address is actually the transport
 	// address assigned on the TURN server.
-	logger.Sugar.Infof("relayed-address=%s", relayConn.LocalAddr().String())
+	logger.Sugar.Infof("relayed-address=%s", this.relayConn.LocalAddr().String())
 }
 
 func (this *tcpClient) Close() {
-	this.client.Close()
-	if closeErr := this.relayConn.Close(); closeErr != nil {
-		logger.Sugar.Errorf(closeErr.Error())
-		return
+	if this.relayConn != nil {
+		if closeErr := this.relayConn.Close(); closeErr != nil {
+			logger.Sugar.Errorf(closeErr.Error())
+			return
+		}
+	}
+	if this.client != nil {
+		this.client.Close()
 	}
 }
 
