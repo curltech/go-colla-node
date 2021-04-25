@@ -36,7 +36,7 @@ func (this *tcpClient) Dial(host string, port string, user string, realm string)
 	}
 
 	// Dial TURN Server
-	addr := fmt.Sprintf("%s:%d", host, port)
+	addr := fmt.Sprintf("%s:%s", host, port)
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		logger.Sugar.Errorf(err.Error())
