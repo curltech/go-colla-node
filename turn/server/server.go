@@ -7,7 +7,6 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
-	"github.com/curltech/go-colla-node/turn/client"
 	"github.com/pion/stun"
 	"github.com/pion/turn/v2"
 	"net"
@@ -201,7 +200,7 @@ func init() {
 	enable := config.TurnParams.Enable
 	if enable {
 		Server.Start()
-		client.UdpClient.Dial(Server.Host, Server.UdpPort, config.TurnParams.Credentials, Server.Realm)
-		client.UdpClient.Ping()
+		//client.UdpClient.Dial(Server.Host, Server.UdpPort, config.TurnParams.Credentials, Server.Realm)
+		//client.UdpClient.Ping()
 	}
 }
