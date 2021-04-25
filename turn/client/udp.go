@@ -48,7 +48,7 @@ func (this *udpClient) Dial(host string, port string, user string, realm string)
 		}
 	}()
 
-	addr := fmt.Sprintf("%s:%d", host, port)
+	addr := fmt.Sprintf("%s:%s", host, port)
 
 	cfg := &turn.ClientConfig{
 		STUNServerAddr: addr,
