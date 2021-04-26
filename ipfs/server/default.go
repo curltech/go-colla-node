@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	collaconfig "github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/global"
@@ -29,14 +28,46 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 
-type ipfsPeer struct {
-	Context  context.Context
-	RepoPath string
-	IpfsNode *core.IpfsNode
-	CoreAPI  icore.CoreAPI
+/**
+根据路径获取文件的句柄
+*/
+func getFile(path string) (files.File, *os.File, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	st, err := file.Stat()
+	if err != nil {
+		return nil, file, err
+	}
+
+	f, err := files.NewReaderPathFile(path, file, st)
+	if err != nil {
+		return nil, file, err
+	}
+
+	return f, file, nil
 }
 
-var IpfsPeer *ipfsPeer
+/**
+根据文件路径返回节点下的文件
+*/
+func getFileNode(path string) (files.Node, error) {
+	st, err := os.Stat(path)
+	if err != nil {
+		logger.Sugar.Errorf("%v", err)
+		return nil, err
+	}
+
+	f, err := files.NewSerialFile(path, false, st)
+	if err != nil {
+		logger.Sugar.Errorf("%v", err)
+		return nil, err
+	}
+
+	return f, nil
+}
 
 //	安装插件
 func setupPlugins(externalPluginsPath string) error {
@@ -87,8 +118,21 @@ func identity() (*config.Identity, error) {
 	return &id, nil
 }
 
+type IpfsPeer struct {
+	Context  context.Context
+	RepoPath string
+	IpfsNode *core.IpfsNode
+	CoreAPI  icore.CoreAPI
+}
+
+var ipfsPeer *IpfsPeer
+
+func GetIpfsPeer() *IpfsPeer {
+	return ipfsPeer
+}
+
 //创建文件区域
-func createRepo() error {
+func (ipfsPeer *IpfsPeer) createRepo() error {
 	id, err := identity()
 	if err != nil {
 		logger.Sugar.Errorf("%v", err)
@@ -100,8 +144,8 @@ func createRepo() error {
 		return err
 	}
 
-	IpfsPeer.RepoPath = collaconfig.IpfsParams.RepoPath
-	err = fsrepo.Init(IpfsPeer.RepoPath, cfg)
+	ipfsPeer.RepoPath = collaconfig.IpfsParams.RepoPath
+	err = fsrepo.Init(ipfsPeer.RepoPath, cfg)
 	if err != nil {
 		logger.Sugar.Errorf("failed to init ephemeral node: %s", err)
 		return err
@@ -111,8 +155,8 @@ func createRepo() error {
 }
 
 // 创建ipfs节点
-func createNode() error {
-	repo, err := fsrepo.Open(IpfsPeer.RepoPath)
+func (ipfsPeer *IpfsPeer) createNode() error {
+	repo, err := fsrepo.Open(ipfsPeer.RepoPath)
 	if err != nil {
 		logger.Sugar.Errorf("%v", err)
 		return err
@@ -129,14 +173,14 @@ func createNode() error {
 		Repo: repo,
 	}
 
-	IpfsPeer.IpfsNode, err = core.NewNode(IpfsPeer.Context, nodeOptions)
+	ipfsPeer.IpfsNode, err = core.NewNode(ipfsPeer.Context, nodeOptions)
 	if err != nil {
 		logger.Sugar.Errorf("%v", err)
 		return err
 	}
 
 	// Attach the Core API to the constructed node
-	IpfsPeer.CoreAPI, err = coreapi.NewCoreAPI(IpfsPeer.IpfsNode)
+	ipfsPeer.CoreAPI, err = coreapi.NewCoreAPI(ipfsPeer.IpfsNode)
 	if err != nil {
 		logger.Sugar.Errorf("%v", err)
 		return err
@@ -146,40 +190,40 @@ func createNode() error {
 }
 
 // 创建节点，文件区域的设置从环境变量读取
-func spawnDefault() error {
+func (ipfsPeer *IpfsPeer) spawnDefault() error {
 	var err error
-	IpfsPeer.RepoPath, err = config.PathRoot()
+	ipfsPeer.RepoPath, err = config.PathRoot()
 	if err != nil {
 		logger.Sugar.Errorf("%v", err)
 		return err
 	}
 
-	if err := setupPlugins(IpfsPeer.RepoPath); err != nil {
+	if err := setupPlugins(ipfsPeer.RepoPath); err != nil {
 		logger.Sugar.Errorf("%v", err)
 		return err
 	}
 
-	return createNode()
+	return ipfsPeer.createNode()
 }
 
 // 创建节点，文件区域的设置从配置文件读取
-func spawnEphemeral() error {
+func (ipfsPeer *IpfsPeer) spawnEphemeral() error {
 	if err := setupPlugins(collaconfig.IpfsParams.ExternalPluginsPath); err != nil {
 		logger.Sugar.Errorf("%v", err)
 		return err
 	}
 
-	err := createRepo()
+	err := ipfsPeer.createRepo()
 	if err != nil {
 		logger.Sugar.Errorf("failed to create temp repo: %s", err)
 		return err
 	}
 
-	return createNode()
+	return ipfsPeer.createNode()
 }
 
 //连接其他peers
-func connectToPeers(peers []string) error {
+func (ipfsPeer *IpfsPeer) connectToPeers(peers []string) error {
 	var wg sync.WaitGroup
 	peerInfos := make(map[peer.ID]*peer.AddrInfo, len(peers))
 	for _, addrStr := range peers {
@@ -203,7 +247,7 @@ func connectToPeers(peers []string) error {
 	for _, peerInfo := range peerInfos {
 		go func(peerInfo *peerstore.PeerInfo) {
 			defer wg.Done()
-			err := IpfsPeer.CoreAPI.Swarm().Connect(IpfsPeer.Context, *peerInfo)
+			err := ipfsPeer.CoreAPI.Swarm().Connect(ipfsPeer.Context, *peerInfo)
 			if err != nil {
 				logger.Sugar.Errorf("failed to connect to %s: %s", peerInfo.ID, err)
 			}
@@ -213,73 +257,7 @@ func connectToPeers(peers []string) error {
 	return nil
 }
 
-/**
-根据路径获取文件的句柄
-*/
-func getFile(path string) (files.File, *os.File, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	st, err := file.Stat()
-	if err != nil {
-		return nil, file, err
-	}
-
-	f, err := files.NewReaderPathFile(path, file, st)
-	if err != nil {
-		return nil, file, err
-	}
-
-	return f, file, nil
-}
-
-/**
-根据文件路径返回节点下的文件
-*/
-func getFileNode(path string) (files.Node, error) {
-	st, err := os.Stat(path)
-	if err != nil {
-		logger.Sugar.Errorf("%v", err)
-		return nil, err
-	}
-
-	f, err := files.NewSerialFile(path, false, st)
-	if err != nil {
-		logger.Sugar.Errorf("%v", err)
-		return nil, err
-	}
-
-	return f, nil
-}
-
-/**
-启动ipfs的节点
-*/
-func Start() {
-	/// --- Part I: Getting a IPFS node running
-	logger.Sugar.Infof("-- Getting an IPFS node running -- ")
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// Spawn a node using a temporary path, creating a temporary repo for the run
-	logger.Sugar.Infof("Spawning node on a temporary repo")
-	var err error
-	IpfsPeer = &ipfsPeer{Context: ctx}
-	err = spawnEphemeral()
-	if err != nil {
-		logger.Sugar.Errorf("failed to spawn ephemeral node: %s", err)
-		return
-	}
-
-	logger.Sugar.Infof("successfully start ipfs node:%v in %v", IpfsPeer.IpfsNode.PeerHost.ID(), IpfsPeer.IpfsNode.PeerHost.Addrs())
-	logger.Sugar.Infof("in repo path:%v, enjoy it!", IpfsPeer.RepoPath)
-
-	select {}
-}
-
-func AddFile(filename string) string {
+func (ipfsPeer *IpfsPeer) AddFile(filename string) string {
 	//加一个文件和路径到ipfs
 	/// --- Part II: Adding a file and a directory to IPFS
 	logger.Sugar.Infof("\n-- Adding and getting back files & directories --")
@@ -293,7 +271,7 @@ func AddFile(filename string) string {
 		return ""
 	}
 	defer someFile.Close()
-	cidFile, err := IpfsPeer.CoreAPI.Unixfs().Add(IpfsPeer.Context, someFile)
+	cidFile, err := ipfsPeer.CoreAPI.Unixfs().Add(ipfsPeer.Context, someFile)
 	if err != nil {
 		logger.Sugar.Errorf("Could not add File: %s", err)
 
@@ -305,7 +283,7 @@ func AddFile(filename string) string {
 	return cidFile.String()
 }
 
-func AddDirectory(path string) string {
+func (ipfsPeer *IpfsPeer) AddDirectory(path string) string {
 	someDirectory, err := getFileNode(path)
 	if err != nil {
 		logger.Sugar.Errorf("Could not get File: %s", err)
@@ -313,7 +291,7 @@ func AddDirectory(path string) string {
 		return ""
 	}
 
-	cidDirectory, err := IpfsPeer.CoreAPI.Unixfs().Add(IpfsPeer.Context, someDirectory)
+	cidDirectory, err := ipfsPeer.CoreAPI.Unixfs().Add(ipfsPeer.Context, someDirectory)
 	if err != nil {
 		logger.Sugar.Errorf("Could not add Directory: %s", err)
 
@@ -325,7 +303,7 @@ func AddDirectory(path string) string {
 	return cidDirectory.String()
 }
 
-func GetFile(cid string, path string) (string, error) {
+func (ipfsPeer *IpfsPeer) GetFile(cid string, path string) (string, error) {
 	cidFile := icorepath.New(cid)
 	var outputPathFile string
 	id := strings.Split(cidFile.String(), "/")[2]
@@ -335,7 +313,7 @@ func GetFile(cid string, path string) (string, error) {
 		outputPathFile = path + id
 	}
 
-	rootNodeFile, err := IpfsPeer.CoreAPI.Unixfs().Get(IpfsPeer.Context, cidFile)
+	rootNodeFile, err := ipfsPeer.CoreAPI.Unixfs().Get(ipfsPeer.Context, cidFile)
 	if err != nil {
 		logger.Sugar.Errorf("Could not get file with CID: %s", err)
 
@@ -354,7 +332,7 @@ func GetFile(cid string, path string) (string, error) {
 	return outputPathFile, nil
 }
 
-func GetDirectory(cid string, path string) (string, error) {
+func (ipfsPeer *IpfsPeer) GetDirectory(cid string, path string) (string, error) {
 	cidDirectory := icorepath.New(cid)
 	var outputPathDirectory string
 	id := strings.Split(cidDirectory.String(), "/")[2]
@@ -363,7 +341,7 @@ func GetDirectory(cid string, path string) (string, error) {
 	} else {
 		outputPathDirectory = path + id
 	}
-	rootNodeDirectory, err := IpfsPeer.CoreAPI.Unixfs().Get(IpfsPeer.Context, cidDirectory)
+	rootNodeDirectory, err := ipfsPeer.CoreAPI.Unixfs().Get(ipfsPeer.Context, cidDirectory)
 	if err != nil {
 		logger.Sugar.Errorf("Could not get file with CID: %s", err)
 
@@ -382,8 +360,33 @@ func GetDirectory(cid string, path string) (string, error) {
 	return outputPathDirectory, nil
 }
 
-func Connect() {
-	fmt.Println("\n-- Going to connect to a few nodes in the Network as bootstrappers --")
+func (ipfsPeer *IpfsPeer) Connect() {
+	logger.Sugar.Infof("\n-- Going to connect to a few nodes in the Network as bootstrappers --")
 	bootstrapNodes := collaconfig.IpfsParams.BootstrapNodes
-	go connectToPeers(bootstrapNodes)
+	go ipfsPeer.connectToPeers(bootstrapNodes)
+}
+
+/**
+启动ipfs的节点
+*/
+func Start() {
+	/// --- Part I: Getting a IPFS node running
+	logger.Sugar.Infof("-- Getting an IPFS node running -- ")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Spawn a node using a temporary path, creating a temporary repo for the run
+	logger.Sugar.Infof("Spawning node on a temporary repo")
+	var err error
+	ipfsPeer = &IpfsPeer{Context: ctx}
+	err = ipfsPeer.spawnEphemeral()
+	if err != nil {
+		logger.Sugar.Errorf("failed to spawn ephemeral node: %s", err)
+		return
+	}
+
+	logger.Sugar.Infof("successfully start ipfs node:%v in %v", ipfsPeer.IpfsNode.PeerHost.ID(), ipfsPeer.IpfsNode.PeerHost.Addrs())
+	logger.Sugar.Infof("in repo path:%v, enjoy it!", ipfsPeer.RepoPath)
+
+	select {}
 }

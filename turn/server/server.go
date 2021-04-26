@@ -33,15 +33,17 @@ turn验证
 */
 func authHandler(username string, realm string, srcAddr net.Addr) ([]byte, bool) {
 	key := ns.GetPeerClientKey(username)
-	recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)
-	if err == nil {
-		for _, recvdVal := range recvdVals {
-			pcs := make([]*entity.PeerClient, 0)
-			err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
-			if err == nil {
-				for _, pc := range pcs {
-					credential := turn.GenerateAuthKey(pc.PeerId, realm, pc.PeerPublicKey)
-					return credential, true
+	if dht.PeerEndpointDHT.DHT != nil {
+		recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)
+		if err == nil {
+			for _, recvdVal := range recvdVals {
+				pcs := make([]*entity.PeerClient, 0)
+				err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
+				if err == nil {
+					for _, pc := range pcs {
+						credential := turn.GenerateAuthKey(pc.PeerId, realm, pc.PeerPublicKey)
+						return credential, true
+					}
 				}
 			}
 		}
@@ -123,7 +125,8 @@ func (this *turnServer) Start() {
 	})
 	if err != nil {
 		logger.Sugar.Errorf("Failed to create TURN server: %s", err)
-		return
+	} else {
+		logger.Sugar.Infof("Successfully create TURN server")
 	}
 }
 
