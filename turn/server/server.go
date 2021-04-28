@@ -158,7 +158,7 @@ func (s *stunLogger) WriteTo(p []byte, addr net.Addr) (n int, err error) {
 
 			logger.Sugar.Debugf("Outbound STUN: %s \n", msg.String())
 		} else {
-			logger.Sugar.Errorf("PacketConn.WriteTo: not stun message \n")
+			logger.Sugar.Debugf("PacketConn.WriteTo: not stun message \n")
 		}
 	} else {
 		logger.Sugar.Errorf("PacketConn.WriteTo: %s \n", err.Error())
@@ -180,7 +180,7 @@ func (s *stunLogger) ReadFrom(p []byte) (n int, addr net.Addr, err error) {
 
 			logger.Sugar.Debugf("Inbound STUN: %s \n", msg.String())
 		} else {
-			logger.Sugar.Errorf("PacketConn.WriteTo: not stun message \n")
+			logger.Sugar.Debugf("PacketConn.ReadFrom: not stun message \n")
 		}
 	} else {
 		logger.Sugar.Errorf("PacketConn.ReadFrom: %s \n", err.Error())
