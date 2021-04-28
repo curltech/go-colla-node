@@ -15,7 +15,7 @@ require (
 	github.com/emersion/go-smtp v0.14.0
 	github.com/foxcpp/maddy v0.4.3
 	github.com/gogo/protobuf v1.3.2
-	github.com/google/uuid v1.1.2
+	github.com/google/uuid v1.2.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/ipfs/go-cid v0.0.7
 	github.com/ipfs/go-datastore v0.4.5
@@ -34,12 +34,11 @@ require (
 	github.com/ipfs/go-log/v2 v2.1.2-0.20200626104915-0016c0b4b3e4 // indirect
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
 	github.com/jbenet/goprocess v0.1.4
-	github.com/kataras/golog v0.1.7
 	github.com/libp2p/go-libp2p v0.13.0
 	github.com/libp2p/go-libp2p-autonat v0.4.0
 	github.com/libp2p/go-libp2p-circuit v0.4.0
 	github.com/libp2p/go-libp2p-connmgr v0.2.4
-	github.com/libp2p/go-libp2p-core v0.8.0
+	github.com/libp2p/go-libp2p-core v0.8.5
 	github.com/libp2p/go-libp2p-discovery v0.5.0
 	github.com/libp2p/go-libp2p-gostream v0.3.0
 	github.com/libp2p/go-libp2p-kad-dht v0.11.1
@@ -61,18 +60,18 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pion/ion-log v1.0.0
 	github.com/pion/ion-sdk-go v0.1.4
-	github.com/pion/ion-sfu v1.7.7
+	github.com/pion/ion-sfu v1.9.8
 	github.com/pion/logging v0.2.2
 	github.com/pion/rtcp v1.2.6
 	github.com/pion/rtp v1.6.2
 	github.com/pion/sdp/v2 v2.4.0
 	github.com/pion/stun v0.3.5
 	github.com/pion/turn/v2 v2.0.5
-	github.com/pion/webrtc/v3 v3.0.3
+	github.com/pion/webrtc/v3 v3.0.20
 	github.com/valyala/fasthttp v1.16.0
 	github.com/vulcand/oxy v1.1.0
 	github.com/whyrusleeping/cbor-gen v0.0.0-20200826160007-0b9f6c5fb163 // indirect
-	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	golang.org/x/image v0.0.0-20200927104501-e162460cd6b5
 )
 

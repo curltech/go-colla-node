@@ -9,6 +9,9 @@ import (
 	"time"
 )
 
+/**
+代表两个peer之间的webrtc连接
+*/
 type SfuPeer struct {
 	*sfu.Peer
 	*p2p.NetPeer

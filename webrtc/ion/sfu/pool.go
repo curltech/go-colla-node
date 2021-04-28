@@ -6,7 +6,6 @@ import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/p2p"
 	"github.com/curltech/go-colla-node/p2p/chain/action/dht"
-	log "github.com/pion/ion-log"
 	"github.com/pion/ion-sfu/pkg/sfu"
 	"github.com/pion/webrtc/v3"
 	"sync"
@@ -18,6 +17,10 @@ type PoolEvent struct {
 	Data   interface{}
 }
 
+/**
+代表SFU服务器，包含多个peer与peer之间的webrtc连接
+每个SFU服务器有多个session，每个session表示一个房间，内含多个peer，在一个session内的peer互相订阅
+*/
 type SfuPeerPool struct {
 	*sfu.SFU
 	sfuPeers map[string][]*SfuPeer
@@ -31,9 +34,8 @@ func NewSfuPeerPool() *SfuPeerPool {
 	sfuPeerPool = &SfuPeerPool{}
 	conf := sfu.Config{}
 	conf.SFU.Ballast = config.SfuParams.Ballast
-	conf.Log = log.Config{Level: config.SfuParams.Level}
 	simulcastConfig := sfu.SimulcastConfig{BestQualityFirst: config.SfuParams.Bestqualityfirst, EnableTemporalLayer: config.SfuParams.Enabletemporallayer}
-	conf.Router = sfu.RouterConfig{MaxBandwidth: config.SfuParams.Maxbandwidth, MaxBufferTime: config.SfuParams.Maxbuffertime, Simulcast: simulcastConfig}
+	conf.Router = sfu.RouterConfig{MaxBandwidth: config.SfuParams.Maxbandwidth, Simulcast: simulcastConfig}
 	portRange := make([]uint16, 2)
 	portRange[0] = config.SfuParams.Minport
 	portRange[1] = config.SfuParams.Maxport
@@ -76,6 +78,9 @@ func GetSfuPeerPool() *SfuPeerPool {
 	return sfuPeerPool
 }
 
+/**
+注册sfu的全局事件
+*/
 func (this *SfuPeerPool) RegistEvent(name string, fn func(event *PoolEvent) (interface{}, error)) {
 	if this.events == nil {
 		this.events = make(map[string]func(event *PoolEvent) (interface{}, error), 0)
@@ -91,6 +96,9 @@ func (this *SfuPeerPool) UnregistEvent(name string) bool {
 	return true
 }
 
+/**
+触发sfu的全局事件
+*/
 func (this *SfuPeerPool) EmitEvent(name string, event *PoolEvent) (interface{}, error) {
 	if this.events == nil {
 		return nil, errors.New("EventNotExist")
@@ -102,6 +110,9 @@ func (this *SfuPeerPool) EmitEvent(name string, event *PoolEvent) (interface{}, 
 	return nil, errors.New("EventNotExist")
 }
 
+/**
+signal全局事件，根据触发的事件的目标和信号
+*/
 func (this *SfuPeerPool) signal(evt *PoolEvent) (interface{}, error) {
 	targetPeerId := evt.Source.TargetPeerId
 	sfuSignal, ok := evt.Data.(*SfuSignal)
@@ -112,6 +123,9 @@ func (this *SfuPeerPool) signal(evt *PoolEvent) (interface{}, error) {
 	return Signal(sfuSignal, targetPeerId)
 }
 
+/**
+收到客户端发来的消息进行分派处理
+*/
 func (this *SfuPeerPool) Receive(netPeer *p2p.NetPeer, payload map[string]interface{}) (interface{}, error) {
 	sfuSignal := Transform(payload)
 	if sfuSignal == nil {
@@ -183,7 +197,11 @@ func (this *SfuPeerPool) offer(netPeer *p2p.NetPeer, sfuSignal *SfuSignal, isSyn
 	return nil, nil
 }
 
+/**
+客户端发来的加入房间的消息
+*/
 func (this *SfuPeerPool) join(netPeer *p2p.NetPeer, sfuSignal *SfuSignal, isSync bool) (interface{}, error) {
+	//先判断客户端是否已经存在
 	var sfuPeer = this.GetPeer(netPeer)
 	if sfuPeer != nil {
 		logger.Sugar.Errorf("sfuPeers:%v is exist, will recreate new sfuPeer", netPeer)
@@ -221,8 +239,14 @@ func (this *SfuPeerPool) join(netPeer *p2p.NetPeer, sfuSignal *SfuSignal, isSync
 		}
 	}
 
-	answer, err := sfuPeer.Join(sfuSignal.Sid, *sfuSignal.Sdp)
+	err := sfuPeer.Join(sfuSignal.Sid, "")
 	if err != nil {
+		logger.Sugar.Errorf("error join %s", err.Error())
+		return nil, err
+	}
+	answer, err := sfuPeer.Answer(*sfuSignal.Sdp)
+	if err != nil {
+		logger.Sugar.Errorf("error answer offer %s", err.Error())
 		return nil, err
 	}
 	answerSfuSignal := &SfuSignal{}
