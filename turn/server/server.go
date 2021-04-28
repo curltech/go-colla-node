@@ -146,30 +146,44 @@ type stunLogger struct {
 }
 
 func (s *stunLogger) WriteTo(p []byte, addr net.Addr) (n int, err error) {
-	if n, err = s.PacketConn.WriteTo(p, addr); err == nil && stun.IsMessage(p) {
-		msg := &stun.Message{Raw: p}
-		if err = msg.Decode(); err != nil {
-			logger.Sugar.Errorf(err.Error())
-			logger.Sugar.Errorf("Outbound STUN: %s \n", msg.String())
-			return
-		}
+	n, err = s.PacketConn.WriteTo(p, addr)
+	if err == nil {
+		if stun.IsMessage(p) {
+			msg := &stun.Message{Raw: p}
+			if err = msg.Decode(); err != nil {
+				logger.Sugar.Errorf(err.Error())
+				logger.Sugar.Errorf("Outbound STUN: %s \n", msg.String())
+				return
+			}
 
-		logger.Sugar.Debugf("Outbound STUN: %s \n", msg.String())
+			logger.Sugar.Debugf("Outbound STUN: %s \n", msg.String())
+		} else {
+			logger.Sugar.Errorf("PacketConn.WriteTo: not stun message \n")
+		}
+	} else {
+		logger.Sugar.Errorf("PacketConn.WriteTo: %s \n", err.Error())
 	}
 
 	return
 }
 
 func (s *stunLogger) ReadFrom(p []byte) (n int, addr net.Addr, err error) {
-	if n, addr, err = s.PacketConn.ReadFrom(p); err == nil && stun.IsMessage(p) {
-		msg := &stun.Message{Raw: p}
-		if err = msg.Decode(); err != nil {
-			logger.Sugar.Errorf(err.Error())
-			logger.Sugar.Errorf("Inbound STUN: %s \n", msg.String())
-			return
-		}
+	n, addr, err = s.PacketConn.ReadFrom(p)
+	if err == nil {
+		if stun.IsMessage(p) {
+			msg := &stun.Message{Raw: p}
+			if err = msg.Decode(); err != nil {
+				logger.Sugar.Errorf(err.Error())
+				logger.Sugar.Errorf("Inbound STUN: %s \n", msg.String())
+				return
+			}
 
-		logger.Sugar.Debugf("Inbound STUN: %s \n", msg.String())
+			logger.Sugar.Debugf("Inbound STUN: %s \n", msg.String())
+		} else {
+			logger.Sugar.Errorf("PacketConn.WriteTo: not stun message \n")
+		}
+	} else {
+		logger.Sugar.Errorf("PacketConn.ReadFrom: %s \n", err.Error())
 	}
 
 	return
