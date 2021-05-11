@@ -8,9 +8,14 @@ import (
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/logger"
 	session2 "github.com/curltech/go-colla-core/session"
+	"github.com/curltech/go-colla-core/util/security"
 	"github.com/gorilla/websocket"
+	"io/ioutil"
+	"mime"
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 )
@@ -41,9 +46,19 @@ func init() {
 	}
 }
 
+const maxUploadSize = 100 * 1024 * 2014 // 100 MB
+const uploadPath = "./tmp"
+
 func Start() {
 	var websocketPath = config.ServerWebsocketParams.Path
 	var listenAddr = config.ServerWebsocketParams.Address
+
+	http.HandleFunc("/upload", uploadFileHandler())
+	fs := http.FileServer(http.Dir(uploadPath))
+	if fs != nil {
+		logger.Sugar.Infof("set upload path %v", uploadPath)
+	}
+
 	http.HandleFunc(websocketPath, websocketHandler)
 	tlsmode := config.TlsParams.Mode
 	var err error
@@ -58,6 +73,59 @@ func Start() {
 	if err != nil {
 		logger.Sugar.Errorf("Start websocket server fail:%v", err.Error())
 	}
+}
+
+func errorf(w http.ResponseWriter, msg string, code int) {
+	logger.Sugar.Errorf(msg+",error code:%v", code)
+	w.Write([]byte(msg))
+}
+
+func uploadFileHandler() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+		if err := r.ParseMultipartForm(maxUploadSize); err != nil {
+			errorf(w, "FILE_TOO_BIG", http.StatusBadRequest)
+			return
+		}
+		fileType := r.PostFormValue("type")
+		file, _, err := r.FormFile("uploadFile")
+		if err != nil {
+			errorf(w, "INVALID_FILE", http.StatusBadRequest)
+			return
+		}
+		defer file.Close()
+		fileBytes, err := ioutil.ReadAll(file)
+		if err != nil {
+			errorf(w, "INVALID_FILE", http.StatusBadRequest)
+			return
+		}
+		filetype := http.DetectContentType(fileBytes)
+		if filetype != "image/jpeg" && filetype != "image/jpg" &&
+			filetype != "image/gif" && filetype != "image/png" &&
+			filetype != "application/pdf" {
+			errorf(w, "INVALID_FILE_TYPE", http.StatusBadRequest)
+			return
+		}
+		fileName := security.UUID()
+		fileEndings, err := mime.ExtensionsByType(fileType)
+		if err != nil {
+			errorf(w, "CANT_READ_FILE_TYPE", http.StatusInternalServerError)
+			return
+		}
+		newPath := filepath.Join(uploadPath, fileName+fileEndings[0])
+		logger.Sugar.Infof("FileType: %s, File: %s\n", fileType, newPath)
+		newFile, err := os.Create(newPath)
+		if err != nil {
+			errorf(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
+			return
+		}
+		defer newFile.Close()
+		if _, err := newFile.Write(fileBytes); err != nil {
+			errorf(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
+			return
+		}
+		w.Write([]byte("SUCCESS"))
+	})
 }
 
 func websocketHandler(w http.ResponseWriter, r *http.Request) {
