@@ -139,7 +139,7 @@ func Regist(handler func(data []byte, conn *Connection) ([]byte, error)) {
 func defaultMessageHandle(data []byte, conn *Connection) ([]byte, error) {
 	remoteAddr := conn.WsConnect.RemoteAddr()
 	sessId := conn.Session.SessionID()
-	logger.Sugar.Infof("receive remote addr:%v,sessionId:%v data:%v", remoteAddr.String(), sessId, string(data))
+	logger.Sugar.Infof("receive remote addr:%v,sessionId:%v data:%v", remoteAddr.String(), sessId, len(data))
 
 	return nil, nil
 }
