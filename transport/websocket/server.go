@@ -46,7 +46,7 @@ func init() {
 	}
 }
 
-const maxUploadSize = 100 * 1024 * 2014 // 100 MB
+const maxUploadSize = 100 * 1024 * 1014 // 100 MB
 const uploadPath = "./tmp"
 
 func Start() {
@@ -82,48 +82,59 @@ func errorf(w http.ResponseWriter, msg string, code int) {
 
 func uploadFileHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
-		if err := r.ParseMultipartForm(maxUploadSize); err != nil {
-			errorf(w, "FILE_TOO_BIG", http.StatusBadRequest)
-			return
+		//设置内存大小
+		//获取上传的文件组
+		if r.MultipartForm == nil {
+			err := r.ParseMultipartForm(maxUploadSize)
+			if err != nil {
+				errorf(w, "FILE_TOO_BIG", http.StatusBadRequest)
+				return
+			}
 		}
-		fileType := r.PostFormValue("type")
-		file, _, err := r.FormFile("uploadFile")
-		if err != nil {
-			errorf(w, "INVALID_FILE", http.StatusBadRequest)
-			return
+		if r.MultipartForm != nil && r.MultipartForm.File != nil {
+			for key, fhs := range r.MultipartForm.File {
+				file, err := fhs[0].Open()
+				if err != nil {
+					errorf(w, "INVALID_FILE:"+key, http.StatusBadRequest)
+					continue
+				} else {
+					defer file.Close()
+					fileBytes, err := ioutil.ReadAll(file)
+					if err != nil {
+						errorf(w, "INVALID_FILE", http.StatusBadRequest)
+						continue
+					}
+					filetype := http.DetectContentType(fileBytes)
+					if filetype != "image/jpeg" && filetype != "image/jpg" &&
+						filetype != "image/gif" && filetype != "image/png" &&
+						filetype != "application/pdf" {
+						errorf(w, "INVALID_FILE_TYPE", http.StatusBadRequest)
+						continue
+					}
+					fileName := security.UUID()
+					fileEndings, err := mime.ExtensionsByType(filetype)
+					if err != nil {
+						errorf(w, "CANT_READ_FILE_TYPE", http.StatusInternalServerError)
+						continue
+					}
+					newPath := filepath.Join(uploadPath, fileName+fileEndings[0])
+					logger.Sugar.Infof("FileType: %s, File: %s\n", filetype, newPath)
+					newFile, err := os.Create(newPath)
+					if err != nil {
+						errorf(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
+						continue
+					}
+					defer newFile.Close()
+					if _, err := newFile.Write(fileBytes); err != nil {
+						errorf(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
+						continue
+					}
+				}
+			}
 		}
-		defer file.Close()
-		fileBytes, err := ioutil.ReadAll(file)
-		if err != nil {
-			errorf(w, "INVALID_FILE", http.StatusBadRequest)
-			return
-		}
-		filetype := http.DetectContentType(fileBytes)
-		if filetype != "image/jpeg" && filetype != "image/jpg" &&
-			filetype != "image/gif" && filetype != "image/png" &&
-			filetype != "application/pdf" {
-			errorf(w, "INVALID_FILE_TYPE", http.StatusBadRequest)
-			return
-		}
-		fileName := security.UUID()
-		fileEndings, err := mime.ExtensionsByType(fileType)
-		if err != nil {
-			errorf(w, "CANT_READ_FILE_TYPE", http.StatusInternalServerError)
-			return
-		}
-		newPath := filepath.Join(uploadPath, fileName+fileEndings[0])
-		logger.Sugar.Infof("FileType: %s, File: %s\n", fileType, newPath)
-		newFile, err := os.Create(newPath)
-		if err != nil {
-			errorf(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
-			return
-		}
-		defer newFile.Close()
-		if _, err := newFile.Write(fileBytes); err != nil {
-			errorf(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
-			return
-		}
+
 		w.Write([]byte("SUCCESS"))
 	})
 }
