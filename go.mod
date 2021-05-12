@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/ProtonMail/gopenpgp/v2 v2.0.1
 	github.com/at-wat/ebml-go v0.11.0
-	github.com/curltech/go-colla-core v0.1.2
+	github.com/curltech/go-colla-core v0.1.3
 	github.com/davidlazar/go-crypto v0.0.0-20190912175916-7055855a373f // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/emersion/go-imap v1.0.6
@@ -51,10 +51,12 @@ require (
 	github.com/libp2p/go-libp2p-record v0.1.3
 	github.com/libp2p/go-libp2p-secio v0.2.2
 	github.com/libp2p/go-libp2p-tls v0.1.3
+	github.com/libp2p/go-libp2p-transport-upgrader v0.4.0
 	github.com/libp2p/go-sockaddr v0.1.0 // indirect
 	github.com/libp2p/go-ws-transport v0.4.0
 	github.com/multiformats/go-base32 v0.0.3
 	github.com/multiformats/go-multiaddr v0.3.1
+	github.com/multiformats/go-multiaddr-fmt v0.1.0
 	github.com/multiformats/go-multiaddr-net v0.2.0
 	github.com/panjf2000/gnet v1.3.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible

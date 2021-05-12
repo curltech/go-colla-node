@@ -40,6 +40,7 @@ const DefaultP2pAddrFormat = "/dns4/%v/tcp/%v/p2p/%v" // 未来可能切换到�
 const DefaultAddrFormat = "/ip4/%v/tcp/%v"
 const DefaultDnsAddrFormat = "/dns4/%v/tcp/%v"
 const DefaultWsAddrFormat = "/ip4/%v/tcp/%v/ws"
+const DefaultWssAddrFormat = "/ip4/%v/tcp/%v/wss"
 const DefaultDnsWsAddrFormat = "/dns4/%v/tcp/%v/ws"
 const DefaultDnsWssAddrFormat = "/dns4/%v/tcp/%v/wss"
 const DefaultWebrtcstarAddrFormat = "/ip4/%v/tcp/%v/ws/p2p-webrtc-star"

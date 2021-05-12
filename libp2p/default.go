@@ -19,6 +19,7 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/util"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
+	"github.com/curltech/go-colla-node/transport/websocket/wss"
 	"github.com/libp2p/go-libp2p"
 	autonat "github.com/libp2p/go-libp2p-autonat"
 	relay "github.com/libp2p/go-libp2p-circuit"
@@ -59,13 +60,19 @@ func chainProtocolStream() protocol.ID {
 
 func listenAddr() libp2p.Option {
 	if len(config.Libp2pParams.Addrs) == 0 {
-		//ip4/1.2.3.4/tcp/1234/ws
+		//没有单独激活websocket，所以激活tcp
 		if !config.Libp2pParams.EnableWebsocket {
-			httpAddr := fmt.Sprintf(global.DefaultAddrFormat, config.Libp2pParams.Addr, config.Libp2pParams.Port)
-			config.Libp2pParams.Addrs = append(config.Libp2pParams.Addrs, httpAddr)
+			tcpAddr := fmt.Sprintf(global.DefaultAddrFormat, config.Libp2pParams.Addr, config.Libp2pParams.Port)
+			config.Libp2pParams.Addrs = append(config.Libp2pParams.Addrs, tcpAddr)
 		}
-		wsAddr := fmt.Sprintf(global.DefaultWsAddrFormat, config.Libp2pParams.Addr, config.Libp2pParams.WsPort)
-		config.Libp2pParams.Addrs = append(config.Libp2pParams.Addrs, wsAddr)
+		//激活websocket或者wss
+		if config.Libp2pParams.EnableWss {
+			wssAddr := fmt.Sprintf(global.DefaultWssAddrFormat, config.Libp2pParams.Addr, config.Libp2pParams.WssPort)
+			config.Libp2pParams.Addrs = append(config.Libp2pParams.Addrs, wssAddr)
+		} else {
+			wsAddr := fmt.Sprintf(global.DefaultWsAddrFormat, config.Libp2pParams.Addr, config.Libp2pParams.WsPort)
+			config.Libp2pParams.Addrs = append(config.Libp2pParams.Addrs, wsAddr)
+		}
 
 		//if config.Libp2pParams.EnableWebrtcStar {
 		//	webrtcAddr := fmt.Sprintf(global.DefaultWebrtcstarAddrFormat, config.Libp2pParams.Addr, config.Libp2pParams.WebrtcStarPort)
@@ -235,11 +242,18 @@ func p2pOptions() []libp2p.Option {
 		}
 	}
 
-	///ip4/1.2.3.4/tcp/1234/ws
+	//是否单独激活websocket
 	if config.Libp2pParams.EnableWebsocket {
-		wsOption := libp2p.Transport(ws.New)
-		options = append(options, wsOption)
-		logger.Sugar.Debugf("start EnableWebsocket option")
+		// libp2p wss, config.TlsParams.Mode="cert" or config.TlsParams.Domain
+		if config.Libp2pParams.EnableWss {
+			wssOption := libp2p.Transport(wss.New)
+			options = append(options, wssOption)
+			logger.Sugar.Debugf("start EnableWss option")
+		} else {
+			wsOption := libp2p.Transport(ws.New)
+			options = append(options, wsOption)
+			logger.Sugar.Debugf("start EnableWebsocket option")
+		}
 	}
 
 	// support any other default transports (TCP)

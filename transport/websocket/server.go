@@ -10,6 +10,7 @@ import (
 	session2 "github.com/curltech/go-colla-core/session"
 	"github.com/curltech/go-colla-core/util/security"
 	"github.com/gorilla/websocket"
+	"golang.org/x/crypto/acme/autocert"
 	"io/ioutil"
 	"mime"
 	"net"
@@ -68,7 +69,26 @@ func Start() {
 		key := config.TlsParams.Key
 		err = http.ListenAndServeTLS(listenAddr, cert, key, nil)
 	} else {
-		err = http.ListenAndServe(listenAddr, nil)
+		// 假如域名存在，使用LetsEncrypt certificates
+		if config.TlsParams.Domain != "" {
+			logger.Sugar.Infof("Domain specified, using LetsEncrypt to autogenerate and serve certs for %s\n", config.TlsParams.Domain)
+			m := &autocert.Manager{
+				Cache:      autocert.DirCache("certs"),
+				Prompt:     autocert.AcceptTOS,
+				HostPolicy: autocert.HostWhitelist(config.TlsParams.Domain),
+			}
+			server := &http.Server{
+				Addr:      config.TlsParams.Domain,
+				TLSConfig: m.TLSConfig(),
+			}
+			logger.Sugar.Infof("Wss calls from wss://%s to %s with LetsEncrypt started!")
+			err = server.ListenAndServeTLS("", "")
+			if err != nil {
+				logger.Sugar.Errorf("failed to server.ListenAndServeTLS: %v", err.Error())
+			}
+		} else {
+			err = http.ListenAndServe(listenAddr, nil)
+		}
 	}
 	if err != nil {
 		logger.Sugar.Errorf("Start websocket server fail:%v", err.Error())
