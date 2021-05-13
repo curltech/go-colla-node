@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-func FastHttpServeTLS(listener net.Listener, handler func(ctx *fasthttp.RequestCtx), cert string, key string) error {
+func FastHttpServeTLS(listener net.Listener, handler fasthttp.RequestHandler, cert string, key string) error {
 	if cert == "" || key == "" {
 		return errors.New("NoTLSCertKey")
 	}
@@ -37,7 +37,7 @@ func HttpServeTLS(listener net.Listener, handler http.Handler, cert string, key 
 	return err
 }
 
-func FastHttpListenAndServeTLS(addr string, cert string, key string, handler func(ctx *fasthttp.RequestCtx)) error {
+func FastHttpListenAndServeTLS(addr string, cert string, key string, handler fasthttp.RequestHandler) error {
 	if cert == "" || key == "" {
 		return errors.New("NoTLSCertKey")
 	}
@@ -61,7 +61,7 @@ func HttpListenAndServeTLS(addr string, cert string, key string, handler http.Ha
 	return err
 }
 
-func FastHttpLetsEncrypt(addr string, domain string, handler func(ctx *fasthttp.RequestCtx)) error {
+func FastHttpLetsEncrypt(addr string, domain string, handler fasthttp.RequestHandler) error {
 	logger.Sugar.Infof("Domain specified, using LetsEncrypt to autogenerate and serve certs for %s\n", domain)
 	// 必须使用443
 	if !strings.HasSuffix(addr, ":443") {
@@ -124,7 +124,7 @@ func HttpLetsEncrypt(addr string, domain string, handler http.Handler) error {
 	return err
 }
 
-func FastHttpLetsEncryptServe(listener net.Listener, domain string, handler func(ctx *fasthttp.RequestCtx)) error {
+func FastHttpLetsEncryptServe(listener net.Listener, domain string, handler fasthttp.RequestHandler) error {
 	logger.Sugar.Infof("Domain specified, using LetsEncrypt to autogenerate and serve certs for %s\n", domain)
 	// 必须使用443
 	if !strings.HasSuffix(listener.Addr().String(), ":443") {
