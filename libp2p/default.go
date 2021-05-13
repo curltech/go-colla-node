@@ -36,6 +36,7 @@ import (
 	secio "github.com/libp2p/go-libp2p-secio"
 	libp2ptls "github.com/libp2p/go-libp2p-tls"
 	"github.com/libp2p/go-libp2p/p2p/protocol/ping"
+	"github.com/libp2p/go-tcp-transport"
 	ws "github.com/libp2p/go-ws-transport"
 	ma "github.com/multiformats/go-multiaddr"
 	"time"
@@ -251,6 +252,10 @@ func p2pOptions() []libp2p.Option {
 
 	// libp2p wss, config.TlsParams.Mode="cert" or config.TlsParams.Domain
 	if config.Libp2pParams.EnableWss {
+		tcpOption := libp2p.Transport(tcp.NewTCPTransport)
+		options = append(options, tcpOption)
+		logger.Sugar.Debugf("start EnableTcp option")
+
 		wssOption := libp2p.Transport(wss.New)
 		options = append(options, wssOption)
 		logger.Sugar.Debugf("start EnableWss option")
