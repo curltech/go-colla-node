@@ -134,7 +134,7 @@ func Start() error {
 			} else {
 				// 没有域名，使用自己生成的证书
 				if config.ProxyParams.Mode == "tls" {
-					util.FastHttpTLS(addr, config.TlsParams.Cert, config.TlsParams.Key, proxyServer.ProxyHandler)
+					util.FastHttpListenAndServeTLS(addr, config.TlsParams.Cert, config.TlsParams.Key, proxyServer.ProxyHandler)
 				}
 			}
 		}
