@@ -9,8 +9,10 @@ import (
 	"github.com/curltech/go-colla-core/logger"
 	session2 "github.com/curltech/go-colla-core/session"
 	"github.com/curltech/go-colla-core/util/security"
+	"github.com/curltech/go-colla-node/transport/util"
+	fastwebsocket "github.com/fasthttp/websocket"
 	"github.com/gorilla/websocket"
-	"golang.org/x/crypto/acme/autocert"
+	"github.com/valyala/fasthttp"
 	"io/ioutil"
 	"mime"
 	"net"
@@ -53,7 +55,6 @@ const uploadPath = "./tmp"
 func Start() {
 	var websocketPath = config.ServerWebsocketParams.Path
 	var listenAddr = config.ServerWebsocketParams.Address
-
 	http.HandleFunc("/upload", uploadFileHandler())
 	fs := http.FileServer(http.Dir(uploadPath))
 	if fs != nil {
@@ -67,27 +68,15 @@ func Start() {
 	if tlsmode == "cert" {
 		cert := config.TlsParams.Cert
 		key := config.TlsParams.Key
-		err = http.ListenAndServeTLS(listenAddr, cert, key, nil)
+		err = util.HttpListenAndServeTLS(listenAddr, cert, key, nil)
 	} else {
 		// 假如域名存在，使用LetsEncrypt certificates
 		if config.TlsParams.Domain != "" {
-			logger.Sugar.Infof("Domain specified, using LetsEncrypt to autogenerate and serve certs for %s\n", config.TlsParams.Domain)
-			m := &autocert.Manager{
-				Cache:      autocert.DirCache("certs"),
-				Prompt:     autocert.AcceptTOS,
-				HostPolicy: autocert.HostWhitelist(config.TlsParams.Domain),
-			}
-			server := &http.Server{
-				Addr:      config.TlsParams.Domain,
-				TLSConfig: m.TLSConfig(),
-			}
-			logger.Sugar.Infof("Wss calls from wss://%s to %s with LetsEncrypt started!")
-			err = server.ListenAndServeTLS("", "")
-			if err != nil {
-				logger.Sugar.Errorf("failed to server.ListenAndServeTLS: %v", err.Error())
-			}
+			util.HttpLetsEncrypt(listenAddr, config.TlsParams.Domain, nil)
+			//util.FastHttpLetsEncrypt(listenAddr,config.TlsParams.Domain,nil)
 		} else {
 			err = http.ListenAndServe(listenAddr, nil)
+			//err = fasthttp.ListenAndServe(listenAddr,fastWebsocketHandler)
 		}
 	}
 	if err != nil {
@@ -157,6 +146,37 @@ func uploadFileHandler() http.HandlerFunc {
 
 		w.Write([]byte("SUCCESS"))
 	})
+}
+
+func fastWebsocketHandler(ctx *fasthttp.RequestCtx) {
+	upgrader := fastwebsocket.FastHTTPUpgrader{
+		CheckOrigin: func(ctx *fasthttp.RequestCtx) bool { return true },
+	}
+	err := upgrader.Upgrade(ctx, func(ws *fastwebsocket.Conn) {
+		defer ws.Close()
+		for {
+			mt, message, err := ws.ReadMessage()
+			if err != nil {
+				logger.Sugar.Errorf("read error:", err.Error())
+				break
+			}
+			logger.Sugar.Infof("recv: %s", message)
+			err = ws.WriteMessage(mt, message)
+			if err != nil {
+				logger.Sugar.Errorf("write error:", err.Error())
+				break
+			}
+		}
+	})
+
+	if err != nil {
+		if _, ok := err.(fastwebsocket.HandshakeError); ok {
+			logger.Sugar.Errorf(err.Error())
+		}
+		return
+	}
+
+	logger.Sugar.Infof("conn done")
 }
 
 func websocketHandler(w http.ResponseWriter, r *http.Request) {

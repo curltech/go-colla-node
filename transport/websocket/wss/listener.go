@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/logger"
+	"github.com/curltech/go-colla-node/transport/util"
 	ma "github.com/multiformats/go-multiaddr"
 	manet "github.com/multiformats/go-multiaddr/net"
-	"golang.org/x/crypto/acme/autocert"
 	"net"
 	"net/http"
 )
@@ -29,33 +29,20 @@ func (l *listener) serve() {
 		if tlsmode == "cert" {
 			cert := config.TlsParams.Cert
 			key := config.TlsParams.Key
-			err = http.ServeTLS(l.Listener, l, cert, key)
-			//err = http.Serve(l.Listener, l)
+			err = util.HttpServeTLS(l.Listener, l, cert, key)
+			//err = util.FastHttpServeTLS(l.Listener, l, cert, key)
 		} else {
 			// 假如域名存在，使用LetsEncrypt certificates
 			if config.TlsParams.Domain != "" {
-				logger.Sugar.Infof("Domain specified, using LetsEncrypt to autogenerate and serve certs for %s\n", config.TlsParams.Domain)
-				m := &autocert.Manager{
-					Cache:      autocert.DirCache("certs"),
-					Prompt:     autocert.AcceptTOS,
-					HostPolicy: autocert.HostWhitelist(config.TlsParams.Domain),
-				}
-				server := &http.Server{
-					Addr:      config.TlsParams.Domain,
-					TLSConfig: m.TLSConfig(),
-				}
-				server.Handler = l
-				logger.Sugar.Infof("libp2p wss calls from wss://%s to %s with LetsEncrypt started!")
-				err = server.ListenAndServeTLS("", "")
-				if err != nil {
-					logger.Sugar.Errorf("failed to server.ListenAndServeTLS: %v", err.Error())
-				}
+				err = util.HttpLetsEncryptServe(l.Listener, config.TlsParams.Domain, l)
+				//err = util.FastHttpLetsEncryptServe(l.Listener, config.TlsParams.Domain, l)
 			} else {
 				logger.Sugar.Errorf("No Tls domain: %v")
 			}
 		}
 	} else {
 		err = http.Serve(l.Listener, l)
+		//err = fasthttp.Serve(l.Listener, l)
 	}
 	if err != nil {
 		logger.Sugar.Errorf("Start libp2p wss server fail:%v", err.Error())

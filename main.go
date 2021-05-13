@@ -9,7 +9,7 @@ import (
 	_ "github.com/curltech/go-colla-core/content"
 	_ "github.com/curltech/go-colla-core/repository/search"
 	_ "github.com/curltech/go-colla-node/consensus/std"
-	_ "github.com/curltech/go-colla-node/transport/sslproxy"
+	_ "github.com/curltech/go-colla-node/transport/httpproxy"
 	_ "github.com/curltech/go-colla-node/transport/websocket"
 	_ "github.com/curltech/go-colla-node/turn/server"
 	_ "github.com/curltech/go-colla-node/webrtc"
