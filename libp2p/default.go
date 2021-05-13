@@ -65,13 +65,14 @@ func listenAddr() libp2p.Option {
 			tcpAddr := fmt.Sprintf(global.DefaultAddrFormat, config.Libp2pParams.Addr, config.Libp2pParams.Port)
 			config.Libp2pParams.Addrs = append(config.Libp2pParams.Addrs, tcpAddr)
 		}
+
+		wsAddr := fmt.Sprintf(global.DefaultWsAddrFormat, config.Libp2pParams.Addr, config.Libp2pParams.WsPort)
+		config.Libp2pParams.Addrs = append(config.Libp2pParams.Addrs, wsAddr)
 		//激活websocket或者wss
 		if config.Libp2pParams.EnableWss {
 			wssAddr := fmt.Sprintf(global.DefaultWssAddrFormat, config.Libp2pParams.Addr, config.Libp2pParams.WssPort)
 			config.Libp2pParams.Addrs = append(config.Libp2pParams.Addrs, wssAddr)
 		}
-		wsAddr := fmt.Sprintf(global.DefaultWsAddrFormat, config.Libp2pParams.Addr, config.Libp2pParams.WsPort)
-		config.Libp2pParams.Addrs = append(config.Libp2pParams.Addrs, wsAddr)
 
 		//if config.Libp2pParams.EnableWebrtcStar {
 		//	webrtcAddr := fmt.Sprintf(global.DefaultWebrtcstarAddrFormat, config.Libp2pParams.Addr, config.Libp2pParams.WebrtcStarPort)
