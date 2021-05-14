@@ -1,17 +1,18 @@
-package websocket
+package fasthttp
 
 /**
-基于gorilla websocket的独立服务端，能够处理超大连接数
+自己实现的基于fasthttp websocket的独立服务端，能够处理超大连接数
 */
 import (
 	"errors"
+	"fmt"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/logger"
-	session2 "github.com/curltech/go-colla-core/session"
 	"github.com/curltech/go-colla-core/util/security"
 	"github.com/curltech/go-colla-node/transport/util"
-	fastwebsocket "github.com/fasthttp/websocket"
-	"github.com/gorilla/websocket"
+	websocket "github.com/fasthttp/websocket"
+	"github.com/phachon/fasthttpsession"
+	"github.com/phachon/fasthttpsession/memory"
 	"github.com/valyala/fasthttp"
 	"io/ioutil"
 	"mime"
@@ -29,7 +30,7 @@ type WebsocketMessage struct {
 }
 
 type Connection struct {
-	Session   *session2.Session
+	Session   fasthttpsession.SessionStore
 	WsConnect *websocket.Conn
 	inChan    chan *WebsocketMessage
 	outChan   chan *WebsocketMessage
@@ -42,6 +43,9 @@ type Connection struct {
 var connectionPool sync.Map
 var messageHandler func(data []byte, conn *Connection) ([]byte, error) = defaultMessageHandle
 
+// 默认的 session 全局配置
+var session = fasthttpsession.NewSession(fasthttpsession.NewDefaultConfig())
+
 func init() {
 	mode := config.ServerWebsocketParams.Mode
 	if mode == "standalone" {
@@ -53,30 +57,25 @@ const maxUploadSize = 100 * 1024 * 1014 // 100 MB
 const uploadPath = "./tmp"
 
 func Start() {
-	var websocketPath = config.ServerWebsocketParams.Path
-	var listenAddr = config.ServerWebsocketParams.Address
-	http.HandleFunc("/upload", uploadFileHandler())
-	fs := http.FileServer(http.Dir(uploadPath))
-	if fs != nil {
-		logger.Sugar.Infof("set upload path %v", uploadPath)
+	err := session.SetProvider("memory", &memory.Config{})
+	if err != nil {
+		logger.Sugar.Infof("session error %v", err.Error())
+		return
 	}
 
-	http.HandleFunc(websocketPath, websocketHandler)
+	var listenAddr = config.ServerWebsocketParams.Address
+
 	tlsmode := config.TlsParams.Mode
-	var err error
-	logger.Sugar.Infof("Start standalone websocket server %v %v", listenAddr, websocketPath)
 	if tlsmode == "cert" {
 		cert := config.TlsParams.Cert
 		key := config.TlsParams.Key
-		err = util.HttpListenAndServeTLS(listenAddr, cert, key, nil)
+		err = util.FastHttpListenAndServeTLS(listenAddr, cert, key, requestHandler)
 	} else {
 		// 假如域名存在，使用LetsEncrypt certificates
 		if config.TlsParams.Domain != "" {
-			util.HttpLetsEncrypt(listenAddr, config.TlsParams.Domain, nil)
-			//util.FastHttpLetsEncrypt(listenAddr,config.TlsParams.Domain,nil)
+			util.FastHttpLetsEncrypt(listenAddr, config.TlsParams.Domain, requestHandler)
 		} else {
-			err = http.ListenAndServe(listenAddr, nil)
-			//err = fasthttp.ListenAndServe(listenAddr,fastWebsocketHandler)
+			err = fasthttp.ListenAndServe(listenAddr, requestHandler)
 		}
 	}
 	if err != nil {
@@ -84,145 +83,122 @@ func Start() {
 	}
 }
 
-func errorf(w http.ResponseWriter, msg string, code int) {
-	logger.Sugar.Errorf(msg+",error code:%v", code)
-	w.Write([]byte(msg))
+func requestHandler(ctx *fasthttp.RequestCtx) {
+	var websocketPath = config.ServerWebsocketParams.Path
+	switch string(ctx.Path()) {
+	case websocketPath:
+		logger.Sugar.Infof("Start standalone websocket server %v", websocketPath)
+		websocketHandler(ctx)
+	case "/upload":
+		uploadFileHandler(ctx)
+	default:
+		ctx.Error("Unsupported path", http.StatusNotFound)
+	}
 }
 
-func uploadFileHandler() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
-		//设置内存大小
-		//获取上传的文件组
-		if r.MultipartForm == nil {
-			err := r.ParseMultipartForm(maxUploadSize)
+func errorf(ctx *fasthttp.RequestCtx, msg string, code int) {
+	logger.Sugar.Errorf(msg+",error code:%v", code)
+	ctx.Error(msg, code)
+}
+
+func uploadFileHandler(ctx *fasthttp.RequestCtx) {
+	ctx.Request.Header.Set("Access-Control-Allow-Origin", "*")
+
+	//设置内存大小
+	//获取上传的文件组
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		errorf(ctx, "FILE_TOO_BIG", http.StatusBadRequest)
+		return
+	}
+	if form != nil && form.File != nil {
+		for key, fhs := range form.File {
+			file, err := fhs[0].Open()
 			if err != nil {
-				errorf(w, "FILE_TOO_BIG", http.StatusBadRequest)
-				return
-			}
-		}
-		if r.MultipartForm != nil && r.MultipartForm.File != nil {
-			for key, fhs := range r.MultipartForm.File {
-				file, err := fhs[0].Open()
+				errorf(ctx, "INVALID_FILE:"+key, fasthttp.StatusBadRequest)
+				continue
+			} else {
+				defer file.Close()
+				fileBytes, err := ioutil.ReadAll(file)
 				if err != nil {
-					errorf(w, "INVALID_FILE:"+key, http.StatusBadRequest)
+					errorf(ctx, "INVALID_FILE", fasthttp.StatusBadRequest)
 					continue
-				} else {
-					defer file.Close()
-					fileBytes, err := ioutil.ReadAll(file)
-					if err != nil {
-						errorf(w, "INVALID_FILE", http.StatusBadRequest)
-						continue
-					}
-					filetype := http.DetectContentType(fileBytes)
-					if filetype != "image/jpeg" && filetype != "image/jpg" &&
-						filetype != "image/gif" && filetype != "image/png" &&
-						filetype != "application/pdf" {
-						errorf(w, "INVALID_FILE_TYPE", http.StatusBadRequest)
-						continue
-					}
-					fileName := security.UUID()
-					fileEndings, err := mime.ExtensionsByType(filetype)
-					if err != nil {
-						errorf(w, "CANT_READ_FILE_TYPE", http.StatusInternalServerError)
-						continue
-					}
-					newPath := filepath.Join(uploadPath, fileName+fileEndings[0])
-					logger.Sugar.Infof("FileType: %s, File: %s\n", filetype, newPath)
-					newFile, err := os.Create(newPath)
-					if err != nil {
-						errorf(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
-						continue
-					}
-					defer newFile.Close()
-					if _, err := newFile.Write(fileBytes); err != nil {
-						errorf(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
-						continue
-					}
+				}
+				filetype := http.DetectContentType(fileBytes)
+				if filetype != "image/jpeg" && filetype != "image/jpg" &&
+					filetype != "image/gif" && filetype != "image/png" &&
+					filetype != "application/pdf" {
+					errorf(ctx, "INVALID_FILE_TYPE", fasthttp.StatusBadRequest)
+					continue
+				}
+				fileName := security.UUID()
+				fileEndings, err := mime.ExtensionsByType(filetype)
+				if err != nil {
+					errorf(ctx, "CANT_READ_FILE_TYPE", fasthttp.StatusInternalServerError)
+					continue
+				}
+				newPath := filepath.Join(uploadPath, fileName+fileEndings[0])
+				logger.Sugar.Infof("FileType: %s, File: %s\n", filetype, newPath)
+				newFile, err := os.Create(newPath)
+				if err != nil {
+					errorf(ctx, "CANT_WRITE_FILE", fasthttp.StatusInternalServerError)
+					continue
+				}
+				defer newFile.Close()
+				if _, err := newFile.Write(fileBytes); err != nil {
+					errorf(ctx, "CANT_WRITE_FILE", fasthttp.StatusInternalServerError)
+					continue
 				}
 			}
 		}
+	}
 
-		w.Write([]byte("SUCCESS"))
-	})
+	ctx.WriteString("SUCCESS")
+
 }
 
-func fastWebsocketHandler(ctx *fasthttp.RequestCtx) {
-	upgrader := fastwebsocket.FastHTTPUpgrader{
+func websocketHandler(ctx *fasthttp.RequestCtx) {
+	upgrader := websocket.FastHTTPUpgrader{
 		CheckOrigin: func(ctx *fasthttp.RequestCtx) bool { return true },
 	}
-	err := upgrader.Upgrade(ctx, func(ws *fastwebsocket.Conn) {
-		defer ws.Close()
-		for {
-			mt, message, err := ws.ReadMessage()
-			if err != nil {
-				logger.Sugar.Errorf("read error:", err.Error())
-				break
-			}
-			logger.Sugar.Infof("recv: %s", message)
-			err = ws.WriteMessage(mt, message)
-			if err != nil {
-				logger.Sugar.Errorf("write error:", err.Error())
-				break
-			}
+	err := upgrader.Upgrade(ctx, func(conn *websocket.Conn) {
+		// start session
+		sessionStore, err := session.Start(ctx)
+		if err != nil {
+			ctx.SetBodyString(err.Error())
+			return
 		}
+		// 必须 defer sessionStore.save(ctx)
+		defer sessionStore.Save(ctx)
+		sessionStore.Set("name", "fasthttpsession")
+		ctx.SetBodyString(fmt.Sprintf("fasthttpsession setted key name= %s ok", sessionStore.Get("name").(string)))
+
+		var chanBufferSize, _ = config.GetInt("websocket.chanBufferSize", 1024)
+		connection := &Connection{
+			Session:   sessionStore,
+			WsConnect: conn,
+			inChan:    make(chan *WebsocketMessage, chanBufferSize),
+			outChan:   make(chan *WebsocketMessage, chanBufferSize),
+			closeChan: make(chan byte, 1),
+		}
+		sessionId := sessionStore.GetSessionId()
+		connectionPool.Store(sessionId, connection)
+		// 启动读协程
+		go connection.loopRead()
+		// 启动写协程
+		go connection.loopWrite()
+
+		go connection.loopHeartbeat()
 	})
 
 	if err != nil {
-		if _, ok := err.(fastwebsocket.HandshakeError); ok {
+		if _, ok := err.(websocket.HandshakeError); ok {
 			logger.Sugar.Errorf(err.Error())
 		}
 		return
 	}
 
 	logger.Sugar.Infof("conn done")
-}
-
-func websocketHandler(w http.ResponseWriter, r *http.Request) {
-	var readBufferSize = config.ServerWebsocketParams.WriteBufferSize
-	var writeBufferSize = config.ServerWebsocketParams.ReadBufferSize
-	upgrade := &websocket.Upgrader{
-		ReadBufferSize:  readBufferSize,
-		WriteBufferSize: writeBufferSize,
-		CheckOrigin: func(r *http.Request) bool {
-			if r.Method != "POST" && r.Method != "GET" {
-				logger.Sugar.Errorf("method is not POST or GET")
-				return false
-			}
-			var websocketPath = config.ServerWebsocketParams.Path
-			if r.URL.Path != websocketPath {
-				logger.Sugar.Errorf("path error")
-				return false
-			}
-			return true
-		},
-	}
-	conn, err := upgrade.Upgrade(w, r, nil)
-	if err != nil {
-		logger.Sugar.Errorf("websocket error:", err)
-		return
-	}
-	sessionManager := session2.GetDefault()
-	session := sessionManager.Start(w, r)
-	var chanBufferSize, _ = config.GetInt("websocket.chanBufferSize", 1024)
-	connection := &Connection{
-		Session:   session,
-		WsConnect: conn,
-		inChan:    make(chan *WebsocketMessage, chanBufferSize),
-		outChan:   make(chan *WebsocketMessage, chanBufferSize),
-		closeChan: make(chan byte, 1),
-	}
-	sessionId := session.SessionID()
-	connectionPool.Store(sessionId, connection)
-	// 启动读协程
-	go connection.loopRead()
-	// 启动写协程
-	go connection.loopWrite()
-
-	go connection.loopHeartbeat()
-
-	return
 }
 
 /**
@@ -257,7 +233,7 @@ func Regist(handler func(data []byte, conn *Connection) ([]byte, error)) {
 */
 func defaultMessageHandle(data []byte, conn *Connection) ([]byte, error) {
 	remoteAddr := conn.WsConnect.RemoteAddr()
-	sessId := conn.Session.SessionID()
+	sessId := conn.Session.GetSessionId()
 	logger.Sugar.Infof("receive remote addr:%v,sessionId:%v data:%v", remoteAddr.String(), sessId, len(data))
 
 	return nil, nil
@@ -301,7 +277,7 @@ func (conn *Connection) Close() {
 		close(conn.closeChan)
 		conn.isClosed = true
 	}
-	connectionPool.Delete(conn.Session.SessionID())
+	connectionPool.Delete(conn.Session.GetSessionId())
 }
 
 // 内部实现
@@ -314,7 +290,7 @@ func (conn *Connection) loopRead() {
 	var readTimeout, _ = config.GetInt("websocket.readTimeout", 0)
 	for {
 		if conn.isClosed {
-			logger.Sugar.Errorf("websocket connection:%v is closed!", conn.Session.SessionID())
+			logger.Sugar.Errorf("websocket connection:%v is closed!", conn.Session.GetSessionId())
 			return
 		}
 		if readTimeout > 0 {
@@ -358,13 +334,13 @@ func (conn *Connection) loopWrite() {
 		err error
 	)
 	if conn.isClosed {
-		logger.Sugar.Errorf("websocket connection:%v is closed!", conn.Session.SessionID())
+		logger.Sugar.Errorf("websocket connection:%v is closed!", conn.Session.GetSessionId())
 		return
 	}
 	var writeTimeout, _ = config.GetInt("websocket.writeTimeout", 0)
 	for {
 		if conn.isClosed {
-			logger.Sugar.Errorf("websocket connection:%v is closed!", conn.Session.SessionID())
+			logger.Sugar.Errorf("websocket connection:%v is closed!", conn.Session.GetSessionId())
 			return
 		}
 		select {
@@ -402,7 +378,7 @@ func (conn *Connection) loopWrite() {
 func (conn *Connection) loopHeartbeat() {
 	var heartbeatInterval = config.ServerWebsocketParams.HeartbeatInteval
 	if conn.isClosed {
-		logger.Sugar.Errorf("websocket connection:%v is closed!", conn.Session.SessionID())
+		logger.Sugar.Errorf("websocket connection:%v is closed!", conn.Session.GetSessionId())
 		return
 	}
 	for {

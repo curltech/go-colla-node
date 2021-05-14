@@ -9,7 +9,7 @@ import (
 	ws "github.com/fasthttp/websocket"
 )
 
-// Conn implements net.Conn interface for gorilla/websocket.
+// Conn implements net.Conn interface for fasthttp/websocket.
 type Conn struct {
 	*ws.Conn
 	DefaultMessageType int

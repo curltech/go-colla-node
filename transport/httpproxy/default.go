@@ -7,10 +7,14 @@ import (
 	"github.com/curltech/go-colla-node/transport/util"
 	"github.com/valyala/fasthttp"
 	proxy "github.com/yeqown/fasthttp-reverse-proxy/v2"
+	"net/http"
 	"strings"
 	"time"
 )
 
+/**
+使用fasthttp实现的http反向代理，支持http,ws,https,wss的代理映射
+*/
 type ProxyServer struct {
 	mode           string
 	from           string
@@ -26,28 +30,46 @@ func init() {
 	parseMapping()
 }
 
+/**
+解析配置文件的映射配置
+*/
 func parseMapping() error {
 	mappings, exist := config.ProxyParams.Mapping.([]interface{})
 	if !exist {
 		return errors.New("NotExist")
 	}
+	/**
+	循环每一个映射配置
+	*/
 	for _, mapping := range mappings {
 		maps, success := mapping.(map[string]interface{})
 		if !success {
 			logger.Sugar.Errorf("mapping failure")
 			continue
 		}
+		/**
+		每个映射的模式，缺省http，表示被代理的是http协议，如果是ws，则被代理的是websocket
+		*/
 		mode, success := maps["mode"].(string)
 		if !success {
 			mode = "http"
 		}
+		/**
+		表现给访问者的外部地址
+		*/
 		from, success := maps["from"].(string)
 		if !success {
 			logger.Sugar.Errorf("from error")
 			continue
 		}
+		/**
+		是否进行http到https的转发
+		*/
 		redirect, success := maps["redirect"].(bool)
 		logger.Sugar.Infof("%v%v%v", mode, from, redirect)
+		/**
+		被代理的内部地址列表，可以多个内部地址，根据权重进行代理
+		*/
 		tos, success := maps["to"].([]interface{})
 		if !success {
 			logger.Sugar.Errorf("to error")
@@ -60,6 +82,9 @@ func parseMapping() error {
 				logger.Sugar.Errorf("to error")
 				continue
 			}
+			/**
+			每一个被代理的地址和权重
+			*/
 			addr, success := to["address"].(string)
 			if !success {
 				logger.Sugar.Errorf("to address error")
@@ -76,6 +101,7 @@ func parseMapping() error {
 			}
 			ps.weights[addr] = proxy.Weight(w)
 		}
+		//创建被代理的http服务器或者websocket服务器（只支持一个地址）
 		if mode == "http" || mode == "https" {
 			reverseProxy := proxy.NewReverseProxy("", proxy.WithBalancer(ps.weights), proxy.WithTimeout(5*time.Second))
 			ps.ReverseProxy = reverseProxy
@@ -97,9 +123,35 @@ func parseMapping() error {
 }
 
 func (proxyServer *ProxyServer) ProxyHandler(ctx *fasthttp.RequestCtx) {
+	//ctx.Request.Header.Set("User-Agent", "")
+	//ctx.Request.Header.Set(http.CanonicalHeaderKey("X-Forwarded-Proto"), "https")
+	//ctx.Request.Header.Set(http.CanonicalHeaderKey("X-Forwarded-Port"), "443")
+	// Redirect 表示目标如果http，重定向到https
+	if proxyServer.redirect {
+		// Redirect to fromURL by default, unless a domain is specified--in that case, redirect using the public facing
+		// domain
+		redirectURL := proxyServer.from
+		if config.TlsParams.Domain != "" {
+			redirectURL = config.TlsParams.Domain
+		}
+		redirectTLS := func(ctx *fasthttp.RequestCtx) {
+			ctx.Redirect("https://"+redirectURL+string(ctx.RequestURI()), http.StatusMovedPermanently)
+		}
+		go func() {
+			logger.Sugar.Infof("Also redirecting https requests on port 80 to https requests on %s", redirectURL)
+			err := fasthttp.ListenAndServe(":80", redirectTLS)
+			if err != nil {
+				logger.Sugar.Infof("HTTP redirection server failure")
+				logger.Sugar.Infof(err.Error())
+			}
+		}()
+	}
 	if proxyServer.ReverseProxy != nil {
 		proxyServer.ReverseProxy.ServeHTTP(ctx)
 	} else if proxyServer.WSReverseProxy != nil {
+		/**
+		websocket需要检查路径是否匹配
+		*/
 		path := string(ctx.Path())
 		for key, _ := range proxyServer.weights {
 			ks := strings.Split(key, "/")
@@ -116,6 +168,9 @@ func (proxyServer *ProxyServer) ProxyHandler(ctx *fasthttp.RequestCtx) {
 	}
 }
 
+/**
+启动代理服务器，对外使用fasthttp的http server，支持https模式
+*/
 func Start() error {
 	//不启动代理
 	if config.ProxyParams.Mode == "none" {

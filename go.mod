@@ -62,6 +62,7 @@ require (
 	github.com/multiformats/go-multiaddr-net v0.2.0
 	github.com/panjf2000/gnet v1.3.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/phachon/fasthttpsession v0.0.0-20201116052147-eb400f0616cb
 	github.com/pion/ion-log v1.0.0
 	github.com/pion/ion-sdk-go v0.1.4
 	github.com/pion/ion-sfu v1.9.8

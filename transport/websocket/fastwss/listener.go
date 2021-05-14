@@ -10,7 +10,6 @@ import (
 	manet "github.com/multiformats/go-multiaddr/net"
 	"github.com/valyala/fasthttp"
 	"net"
-	"net/http"
 )
 
 type listener struct {
@@ -22,6 +21,9 @@ type listener struct {
 	incoming chan *Conn
 }
 
+/**
+libp2p的wss fasthttp websocket的实现，与原始的ws相比，最重要的改动就是在此处根据配置启动了fasthttp和tls
+*/
 func (l *listener) serve() {
 	defer close(l.closed)
 	tlsmode := config.TlsParams.Mode
@@ -31,63 +33,38 @@ func (l *listener) serve() {
 		if tlsmode == "cert" {
 			cert := config.TlsParams.Cert
 			key := config.TlsParams.Key
-			err = util.HttpServeTLS(l.Listener, l, cert, key)
-			//err = util.FastHttpServeTLS(l.Listener, l, cert, key)
+			err = util.FastHttpServeTLS(l.Listener, l.ServeHTTP, cert, key)
 		} else {
 			// 假如域名存在，使用LetsEncrypt certificates
 			if config.TlsParams.Domain != "" {
-				err = util.HttpLetsEncryptServe(l.Listener, config.TlsParams.Domain, l)
-				//err = util.FastHttpLetsEncryptServe(l.Listener, config.TlsParams.Domain, l)
+				err = util.FastHttpLetsEncryptServe(l.Listener, config.TlsParams.Domain, l.ServeHTTP)
 			} else {
 				logger.Sugar.Errorf("No Tls domain: %v")
 			}
 		}
 	} else {
-		err = http.Serve(l.Listener, l)
-		//err = fasthttp.Serve(l.Listener, l)
+		err = fasthttp.Serve(l.Listener, l.ServeHTTP)
 	}
 	if err != nil {
 		logger.Sugar.Errorf("Start libp2p wss server fail:%v", err.Error())
 	}
 }
 
-func (l *listener) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	c, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		// The upgrader writes a response for us.
-		return
-	}
-
-	select {
-	case l.incoming <- NewConn(c):
-	case <-l.closed:
-		c.Close()
-	}
-	// The connection has been hijacked, it's safe to return.
-}
-
 /**
-没完成
+fasthttp实际的处理方法
 */
-func (l *listener) fastHandler(ctx *fasthttp.RequestCtx) {
+func (l *listener) ServeHTTP(ctx *fasthttp.RequestCtx) {
 	upgrader := fastwebsocket.FastHTTPUpgrader{
 		CheckOrigin: func(ctx *fasthttp.RequestCtx) bool { return true },
 	}
-	err := upgrader.Upgrade(ctx, func(ws *fastwebsocket.Conn) {
-		defer ws.Close()
-		for {
-			mt, message, err := ws.ReadMessage()
-			if err != nil {
-				logger.Sugar.Errorf("read error:", err.Error())
-				break
-			}
-			logger.Sugar.Infof("recv: %s", message)
-			err = ws.WriteMessage(mt, message)
-			if err != nil {
-				logger.Sugar.Errorf("write error:", err.Error())
-				break
-			}
+	err := upgrader.Upgrade(ctx, func(c *fastwebsocket.Conn) {
+		select {
+		//当连接建立的时候，填充输入管道
+		case l.incoming <- NewConn(c):
+		case <-l.closed:
+			c.Close()
 		}
+		// The connection has been hijacked, it's safe to return.
 	})
 
 	if err != nil {
@@ -96,8 +73,6 @@ func (l *listener) fastHandler(ctx *fasthttp.RequestCtx) {
 		}
 		return
 	}
-
-	logger.Sugar.Infof("conn done")
 }
 
 func (l *listener) Accept() (manet.Conn, error) {
@@ -107,6 +82,7 @@ func (l *listener) Accept() (manet.Conn, error) {
 			return nil, fmt.Errorf("listener is closed")
 		}
 
+		//新的连接到来的时候
 		mnc, err := manet.WrapNetConn(c)
 		if err != nil {
 			c.Close()

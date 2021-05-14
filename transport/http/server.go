@@ -11,6 +11,9 @@ import (
 	"unsafe"
 )
 
+/**
+gnet是号称最快的网络库，比标准的net快，这是用gnet实现的http server
+*/
 var res string
 
 type request struct {

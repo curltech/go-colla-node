@@ -7,6 +7,9 @@ import (
 	"log"
 )
 
+/**
+gnet是号称最快的网络库，比标准的net快，udp server
+*/
 type echoServer struct {
 	*gnet.EventServer
 }

@@ -1,4 +1,4 @@
-package websocket
+package http
 
 /**
 基于gorilla websocket的客户端
@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type thislient struct {
+type client struct {
 	conn        *websocket.Conn
 	schema      string
 	addr        *string
@@ -23,12 +23,12 @@ type thislient struct {
 }
 
 // 构造函数
-func NewWsClient(schema string, ip string, port string, path string, timeout time.Duration) *thislient {
+func NewWsClient(schema string, ip string, port string, path string, timeout time.Duration) *client {
 	addrString := ip + ":" + port
 	var sendChan = make(chan string, 10)
 	var recvChan = make(chan string, 10)
 	var conn *websocket.Conn
-	return &thislient{
+	return &client{
 		schema:      schema,
 		addr:        &addrString,
 		path:        path,
@@ -41,7 +41,7 @@ func NewWsClient(schema string, ip string, port string, path string, timeout tim
 }
 
 // 链接服务端
-func (this *thislient) dail() {
+func (this *client) dail() {
 	var err error
 	u := url.URL{Scheme: "ws", Host: *this.addr, Path: this.path}
 	logger.Sugar.Infof("connecting to %s", u.String())
@@ -57,7 +57,7 @@ func (this *thislient) dail() {
 }
 
 // 发送消息
-func (this *thislient) sendMsgThread() {
+func (this *client) sendMsgThread() {
 	go func() {
 		for {
 			msg := <-this.sendMsgChan
@@ -71,7 +71,7 @@ func (this *thislient) sendMsgThread() {
 }
 
 // 读取消息
-func (this *thislient) readMsgThread() {
+func (this *client) readMsgThread() {
 	go func() {
 		for {
 			if this.conn != nil {
@@ -92,7 +92,7 @@ func (this *thislient) readMsgThread() {
 }
 
 // 开启服务并重连
-func (this *thislient) open() {
+func (this *client) open() {
 	for {
 		if this.isAlive == false {
 			this.dail()
@@ -103,7 +103,7 @@ func (this *thislient) open() {
 	}
 }
 
-func (this *thislient) Connect(ip string, port string, path string, timeout time.Duration) {
+func (this *client) Connect(ip string, port string, path string, timeout time.Duration) {
 	this = NewWsClient("wss", ip, port, path, timeout)
 	this.open()
 	var wg sync.WaitGroup

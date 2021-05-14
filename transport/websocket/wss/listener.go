@@ -20,6 +20,9 @@ type listener struct {
 	incoming chan *Conn
 }
 
+/**
+libp2p的wss websocket的实现，与原始的ws相比，最重要的改动就是在此处根据配置启动了tls
+*/
 func (l *listener) serve() {
 	defer close(l.closed)
 	tlsmode := config.TlsParams.Mode

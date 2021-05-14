@@ -13,6 +13,13 @@ import (
 	"strings"
 )
 
+/**
+对http和fasthttp进行tls的支持，支持cert和letsencrypt两种方式
+cert模式传入的是cert和key文件的地址
+letsencrypt模式传入的是domain
+同时也同时支持传入地址和监听器两种方式
+*/
+
 func FastHttpServeTLS(listener net.Listener, handler fasthttp.RequestHandler, cert string, key string) error {
 	if cert == "" || key == "" {
 		return errors.New("NoTLSCertKey")
