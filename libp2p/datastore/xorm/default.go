@@ -405,7 +405,7 @@ func (this *XormDatastore) Get(key datastore.Key) (value []byte, err error) {
 	rec.TimeReceived = util.FormatRFC3339(time.Now())
 	buf, err := proto.Marshal(rec)
 	if err != nil {
-		logger.Sugar.Errorf("failed to marshal record from datastore", "key", key, "error", err)
+		logger.Sugar.Errorf("failed to marshal record from datastore", "key", keyString, "error", err)
 		return nil, err
 	}
 
