@@ -67,8 +67,18 @@ func (this *PeerEntityDHT) GetPublicKey(p peer.ID) (crypto.PubKey, error) {
 	return this.DHT.GetPublicKey(global.Global.Context, p)
 }
 
-func (this *PeerEntityDHT) GetClosestPeers(key string) (<-chan peer.ID, error) {
-	return this.DHT.GetClosestPeers(global.Global.Context, key)
+func (this *PeerEntityDHT) GetClosestPeers(key string) ([]peer.ID, error) {
+	ctx, cancel := context.WithTimeout(global.Global.Context, time.Duration(time.Second * 1))
+	start := time.Now()
+	pArray, err := this.DHT.GetClosestPeers(ctx, key)
+	end := time.Now()
+	logger.Sugar.Infof("GetClosestPeers time:%v, %v", key, end.Sub(start))
+	cancel()
+	if err != nil {
+		return nil, err
+	} else {
+		return pArray, nil
+	}
 }
 
 func (this *PeerEntityDHT) PutLocal(key string, value []byte, opts ...routing.Option) (err error) {
@@ -113,7 +123,10 @@ func (this *PeerEntityDHT) PutLocal(key string, value []byte, opts ...routing.Op
 }
 
 func (this *PeerEntityDHT) PutValue(key string, value []byte, opts ...routing.Option) (err error) {
+	start := time.Now()
 	error := this.DHT.PutValue(global.Global.Context, key, value, opts...)
+	end := time.Now()
+	logger.Sugar.Infof("PutValue time:%v, %v", key, end.Sub(start))
 	if strings.HasPrefix(key, "/"+ns.PeerClient_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerClient_Mobile_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.DataBlock_Prefix) == true ||
@@ -169,7 +182,10 @@ func (this *PeerEntityDHT) GetLocal(key string) (*recpb.Record, error) {
 }
 
 func (this *PeerEntityDHT) GetValue(key string, opts ...routing.Option) (_ []byte, err error) {
+	start := time.Now()
 	byteArr, error := this.DHT.GetValue(global.Global.Context, key, opts...)
+	end := time.Now()
+	logger.Sugar.Infof("GetValue time:%v, %v", key, end.Sub(start))
 	if (strings.HasPrefix(key, "/"+ns.PeerClient_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerClient_Mobile_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.DataBlock_Prefix) == true ||
@@ -201,7 +217,10 @@ func (this *PeerEntityDHT) SearchValue(key string, opts ...routing.Option) (<-ch
 }
 
 func (this *PeerEntityDHT) GetValues(key string, nvals int) (_ []dht.RecvdVal, err error) {
+	start := time.Now()
 	recvdVals, error := this.DHT.GetValues(global.Global.Context, key, nvals)
+	end := time.Now()
+	logger.Sugar.Infof("GetValues time:%v, %v", key, end.Sub(start))
 	if (strings.HasPrefix(key, "/"+ns.PeerClient_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerClient_Mobile_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.DataBlock_Prefix) == true ||
@@ -217,7 +236,10 @@ func (this *PeerEntityDHT) GetValues(key string, nvals int) (_ []dht.RecvdVal, e
 }
 
 func (this *PeerEntityDHT) FindPeer(id peer.ID) (_ peer.AddrInfo, err error) {
+	start := time.Now()
 	return this.DHT.FindPeer(global.Global.Context, id)
+	end := time.Now()
+	logger.Sugar.Infof("FindPeer time:%v, %v", id.Pretty(), end.Sub(start))
 }
 
 func (this *PeerEntityDHT) RefreshRoutingTable() <-chan error {
