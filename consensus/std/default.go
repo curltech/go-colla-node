@@ -41,6 +41,7 @@ func GetStdConsensus() *StdConsensus {
  */
 func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
 	logger.Sugar.Infof("ReceiveConsensus")
+	var response *msg.ChainMessage
 	dataBlock, err := this.GetDataBlock(chainMessage)
 	if err != nil {
 		return nil, err
@@ -88,15 +89,19 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 				// 封装消息，异步发送
 				go action.ConsensusAction.ConsensusDataBlock(peerId, msgtype.CONSENSUS_COMMITED, dataBlock, "")
 			}
-			response := handler.Ok(msgtype.CONSENSUS)
+			response = handler.Ok(msgtype.CONSENSUS)
 
 			return response, nil
 		}
 	}
 	// 保存dataBlock
 	dataBlock.Status = entity2.EntityStatus_Effective
-	service2.GetDataBlockService().StoreValue(dataBlock)
-	response := handler.Ok(msgtype.CONSENSUS_REPLY)
+	err = service2.GetDataBlockService().StoreValue(dataBlock)
+	if err != nil {
+		response = handler.Error(msgtype.CONSENSUS_REPLY, err)
+	} else {
+		response = handler.Ok(msgtype.CONSENSUS_REPLY)
+	}
 
 	return response, nil
 }
@@ -124,12 +129,15 @@ func (this *StdConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.
 
 	// 保存dataBlock
 	dataBlock.Status = entity2.EntityStatus_Effective
-	service2.GetDataBlockService().StoreValue(dataBlock)
-
-	/**
-	 * 异步返回leader reply
-	 */
-	go action.ConsensusAction.ConsensusLog(dataBlock.PrimaryPeerId, msgtype.CONSENSUS_REPLY, log, "")
+	err = service2.GetDataBlockService().StoreValue(dataBlock)
+	if err != nil {
+		return nil, err
+	} else {
+		/**
+		 * 异步返回leader reply
+		 */
+		go action.ConsensusAction.ConsensusLog(dataBlock.PrimaryPeerId, msgtype.CONSENSUS_REPLY, log, "")
+	}
 
 	return nil, nil
 }
@@ -217,16 +225,27 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 		if count == config.ConsensusParams.StdMinPeerNum + 1 {
 			// 保存dataBlock
 			dataBlock.Status = entity2.EntityStatus_Effective
-			service2.GetDataBlockService().StoreValue(dataBlock)
 			log.PeerId = myPeerId
-			go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_REPLY, log, "")
-			for _, key := range keys {
+			go finalCommit(dataBlock, log)
+			/*for _, key := range keys {
 				MemCache.Delete(key)
-			}
+			}*/
 		}
 	}
 
 	return nil, nil
+}
+
+func finalCommit(dataBlock *entity.DataBlock, log *entity.ConsensusLog) {
+	start := time.Now()
+	err := service2.GetDataBlockService().StoreValue(dataBlock, true)
+	end := time.Now()
+	logger.Sugar.Infof("ReceiveReply-StoreValue time:%v", end.Sub(start))
+	if err != nil {
+		logger.Sugar.Errorf("finalCommit StoreValue failed:%v", err)
+	} else {
+		go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_REPLY, log, "")
+	}
 }
 
 func init() {
