@@ -212,12 +212,12 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 	}
 	peers = append(peers, &peerEndpoint)
 	// 添加最近节点
-	pchan, err := dht.PeerEndpointDHT.GetClosestPeers(key)
+	parray, err := dht.PeerEndpointDHT.GetClosestPeers(key)
 	if err != nil {
 		logger.Sugar.Errorf("failed to GetClosestPeers by key: %v, err: %v", key, err)
 	} else {
 		wg := sync.WaitGroup{}
-		for p := range pchan {
+		for _, p := range parray {
 			wg.Add(1)
 			go func(p peer.ID) {
 				ctx, cancel := context.WithCancel(global.Global.Context)
