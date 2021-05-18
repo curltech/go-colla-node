@@ -237,9 +237,10 @@ func (this *PeerEntityDHT) GetValues(key string, nvals int) (_ []dht.RecvdVal, e
 
 func (this *PeerEntityDHT) FindPeer(id peer.ID) (_ peer.AddrInfo, err error) {
 	start := time.Now()
-	return this.DHT.FindPeer(global.Global.Context, id)
+	addrInfo, err := this.DHT.FindPeer(global.Global.Context, id)
 	end := time.Now()
 	logger.Sugar.Infof("FindPeer time:%v, %v", id.Pretty(), end.Sub(start))
+	return addrInfo, err
 }
 
 func (this *PeerEntityDHT) RefreshRoutingTable() <-chan error {
