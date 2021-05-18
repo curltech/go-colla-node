@@ -97,7 +97,7 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 	}
 	// 保存dataBlock
 	dataBlock.Status = entity2.EntityStatus_Effective
-	err = service2.GetDataBlockService().StoreValue(dataBlock)
+	err = service2.GetDataBlockService().StoreValue(dataBlock, true)
 	if err != nil {
 		response = handler.Error(msgtype.CONSENSUS_REPLY, err)
 	} else {
@@ -130,7 +130,7 @@ func (this *StdConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.
 
 	// 保存dataBlock
 	dataBlock.Status = entity2.EntityStatus_Effective
-	err = service2.GetDataBlockService().StoreValue(dataBlock)
+	err = service2.GetDataBlockService().StoreValue(dataBlock, false)
 	if err != nil {
 		return nil, err
 	} else {
