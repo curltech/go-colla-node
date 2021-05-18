@@ -5,6 +5,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/entity"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
+	"github.com/curltech/go-colla-node/p2p/chain/handler/sender"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 )
@@ -28,7 +29,7 @@ func (this *consensusAction) ConsensusDataBlock(peerId string, msgType string, d
 	chainMessage.MessageType = msgtype.MsgType(msgType)
 	chainMessage.MessageDirect = msgtype.MsgDirect_Request
 
-	response, err := this.Send(&chainMessage)
+	response, err := sender.DirectSend(&chainMessage) // 定位器之间
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +53,13 @@ func (this *consensusAction) ConsensusLog(peerId string, msgType string, consens
 	chainMessage.MessageType = msgtype.MsgType(msgType)
 	chainMessage.MessageDirect = msgtype.MsgDirect_Request
 
-	response, err := this.Send(&chainMessage)
+	var response *msg.ChainMessage
+	var err error
+	if peerId == consensusLog.PrimaryPeerId { // 定位器之间
+		response, err = sender.DirectSend(&chainMessage)
+	} else {
+		response, err = this.Send(&chainMessage)
+	}
 	if err != nil {
 		return nil, err
 	}
