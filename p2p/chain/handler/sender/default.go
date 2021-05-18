@@ -6,6 +6,7 @@ import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/global"
+	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/libp2p/pipe/handler"
 	"github.com/curltech/go-colla-node/libp2p/pubsub"
 	handler1 "github.com/curltech/go-colla-node/p2p/chain/handler"
@@ -134,40 +135,55 @@ func RelaySend(chainMessage *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 		chainMessage.ConnectPeerId = chainMessage.TargetPeerId
 		return send(chainMessage)
 	} else {
-		// 最终目标会话为空，先检查PeerClient是否有对应的目标，如果有，填写最终目标会话，设置下一步的目标
 		targetPeerId := handler.GetPeerId(chainMessage.TargetPeerId)
-		peerClients, err := service.GetPeerClientService().GetValues(targetPeerId, "")
-		if err == nil && len(peerClients) > 0 {
-			for _, peerClient := range peerClients {
-				if peerClient.ActiveStatus == entity.ActiveStatus_Up {
-					// 如果PeerClient的连接节点是自己，下一步就是最终目标，将目标会话放入消息中
-					if global.IsMyself(peerClient.ConnectPeerId) {
-						chainMessage.TargetConnectSessionId = peerClient.ConnectSessionId
-						chainMessage.TargetConnectPeerId = peerClient.ConnectPeerId
-						chainMessage.ConnectPeerId = chainMessage.TargetPeerId
-					} else { // 否则下一步就是连接节点
-						chainMessage.TargetConnectSessionId = peerClient.ConnectSessionId
-						chainMessage.TargetConnectPeerId = peerClient.ConnectPeerId
-						chainMessage.ConnectPeerId = peerClient.ConnectPeerId
+		var peerEndPoints = make([]*entity.PeerEndpoint, 0)
+		var connectPeerId string = ""
+		key := ns.GetPeerClientKey(targetPeerId)
+		peerClients, err := service.GetPeerClientService().GetLocals(key, "")
+		if err != nil || len(peerClients) == 0 {
+			peerEndPoints, err := service.GetPeerEndpointService().GetLocal(targetPeerId)
+			if err != nil || len(peerEndPoints) == 0 {
+				peerClients, err := service.GetPeerClientService().GetValues(targetPeerId, "")
+				if err != nil || len(peerClients) == 0 {
+					connectPeerId, err = service.GetPeerEndpointService().FindPeer(targetPeerId)
+				}
+			}
+		}
+		if err == nil {
+			// 最终目标会话为空，先检查PeerClient是否有对应的目标，如果有，填写最终目标会话，设置下一步的目标
+			if len(peerClients) > 0 {
+				for _, peerClient := range peerClients {
+					if peerClient.ActiveStatus == entity.ActiveStatus_Up {
+						// 如果PeerClient的连接节点是自己，下一步就是最终目标，将目标会话放入消息中
+						if global.IsMyself(peerClient.ConnectPeerId) {
+							chainMessage.TargetConnectSessionId = peerClient.ConnectSessionId
+							chainMessage.TargetConnectPeerId = peerClient.ConnectPeerId
+							chainMessage.ConnectPeerId = chainMessage.TargetPeerId
+						} else { // 否则下一步就是连接节点
+							chainMessage.TargetConnectSessionId = peerClient.ConnectSessionId
+							chainMessage.TargetConnectPeerId = peerClient.ConnectPeerId
+							chainMessage.ConnectPeerId = peerClient.ConnectPeerId
+						}
+						go send(chainMessage)
 					}
-					go send(chainMessage)
 				}
-			}
-			return chainMessage, nil
-		} else {
-			// 如果PeerClient不是最终目标，那么查找最终目标是否是定位器节点，如果是，下一步是定位器节点
-			connectPeerId, _ := service.GetPeerEndpointService().FindPeer(targetPeerId)
-			if connectPeerId != "" {
-				if chainMessage.ConnectPeerId == "" {
-					chainMessage.ConnectPeerId = chainMessage.TargetPeerId
-				}
+				return chainMessage, nil
 			} else {
-				targetConnectPeerId := chainMessage.TargetConnectPeerId
-				if targetConnectPeerId != "" {
-					chainMessage.ConnectPeerId = targetConnectPeerId
+				// 如果PeerClient不是最终目标，那么查找最终目标是否是定位器节点，如果是，下一步是定位器节点
+				if len(peerEndPoints) > 0 || connectPeerId != "" {
+					if chainMessage.ConnectPeerId == "" {
+						chainMessage.ConnectPeerId = chainMessage.TargetPeerId
+					}
+				} else {
+					targetConnectPeerId := chainMessage.TargetConnectPeerId
+					if targetConnectPeerId != "" {
+						chainMessage.ConnectPeerId = targetConnectPeerId
+					}
 				}
+				return send(chainMessage)
 			}
-			return send(chainMessage)
+		} else {
+			return nil, err
 		}
 	}
 }
