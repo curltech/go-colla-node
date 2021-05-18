@@ -157,7 +157,7 @@ func (this *DataBlockService) PutDB(dataBlock *entity.DataBlock, keyKind string)
 	return dht.PeerEndpointDHT.PutValue(key, byteDataBlock)
 }
 
-func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
+func (this *DataBlockService) StoreValue(db *entity.DataBlock, finalCommit bool) error {
 	if db == nil {
 		logger.Sugar.Errorf("NoDataBlock")
 		return errors.New("NoDataBlock")
@@ -204,17 +204,22 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 				tkCondition := &entity.TransactionKey{}
 				tkCondition.BlockId = blockId
 				GetTransactionKeyService().Delete(tkCondition, "")
-				// 删除PeerTransaction
-				for i := uint64(1); i <= oldDb.SliceSize; i++ {
-					peerTransaction := entity.PeerTransaction{}
-					peerTransaction.SrcPeerId = db.PeerId
-					peerTransaction.TargetPeerId = myselfPeerId
-					peerTransaction.BlockId = blockId
-					peerTransaction.SliceNumber = i
-					peerTransaction.TransactionType = entity2.TransactionType_DataBlock_Delete
-					err := GetPeerTransactionService().PutPTs(&peerTransaction)
-					if err != nil {
-						return err
+				if (finalCommit) {
+					// 删除PeerTransaction
+					for i := uint64(1); i <= oldDb.SliceSize; i++ {
+						peerTransaction := entity.PeerTransaction{}
+						peerTransaction.SrcPeerId = db.PeerId
+						peerTransaction.TargetPeerId = myselfPeerId
+						peerTransaction.BlockId = blockId
+						peerTransaction.SliceNumber = i
+						peerTransaction.TransactionType = entity2.TransactionType_DataBlock_Delete
+						start := time.Now()
+						err := GetPeerTransactionService().PutPTs(&peerTransaction)
+						end := time.Now()
+						logger.Sugar.Infof("StoreValue PeerTransaction1 time:%v", end.Sub(start))
+						if err != nil {
+							return err
+						}
 					}
 				}
 			}
@@ -238,17 +243,22 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 				dbCondition := &entity.DataBlock{}
 				dbCondition.BlockId = blockId
 				this.Delete(dbCondition, "SliceNumber > ?", db.SliceSize)
-				// 删除PeerTransaction
-				for i := db.SliceSize + 1; i <= oldDb.SliceSize; i++ {
-					peerTransaction := entity.PeerTransaction{}
-					peerTransaction.SrcPeerId = db.PeerId
-					peerTransaction.TargetPeerId = myselfPeerId
-					peerTransaction.BlockId = blockId
-					peerTransaction.SliceNumber = i
-					peerTransaction.TransactionType = entity2.TransactionType_DataBlock_Delete
-					err := GetPeerTransactionService().PutPTs(&peerTransaction)
-					if err != nil {
-						return err
+				if (finalCommit) {
+					// 删除PeerTransaction
+					for i := db.SliceSize + 1; i <= oldDb.SliceSize; i++ {
+						peerTransaction := entity.PeerTransaction{}
+						peerTransaction.SrcPeerId = db.PeerId
+						peerTransaction.TargetPeerId = myselfPeerId
+						peerTransaction.BlockId = blockId
+						peerTransaction.SliceNumber = i
+						peerTransaction.TransactionType = entity2.TransactionType_DataBlock_Delete
+						start := time.Now()
+						err := GetPeerTransactionService().PutPTs(&peerTransaction)
+						end := time.Now()
+						logger.Sugar.Infof("StoreValue PeerTransaction2 time:%v", end.Sub(start))
+						if err != nil {
+							return err
+						}
 					}
 				}
 			}
@@ -309,23 +319,28 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 				return err
 			}
 		}*/
-		// PeerTransaction（BlockType_ChatAttach不需要保存PeerTransaction）
-		if db.BlockType != entity.BlockType_ChatAttach {
-			peerTransaction := entity.PeerTransaction{}
-			peerTransaction.SrcPeerId = db.PeerId
-			peerTransaction.SrcPeerType = entity2.PeerType_PeerClient
-			peerTransaction.TargetPeerId = myselfPeerId
-			peerTransaction.TargetPeerType = entity2.PeerType_PeerEndpoint
-			peerTransaction.BlockId = blockId
-			peerTransaction.SliceNumber = sliceNumber
-			peerTransaction.BusinessNumber = db.BusinessNumber
-			peerTransaction.TransactionTime = &currentTime
-			peerTransaction.CreateTimestamp = db.CreateTimestamp
-			peerTransaction.Amount = db.TransactionAmount
-			peerTransaction.TransactionType = entity2.TransactionType_DataBlock
-			err := GetPeerTransactionService().PutPTs(&peerTransaction)
-			if err != nil {
-				return err
+		if (finalCommit) {
+			// PeerTransaction（BlockType_ChatAttach不需要保存PeerTransaction）
+			if db.BlockType != entity.BlockType_ChatAttach {
+				peerTransaction := entity.PeerTransaction{}
+				peerTransaction.SrcPeerId = db.PeerId
+				peerTransaction.SrcPeerType = entity2.PeerType_PeerClient
+				peerTransaction.TargetPeerId = myselfPeerId
+				peerTransaction.TargetPeerType = entity2.PeerType_PeerEndpoint
+				peerTransaction.BlockId = blockId
+				peerTransaction.SliceNumber = sliceNumber
+				peerTransaction.BusinessNumber = db.BusinessNumber
+				peerTransaction.TransactionTime = &currentTime
+				peerTransaction.CreateTimestamp = db.CreateTimestamp
+				peerTransaction.Amount = db.TransactionAmount
+				peerTransaction.TransactionType = entity2.TransactionType_DataBlock
+				start := time.Now()
+				err := GetPeerTransactionService().PutPTs(&peerTransaction)
+				end := time.Now()
+				logger.Sugar.Infof("StoreValue PeerTransaction3 time:%v", end.Sub(start))
+				if err != nil {
+					return err
+				}
 			}
 		}
 	} else {
