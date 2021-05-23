@@ -65,6 +65,5 @@ const (
 )
 
 const (
-	TransactionType_DataBlock        string = "DataBlock"
-	TransactionType_DataBlock_Delete string = "DataBlockDelete"
+	TransactionType_DataBlock string = "DataBlock"
 )

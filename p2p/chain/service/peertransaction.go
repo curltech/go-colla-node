@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"github.com/curltech/go-colla-core/container"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/service"
@@ -9,6 +10,8 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/chain/entity"
+	entity2 "github.com/curltech/go-colla-node/p2p/dht/entity"
+	chainentity "github.com/curltech/go-colla-node/p2p/chain/entity"
 )
 
 /**
@@ -54,7 +57,7 @@ func (this *PeerTransactionService) NewEntities(data []byte) (interface{}, error
 	return &entities, err
 }
 
-func (this *PeerTransactionService) GetLocalPTs(keyKind string, srcPeerId string, targetPeerId string) ([]*entity.PeerTransaction, error) {
+func (this *PeerTransactionService) GetLocalPTs(keyKind string, srcPeerId string, targetPeerId string, businessNumber string) ([]*entity.PeerTransaction, error) {
 	var key string
 	if keyKind == ns.PeerTransaction_Src_KeyKind {
 		if len(srcPeerId) == 0 {
@@ -66,6 +69,11 @@ func (this *PeerTransactionService) GetLocalPTs(keyKind string, srcPeerId string
 			return nil, errors.New("NullTargetPeerId")
 		}
 		key = ns.GetPeerTransactionTargetKey(targetPeerId)
+	} else if keyKind == ns.PeerTransaction_P2pChat_KeyKind {
+		if len(businessNumber) == 0 {
+			return nil, errors.New("NullBusinessNumber")
+		}
+		key = ns.GetPeerTransactionP2pChatKey(businessNumber)
 	} else {
 		logger.Sugar.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
 		return nil, errors.New("InvalidPeerTransactionKeyKind")
@@ -92,9 +100,28 @@ func (this *PeerTransactionService) GetLocalPTs(keyKind string, srcPeerId string
 	return nil, nil
 }
 
-func (this *PeerTransactionService) PutLocalPTs(peerTransactions []*entity.PeerTransaction) error {
+func (this *PeerTransactionService) PutLocalPTs(keyKind string, peerTransactions []*entity.PeerTransaction) error {
+	var key string
 	for _, peerTransaction := range peerTransactions {
-		key := ns.GetPeerTransactionSrcKey(peerTransaction.SrcPeerId)
+		if keyKind == ns.PeerTransaction_Src_KeyKind {
+			if len(peerTransaction.SrcPeerId) == 0 {
+				return errors.New("NullSrcPeerId")
+			}
+			key = ns.GetPeerTransactionSrcKey(peerTransaction.SrcPeerId)
+		} else if keyKind == ns.PeerTransaction_Target_KeyKind {
+			if len(peerTransaction.TargetPeerId) == 0 {
+				return errors.New("NullTargetPeerId")
+			}
+			key = ns.GetPeerTransactionTargetKey(peerTransaction.TargetPeerId)
+		} else if keyKind == ns.PeerTransaction_P2pChat_KeyKind {
+			if len(peerTransaction.BusinessNumber) == 0 {
+				return errors.New("NullBusinessNumber")
+			}
+			key = ns.GetPeerTransactionP2pChatKey(peerTransaction.BusinessNumber)
+		} else {
+			logger.Sugar.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
+			return errors.New("InvalidPeerTransactionKeyKind")
+		}
 		bytePeerTransaction, err := message.Marshal(peerTransaction)
 		if err != nil {
 			return err
@@ -109,11 +136,15 @@ func (this *PeerTransactionService) PutLocalPTs(peerTransactions []*entity.PeerT
 }
 
 func (this *PeerTransactionService) PutPTs(peerTransaction *entity.PeerTransaction) error {
-	err := this.PutPT(peerTransaction, ns.PeerTransaction_Src_KeyKind)
-	if err != nil {
-		return err
+	if peerTransaction.TransactionType == fmt.Sprintf("%v-%v", entity2.TransactionType_DataBlock, chainentity.BlockType_Collection) {
+		err := this.PutPT(peerTransaction, ns.PeerTransaction_Src_KeyKind)
+		if err != nil {
+			return err
+		}
+		return this.PutPT(peerTransaction, ns.PeerTransaction_Target_KeyKind)
+	} else {
+		return this.PutPT(peerTransaction, ns.PeerTransaction_P2pChat_KeyKind)
 	}
-	return this.PutPT(peerTransaction, ns.PeerTransaction_Target_KeyKind)
 }
 
 func (this *PeerTransactionService) PutPT(peerTransaction *entity.PeerTransaction, keyKind string) error {
@@ -123,9 +154,20 @@ func (this *PeerTransactionService) PutPT(peerTransaction *entity.PeerTransactio
 	}
 	var key string
 	if keyKind == ns.PeerTransaction_Src_KeyKind {
+		if len(peerTransaction.SrcPeerId) == 0 {
+			return errors.New("NullSrcPeerId")
+		}
 		key = ns.GetPeerTransactionSrcKey(peerTransaction.SrcPeerId)
 	} else if keyKind == ns.PeerTransaction_Target_KeyKind {
+		if len(peerTransaction.TargetPeerId) == 0 {
+			return errors.New("NullTargetPeerId")
+		}
 		key = ns.GetPeerTransactionTargetKey(peerTransaction.TargetPeerId)
+	} else if keyKind == ns.PeerTransaction_P2pChat_KeyKind {
+		if len(peerTransaction.BusinessNumber) == 0 {
+			return errors.New("NullBusinessNumber")
+		}
+		key = ns.GetPeerTransactionP2pChatKey(peerTransaction.BusinessNumber)
 	} else {
 		logger.Sugar.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
 		return errors.New("InvalidPeerTransactionKeyKind")
@@ -143,4 +185,5 @@ func init() {
 	service.RegistSeq(seqname, 0)
 	container.RegistService(ns.PeerTransaction_Src_Prefix, peerTransactionService)
 	container.RegistService(ns.PeerTransaction_Target_Prefix, peerTransactionService)
+	container.RegistService(ns.PeerTransaction_P2pChat_Prefix, peerTransactionService)
 }

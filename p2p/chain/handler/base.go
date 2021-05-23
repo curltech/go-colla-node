@@ -14,6 +14,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	msg1 "github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
+	"strings"
 )
 
 /**
@@ -149,7 +150,11 @@ func Decrypt(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 	if targetPeerId == "" {
 		targetPeerId = msg.ConnectPeerId
 	}
-	if !global.IsMyself(targetPeerId) {
+	messageType := msg.MessageType
+	connectPeerId := msg.ConnectPeerId
+	myselfPeerId := string(global.Global.PeerId)
+	if (messageType == msgtype.P2PCHAT && !strings.Contains(connectPeerId, myselfPeerId)) ||
+		(messageType != msgtype.P2PCHAT && !global.IsMyself(targetPeerId)) {
 		return msg, nil
 	}
 

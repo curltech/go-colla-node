@@ -142,16 +142,15 @@ func (this *Consensus) GetDataBlock(chainMessage *msg.ChainMessage) (*entity.Dat
 	}
 	// 只针对第一个分片处理一次
 	if dataBlock.SliceNumber == 1 && dataBlock.TransactionKeys == nil {
-		if len(dataBlock.TransportKey) == 0 {
-			return nil, errors.New("NullTransportKey")
+		if len(dataBlock.TransportKey) > 0 {
+			transportKey := std.DecodeBase64(dataBlock.TransportKey)
+			transactionKeys := make([]*entity.TransactionKey, 0)
+			err := message.TextUnmarshal(*(*string)(unsafe.Pointer(&transportKey)), &transactionKeys)
+			if err != nil {
+				return nil, errors.New("TransactionKeysTextUnmarshalFailure")
+			}
+			dataBlock.TransactionKeys = transactionKeys
 		}
-		transportKey := std.DecodeBase64(dataBlock.TransportKey)
-		transactionKeys := make([]*entity.TransactionKey, 0)
-		err := message.TextUnmarshal(*(*string)(unsafe.Pointer(&transportKey)), &transactionKeys)
-		if err != nil {
-			return nil, errors.New("TransactionKeysTextUnmarshalFailure")
-		}
-		dataBlock.TransactionKeys = transactionKeys
 	}
 	if dataBlock.TransportPayload != "" && dataBlock.TransactionAmount == 0 {
 		transportPayload := std.DecodeBase64(dataBlock.TransportPayload)

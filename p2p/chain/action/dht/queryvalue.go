@@ -40,15 +40,36 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 	dataBlocks := make([]*entity2.DataBlock, 0)
 	if getAllBlockIndex == true {
 		ptMap := make(map[string]*entity2.PeerTransaction, 0)
-		var createPeerId string = ""
-		if conditionBean["createPeerId"] != nil {
-			createPeerId = conditionBean["createPeerId"].(string)
+		var blockType, createPeerId, receiverPeerId, businessNumber string
+		if conditionBean["blockType"] != nil {
+			blockType = conditionBean["blockType"].(string)
 		}
-		if len(createPeerId) == 0 {
-			response = handler.Error(chainMessage.MessageType, errors.New("NullCreatePeerId"))
+		if len(blockType) == 0 {
+			response = handler.Error(chainMessage.MessageType, errors.New("NullBlockType"))
 			return response, nil
 		}
-		key := ns.GetPeerTransactionSrcKey(createPeerId)
+		var key, keyKind string
+		if blockType == entity2.BlockType_Collection {
+			if conditionBean["createPeerId"] != nil {
+				createPeerId = conditionBean["createPeerId"].(string)
+			}
+			if len(createPeerId) == 0 {
+				response = handler.Error(chainMessage.MessageType, errors.New("NullCreatePeerId"))
+				return response, nil
+			}
+			key = ns.GetPeerTransactionSrcKey(createPeerId)
+			keyKind = ns.PeerTransaction_Src_KeyKind
+		} else if blockType == entity2.BlockType_P2pChat {
+			if conditionBean["businessNumber"] != nil {
+				businessNumber = conditionBean["businessNumber"].(string)
+			}
+			if len(businessNumber) == 0 {
+				response = handler.Error(chainMessage.MessageType, errors.New("NullBusinessNumber"))
+				return response, nil
+			}
+			key = ns.GetPeerTransactionP2pChatKey(businessNumber)
+			keyKind = ns.PeerTransaction_P2pChat_KeyKind
+		}
 		if config.Libp2pParams.FaultTolerantLevel == 0 {
 			recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)
 			if err != nil {
@@ -72,7 +93,7 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 
 		} else if config.Libp2pParams.FaultTolerantLevel == 2 {
 			// 查询删除local记录
-			locals, err := service1.GetPeerTransactionService().GetLocalPTs(ns.PeerTransaction_Src_KeyKind, createPeerId, "")
+			locals, err := service1.GetPeerTransactionService().GetLocalPTs(keyKind, createPeerId, receiverPeerId, businessNumber)
 			if err != nil {
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
@@ -92,7 +113,7 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 				return response, nil
 			}
 			// 恢复local记录
-			err = service1.GetPeerTransactionService().PutLocalPTs(locals)
+			err = service1.GetPeerTransactionService().PutLocalPTs(keyKind, locals)
 			if err != nil {
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
@@ -166,7 +187,7 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 				for _, db := range dbs {
 					var receivable bool
 					if len(receiverPeerId) > 0 {
-						if sliceNumber != 1 {
+						if sliceNumber != 1 || len(db.TransactionKeys) == 0 {
 							receivable = true
 						} else {
 							receivable = false
@@ -203,7 +224,7 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 				return response, nil
 			}
 			// 恢复local记录
-			err = service1.GetDataBlockService().PutLocalDBs(locals)
+			err = service1.GetDataBlockService().PutLocalDBs(ns.DataBlock_KeyKind, locals)
 			if err != nil {
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
@@ -216,7 +237,7 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 					response = handler.Error(chainMessage.MessageType, err)
 					return response, nil
 				}
-				err = service1.GetDataBlockService().PutLocalDBs(dbs)
+				err = service1.GetDataBlockService().PutLocalDBs(ns.DataBlock_KeyKind, dbs)
 				if err != nil {
 					response = handler.Error(chainMessage.MessageType, err)
 					return response, nil

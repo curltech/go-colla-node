@@ -21,6 +21,7 @@ const (
 	PING = "PING"
 	// 发送聊天报文
 	CHAT       = "CHAT"
+	P2PCHAT    = "P2PCHAT"
 	FINDPEER   = "FINDPEER"
 	GETVALUE   = "GETVALUE"
 	PUTVALUE   = "PUTVALUE"

@@ -10,6 +10,7 @@ type BlockType string
 const (
 	BlockType_ChatAttach = "ChatAttach"
 	BlockType_Collection = "Collection"
+	BlockType_P2pChat = "P2pChat"
 )
 
 type DataBlock struct {

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/curltech/go-colla-core/container"
+	baseentity "github.com/curltech/go-colla-core/entity"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/service"
 	"github.com/curltech/go-colla-core/util/message"
@@ -115,9 +116,23 @@ func (this *DataBlockService) GetLocalDBs(keyKind string, createPeerId string, b
 	return nil, nil
 }
 
-func (this *DataBlockService) PutLocalDBs(dataBlocks []*entity.DataBlock) error {
+func (this *DataBlockService) PutLocalDBs(keyKind string, dataBlocks []*entity.DataBlock) error {
+	var key string
 	for _, dataBlock := range dataBlocks {
-		key := ns.GetDataBlockKey(dataBlock.BlockId)
+		if keyKind == ns.DataBlock_Owner_KeyKind {
+			if len(dataBlock.PeerId) == 0 {
+				return errors.New("NullPeerId")
+			}
+			key = ns.GetDataBlockOwnerKey(dataBlock.PeerId)
+		} else if keyKind == ns.DataBlock_KeyKind {
+			if len(dataBlock.BlockId) == 0 {
+				return errors.New("NullBlockId")
+			}
+			key = ns.GetDataBlockKey(dataBlock.BlockId)
+		} else {
+			logger.Sugar.Errorf("InvalidDataBlockKeyKind: %v", keyKind)
+			return errors.New("InvalidDataBlockKeyKind")
+		}
 		byteDataBlock, err := message.Marshal(dataBlock)
 		if err != nil {
 			return err
@@ -174,8 +189,12 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock, finalCommit bool)
 	}
 	transactionKeys := db.TransactionKeys
 	if sliceNumber == 1 && transactionKeys == nil {
-		logger.Sugar.Errorf("NoTransactionKeys")
-		return errors.New("NoTransactionKeys")
+		logger.Sugar.Warnf("NoTransactionKeys")
+	}
+	businessNumber := db.BusinessNumber
+	if businessNumber == "" {
+		logger.Sugar.Errorf("NoBusinessNumber")
+		return errors.New("NoBusinessNumber")
 	}
 	myselfPeerId := global.Global.MyselfPeer.PeerId
 	currentTime := time.Now()
@@ -212,11 +231,10 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock, finalCommit bool)
 						peerTransaction.TargetPeerId = myselfPeerId
 						peerTransaction.BlockId = blockId
 						peerTransaction.SliceNumber = i
-						peerTransaction.TransactionType = entity2.TransactionType_DataBlock_Delete
-						start := time.Now()
+						peerTransaction.TransactionType = fmt.Sprintf("%v-%v", entity2.TransactionType_DataBlock, db.BlockType)
+						peerTransaction.BusinessNumber = db.BusinessNumber
+						peerTransaction.Status = baseentity.EntityState_Deleted
 						err := GetPeerTransactionService().PutPTs(&peerTransaction)
-						end := time.Now()
-						logger.Sugar.Infof("StoreValue PeerTransaction1 time:%v", end.Sub(start))
 						if err != nil {
 							return err
 						}
@@ -251,11 +269,10 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock, finalCommit bool)
 						peerTransaction.TargetPeerId = myselfPeerId
 						peerTransaction.BlockId = blockId
 						peerTransaction.SliceNumber = i
-						peerTransaction.TransactionType = entity2.TransactionType_DataBlock_Delete
-						start := time.Now()
+						peerTransaction.TransactionType = fmt.Sprintf("%v-%v", entity2.TransactionType_DataBlock, db.BlockType)
+						peerTransaction.BusinessNumber = db.BusinessNumber
+						peerTransaction.Status = baseentity.EntityState_Deleted
 						err := GetPeerTransactionService().PutPTs(&peerTransaction)
-						end := time.Now()
-						logger.Sugar.Infof("StoreValue PeerTransaction2 time:%v", end.Sub(start))
 						if err != nil {
 							return err
 						}
@@ -333,11 +350,8 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock, finalCommit bool)
 				peerTransaction.TransactionTime = &currentTime
 				peerTransaction.CreateTimestamp = db.CreateTimestamp
 				peerTransaction.Amount = db.TransactionAmount
-				peerTransaction.TransactionType = entity2.TransactionType_DataBlock
-				start := time.Now()
+				peerTransaction.TransactionType = fmt.Sprintf("%v-%v", entity2.TransactionType_DataBlock, db.BlockType)
 				err := GetPeerTransactionService().PutPTs(&peerTransaction)
-				end := time.Now()
-				logger.Sugar.Infof("StoreValue PeerTransaction3 time:%v", end.Sub(start))
 				if err != nil {
 					return err
 				}

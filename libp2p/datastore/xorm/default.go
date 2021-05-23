@@ -102,7 +102,8 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				return errors.New("NoSliceNumber")
 			}
 			reflect.SetValue(old, "SliceNumber", sliceNumber)
-		} else if namespace == ns.PeerTransaction_Src_Prefix || namespace == ns.PeerTransaction_Target_Prefix {
+		} else if namespace == ns.PeerTransaction_Src_Prefix || namespace == ns.PeerTransaction_Target_Prefix ||
+			namespace == ns.PeerTransaction_P2pChat_Prefix {
 			targetPeerId, err := reflect.GetValue(entity, "TargetPeerId")
 			if err != nil || targetPeerId == nil {
 				logger.Sugar.Errorf("NoTargetPeerId")
@@ -121,6 +122,12 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				return errors.New("NoSliceNumber")
 			}
 			reflect.SetValue(old, "SliceNumber", sliceNumber)
+			businessNumber, err := reflect.GetValue(entity, "BusinessNumber")
+			if err != nil || businessNumber == nil {
+				logger.Sugar.Errorf("NoBusinessNumber")
+				return errors.New("NoBusinessNumber")
+			}
+			reflect.SetValue(old, "BusinessNumber", businessNumber)
 		}
 		currentTime := time.Now()
 		found := req.Service.Get(old, false, "", "")
@@ -176,7 +183,9 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 							peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
 							peerTransaction.BlockId = p.BlockId
 							peerTransaction.SliceNumber = i
-							peerTransaction.TransactionType = dhtentity.TransactionType_DataBlock_Delete
+							peerTransaction.TransactionType = fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, p.BlockType)
+							peerTransaction.BusinessNumber = p.BusinessNumber
+							peerTransaction.Status = baseentity.EntityState_Deleted
 							err = service1.GetPeerTransactionService().PutPTs(&peerTransaction)
 							if err != nil {
 								return err
@@ -185,11 +194,12 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 					}
 					continue
 				}
-			} else if namespace == ns.PeerTransaction_Src_Prefix || namespace == ns.PeerTransaction_Target_Prefix {
+			} else if namespace == ns.PeerTransaction_Src_Prefix || namespace == ns.PeerTransaction_Target_Prefix ||
+				namespace == ns.PeerTransaction_P2pChat_Prefix {
 				oldp := old.(*chainentity.PeerTransaction)
 				p := entity.(*chainentity.PeerTransaction)
-				// TransactionType==TransactionType_DataBlock_Delete表示删除
-				if p.TransactionType == dhtentity.TransactionType_DataBlock_Delete {
+				// Status == baseentity.EntityState_Deleted表示删除
+				if p.Status == baseentity.EntityState_Deleted {
 					req.Service.Delete(oldp, "")
 					continue
 				}
@@ -217,10 +227,11 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				if len(p.TransportPayload) == 0 {
 					continue
 				}
-			} else if namespace == ns.PeerTransaction_Src_Prefix || namespace == ns.PeerTransaction_Target_Prefix {
+			} else if namespace == ns.PeerTransaction_Src_Prefix || namespace == ns.PeerTransaction_Target_Prefix ||
+				namespace == ns.PeerTransaction_P2pChat_Prefix {
 				p := entity.(*chainentity.PeerTransaction)
-				// TransactionType==TransactionType_DataBlock_Delete表示删除
-				if p.TransactionType == dhtentity.TransactionType_DataBlock_Delete {
+				// Status == baseentity.EntityState_Deleted表示删除
+				if p.Status == baseentity.EntityState_Deleted {
 					continue
 				}
 			}
@@ -246,7 +257,8 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 							peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
 							peerTransaction.BlockId = p.BlockId
 							peerTransaction.SliceNumber = i
-							peerTransaction.TransactionType = dhtentity.TransactionType_DataBlock_Delete
+							peerTransaction.TransactionType = fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, p.BlockType)
+							peerTransaction.BusinessNumber = p.BusinessNumber
 							err = service1.GetPeerTransactionService().PutPTs(&peerTransaction)
 							if err != nil {
 								return err
@@ -324,7 +336,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 					peerTransaction.TransactionTime = &currentTime
 					peerTransaction.CreateTimestamp = p.CreateTimestamp
 					peerTransaction.Amount = p.TransactionAmount
-					peerTransaction.TransactionType = dhtentity.TransactionType_DataBlock
+					peerTransaction.TransactionType = fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, p.BlockType)
 					err = service1.GetPeerTransactionService().PutPTs(&peerTransaction)
 					if err != nil {
 						return err
@@ -420,6 +432,18 @@ func (this *XormDatastore) get(req *handler.DispatchRequest) interface{} {
 			break
 		} else if req.Name == ns.DataBlock_Owner_Prefix {
 			reflect.SetValue(entity, ns.DataBlock_Owner_KeyKind, v)
+			break
+		} else if req.Name == ns.PeerTransaction_Src_Prefix {
+			reflect.SetValue(entity, k, v)
+			reflect.SetValue(entity, ns.PeerTransaction_Type_KeyKind, fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, chainentity.BlockType_Collection))
+			break
+		} else if req.Name == ns.PeerTransaction_Target_Prefix {
+			reflect.SetValue(entity, ns.PeerTransaction_Target_KeyKind, v)
+			reflect.SetValue(entity, ns.PeerTransaction_Type_KeyKind, fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, chainentity.BlockType_Collection))
+			break
+		} else if req.Name == ns.PeerTransaction_P2pChat_Prefix {
+			reflect.SetValue(entity, ns.PeerTransaction_P2pChat_KeyKind, v)
+			reflect.SetValue(entity, ns.PeerTransaction_Type_KeyKind, fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, chainentity.BlockType_P2pChat))
 			break
 		} else {
 			err := reflect.SetValue(entity, k, v)
@@ -529,11 +553,14 @@ func init() {
  	handler.RegistKeyname(ns.DataBlock_Owner_Prefix, ns.DataBlock_Owner_KeyKind)
 
  	handler.RegistDatastore(ns.PeerTransaction_Src_Prefix, NewXormDatastore())
- 	handler.RegistKeyname(ns.PeerTransaction_Src_Prefix, ns.PeerTransaction_Src_KeyKind)
+ 	handler.RegistKeyname(ns.PeerTransaction_Src_Prefix, chainentity.PeerTransaction{}.KeyName())
 
  	handler.RegistDatastore(ns.PeerTransaction_Target_Prefix, NewXormDatastore())
  	handler.RegistKeyname(ns.PeerTransaction_Target_Prefix, ns.PeerTransaction_Target_KeyKind)
 
 	handler.RegistDatastore(ns.TransactionKey_Prefix, NewXormDatastore())
 	handler.RegistKeyname(ns.TransactionKey_Prefix, chainentity.TransactionKey{}.KeyName())
+
+	handler.RegistDatastore(ns.PeerTransaction_P2pChat_Prefix, NewXormDatastore())
+	handler.RegistKeyname(ns.PeerTransaction_P2pChat_Prefix, ns.PeerTransaction_P2pChat_KeyKind)
 }

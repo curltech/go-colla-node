@@ -34,7 +34,7 @@ func Send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 func DirectSend(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 	handler1.Encrypt(msg)
 
-	return send(msg)
+	return SendCM(msg)
 }
 
 /**
@@ -43,7 +43,7 @@ func DirectSend(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 2.发送到peerClient：这时候TargetPeerId和TargetConnectSessionId不为空、TargetConnectPeerId可以为空或者就是自己（connectPeerId可以为空或者就是TargetPeerId）
 3.不满足上面的条件，发送到peerEndpoint，这时候connectPeerId不为空并且不是自己
 */
-func send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
+func SendCM(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 	topic := msg.Topic
 	connectPeerId := msg.ConnectPeerId
 	targetPeerId := msg.TargetPeerId
@@ -103,7 +103,7 @@ func send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 				}
 			} else {
 				//也许可以找targetPeerId最近的节点发送
-				logger.Sugar.Errorf("InvalidConnectPeerId")
+				logger.Sugar.Errorf("InvalidConnectPeerId:%v", connectPeerId)
 				return nil, errors.New("InvalidConnectPeerId")
 			}
 		}
@@ -133,7 +133,7 @@ func RelaySend(chainMessage *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 	// 最终目标会话不为空，说明最终目标是PeerClient，不需要查询PeerClient，直接转发
 	if chainMessage.TargetConnectSessionId != "" {
 		chainMessage.ConnectPeerId = chainMessage.TargetPeerId
-		return send(chainMessage)
+		return SendCM(chainMessage)
 	} else {
 		targetPeerId := handler.GetPeerId(chainMessage.TargetPeerId)
 		var peerEndPoints = make([]*entity.PeerEndpoint, 0)
@@ -164,7 +164,7 @@ func RelaySend(chainMessage *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 							chainMessage.TargetConnectPeerId = peerClient.ConnectPeerId
 							chainMessage.ConnectPeerId = peerClient.ConnectPeerId
 						}
-						go send(chainMessage)
+						go SendCM(chainMessage)
 					}
 				}
 				return chainMessage, nil
@@ -180,7 +180,7 @@ func RelaySend(chainMessage *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 						chainMessage.ConnectPeerId = targetConnectPeerId
 					}
 				}
-				return send(chainMessage)
+				return SendCM(chainMessage)
 			}
 		} else {
 			return nil, err
