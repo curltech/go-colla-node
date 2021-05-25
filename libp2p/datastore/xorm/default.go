@@ -14,6 +14,7 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	chainentity "github.com/curltech/go-colla-node/p2p/chain/entity"
 	service1 "github.com/curltech/go-colla-node/p2p/chain/service"
+	handler2 "github.com/curltech/go-colla-node/p2p/chain/handler"
 	dhtentity "github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/gogo/protobuf/proto"
 	"github.com/ipfs/go-datastore"
@@ -162,8 +163,49 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				oldp := old.(*chainentity.DataBlock)
 				p := entity.(*chainentity.DataBlock)
 				// 校验Owner
-				if oldp.PeerId != p.PeerId {
-					return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldPeerId: %v", p.BlockId, p.PeerId, oldp.PeerId))
+				if p.BlockType == chainentity.BlockType_P2pChat && len(p.TransportPayload) == 0 {
+					if oldp.BusinessNumber != p.PeerId {
+						return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldBusinessNumber: %v", p.BlockId, p.PeerId, oldp.BusinessNumber))
+					} else {
+						// 校验Signature
+						if p.ExpireDate > 0 {
+							publicKey, err := handler2.GetPublicKey(oldp.BusinessNumber)
+							if err != nil {
+								return errors.New(fmt.Sprintf("GetPublicKey failure, blockId: %v, oldBusinessNumber: %v", p.BlockId, oldp.BusinessNumber))
+							} else {
+								signatureData := strconv.FormatInt(p.ExpireDate, 10) + p.PeerId
+								signature := std.DecodeBase64(p.Signature)
+								pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
+								if pass != true {
+									return errors.New(fmt.Sprintf("SignatureVerifyFailure, blockId: %v, PeerId: %v", p.BlockId, p.PeerId))
+								}
+							}
+						}
+					}
+				} else {
+					if oldp.PeerId != p.PeerId {
+						return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldPeerId: %v", p.BlockId, p.PeerId, oldp.PeerId))
+					} else {
+						// 校验Signature
+						publicKey, err := handler2.GetPublicKey(oldp.PeerId)
+						if err != nil {
+							return errors.New(fmt.Sprintf("GetPublicKey failure, blockId: %v, oldPeerId: %v", p.BlockId, oldp.PeerId))
+						} else {
+							var signatureData string
+							if len(p.TransportPayload) > 0 {
+								signatureData = p.TransportPayload
+							} else if p.ExpireDate > 0 {
+								signatureData = strconv.FormatInt(p.ExpireDate, 10) + p.PeerId
+							}
+							if len(signatureData) > 0 {
+								signature := std.DecodeBase64(p.Signature)
+								pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
+								if pass != true {
+									return errors.New(fmt.Sprintf("SignatureVerifyFailure, blockId: %v, PeerId: %v", p.BlockId, p.PeerId))
+								}
+							}
+						}
+					}
 				}
 				// 负载为空表示删除
 				if len(p.TransportPayload) == 0 {

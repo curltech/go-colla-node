@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/curltech/go-colla-core/container"
+	"github.com/curltech/go-colla-core/crypto/openpgp"
+	"github.com/curltech/go-colla-core/crypto/std"
 	baseentity "github.com/curltech/go-colla-core/entity"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/service"
@@ -12,7 +14,9 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/chain/entity"
+	handler2 "github.com/curltech/go-colla-node/p2p/chain/handler"
 	entity2 "github.com/curltech/go-colla-node/p2p/dht/entity"
+	"strconv"
 	"time"
 )
 
@@ -59,6 +63,15 @@ func (this *DataBlockService) NewEntities(data []byte) (interface{}, error) {
 	}
 
 	return &entities, err
+}
+
+func (this *DataBlockService) Validate(dataBlock *entity.DataBlock) error {
+	transportPayload := dataBlock.TransportPayload
+	expireDate := dataBlock.ExpireDate
+	if len(transportPayload) == 0 && expireDate == 0 {
+		return errors.New("Invalid expireDate")
+	}
+	return nil
 }
 
 func (this *DataBlockService) GetLocalDBs(keyKind string, createPeerId string, blockId string, receiverPeerId string, sliceNumber uint64) ([]*entity.DataBlock, error) {
@@ -205,8 +218,49 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock, finalCommit bool)
 	if dbFound {
 		db.Id = oldDb.Id
 		// 校验Owner
-		if oldDb.PeerId != db.PeerId {
-			return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldPeerId: %v", blockId, db.PeerId, oldDb.PeerId))
+		if db.BlockType == entity.BlockType_P2pChat && len(db.TransportPayload) == 0 {
+			if oldDb.BusinessNumber != db.PeerId {
+				return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldBusinessNumber: %v", db.BlockId, db.PeerId, oldDb.BusinessNumber))
+			} else {
+				// 校验Signature
+				if db.ExpireDate > 0 {
+					publicKey, err := handler2.GetPublicKey(oldDb.BusinessNumber)
+					if err != nil {
+						return errors.New(fmt.Sprintf("GetPublicKey failure, blockId: %v, oldBusinessNumber: %v", db.BlockId, oldDb.BusinessNumber))
+					} else {
+						signatureData := strconv.FormatInt(db.ExpireDate, 10) + db.PeerId
+						signature := std.DecodeBase64(db.Signature)
+						pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
+						if pass != true {
+							return errors.New(fmt.Sprintf("SignatureVerifyFailure, blockId: %v, PeerId: %v", db.BlockId, db.PeerId))
+						}
+					}
+				}
+			}
+		} else {
+			if oldDb.PeerId != db.PeerId {
+				return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldPeerId: %v", db.BlockId, db.PeerId, oldDb.PeerId))
+			} else {
+				// 校验Signature
+				publicKey, err := handler2.GetPublicKey(oldDb.PeerId)
+				if err != nil {
+					return errors.New(fmt.Sprintf("GetPublicKey failure, blockId: %v, oldPeerId: %v", db.BlockId, oldDb.PeerId))
+				} else {
+					var signatureData string
+					if len(db.TransportPayload) > 0 {
+						signatureData = db.TransportPayload
+					} else if db.ExpireDate > 0 {
+						signatureData = strconv.FormatInt(db.ExpireDate, 10) + db.PeerId
+					}
+					if len(signatureData) > 0 {
+						signature := std.DecodeBase64(db.Signature)
+						pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
+						if pass != true {
+							return errors.New(fmt.Sprintf("SignatureVerifyFailure, blockId: %v, PeerId: %v", db.BlockId, db.PeerId))
+						}
+					}
+				}
+			}
 		}
 		// 检查时间戳
 		if db.CreateTimestamp <= oldDb.CreateTimestamp {

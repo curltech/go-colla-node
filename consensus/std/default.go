@@ -47,6 +47,10 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 	if err != nil {
 		return nil, err
 	}
+	err = service2.GetDataBlockService().Validate(dataBlock)
+	if err != nil {
+		return nil, err
+	}
 	/**
 	 * 填充主节点的属性
 	 */
