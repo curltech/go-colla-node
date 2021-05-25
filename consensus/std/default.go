@@ -194,7 +194,7 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 	}
 	if cacheLog != nil {
 		existPayloadHash := cacheLog.PayloadHash
-		if payloadHash != existPayloadHash {
+		if len(payloadHash) > 0 && payloadHash != existPayloadHash {
 			//go service.GetPeerEndpointService().modifyBadCount()
 			return nil, errors.New("ErrorPayloadHash")
 		}

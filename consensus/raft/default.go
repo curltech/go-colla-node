@@ -143,7 +143,7 @@ func (this *RaftConsensus) ReceivePreprepared(chainMessage *msg.ChainMessage) (*
 	if found {
 		cacheLog, _ := l.(*entity.ConsensusLog)
 		existPayloadHash := cacheLog.PayloadHash
-		if payloadHash != existPayloadHash {
+		if len(payloadHash) > 0 && payloadHash != existPayloadHash {
 			// 记录坏行为的次数
 			// go service.GetPeerEndpointService().Update()
 			return nil, errors.New("ErrorPayloadHash")
@@ -213,7 +213,7 @@ func (this *RaftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg
 	// 已经记录了准备消息，重复收到，检查hash
 	if cacheLog != nil {
 		existPayloadHash := cacheLog.PayloadHash
-		if payloadHash != existPayloadHash {
+		if len(payloadHash) > 0 && payloadHash != existPayloadHash {
 			//go service.GetPeerEndpointService().modifyBadCount()
 			return nil, errors.New("ErrorPayloadHash")
 		}
@@ -328,7 +328,7 @@ func (this *RaftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg
 	// 已经记录了提交消息，重复收到，检查hash
 	if cacheLog != nil {
 		existPayloadHash := cacheLog.PayloadHash
-		if messageLog.PayloadHash != existPayloadHash {
+		if len(messageLog.PayloadHash) > 0 && messageLog.PayloadHash != existPayloadHash {
 			//go service.GetPeerEndpointService().modifyBadCount()
 
 			return nil, errors.New("ErrorPayloadHash")
@@ -413,7 +413,7 @@ func (this *RaftConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Ch
 	// 已经记录了准备消息，重复收到，检查hash
 	if cacheLog != nil {
 		existPayloadHash := cacheLog.PayloadHash
-		if payloadHash != existPayloadHash {
+		if len(payloadHash) > 0 && payloadHash != existPayloadHash {
 			//go service.GetPeerEndpointService().modifyBadCount()
 			return nil, errors.New("ErrorPayloadHash")
 		}
