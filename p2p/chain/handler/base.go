@@ -14,7 +14,6 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	msg1 "github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	//"strings"
 )
 
 /**
@@ -146,18 +145,17 @@ const (
 )
 
 func Decrypt(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
-	targetPeerId := msg.TargetPeerId
+	/*targetPeerId := msg.TargetPeerId
 	if targetPeerId == "" {
 		targetPeerId = msg.ConnectPeerId
 	}
-	/*messageType := msg.MessageType
+	messageType := msg.MessageType
 	connectPeerId := msg.ConnectPeerId
 	myselfPeerId := string(global.Global.PeerId)
 	if (messageType == msgtype.P2PCHAT && !strings.Contains(connectPeerId, myselfPeerId)) ||
-		(messageType != msgtype.P2PCHAT && !global.IsMyself(targetPeerId)) {*/
-	if !global.IsMyself(targetPeerId) {
+		(messageType != msgtype.P2PCHAT && !global.IsMyself(targetPeerId)) {
 		return msg, nil
-	}
+	}*/
 
 	if msg.TransportPayload == "" {
 		return msg, errors.New("NoTransportPayload")

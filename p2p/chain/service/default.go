@@ -4,13 +4,20 @@ import (
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	msg1 "github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
+	"github.com/curltech/go-colla-node/libp2p/global"
 )
 
 /**
 接收ChainMessage报文处理的入口，无论何种方式发送过来的的任何chain消息类型都统一在此处理分发
 */
 func Receive(chainMessage *msg1.ChainMessage) (*msg1.ChainMessage, error) {
-	handler.Decrypt(chainMessage)
+	targetPeerId := chainMessage.TargetPeerId
+	if targetPeerId == "" {
+		targetPeerId = chainMessage.ConnectPeerId
+	}
+	if global.IsMyself(targetPeerId) {
+		handler.Decrypt(chainMessage)
+	}
 	typ := chainMessage.MessageType
 	direct := chainMessage.MessageDirect
 	chainMessageHandler, err := handler.GetChainMessageHandler(string(typ))
