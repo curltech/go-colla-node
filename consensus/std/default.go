@@ -102,7 +102,7 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 	// 保存dataBlock
 	dataBlock.Status = entity2.EntityStatus_Effective
 	start := time.Now()
-	err = service2.GetDataBlockService().StoreValue(dataBlock, true)
+	err = service2.GetDataBlockService().StoreValue(dataBlock)
 	end := time.Now()
 	logger.Sugar.Infof("ReceiveConsensus StoreValue time:%v", end.Sub(start))
 	if err != nil {
@@ -139,7 +139,7 @@ func (this *StdConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.
 	// 保存dataBlock
 	dataBlock.Status = entity2.EntityStatus_Effective
 	start := time.Now()
-	err = service2.GetDataBlockService().StoreValue(dataBlock, false)
+	err = service2.GetDataBlockService().StoreValue(dataBlock)
 	end := time.Now()
 	logger.Sugar.Infof("ReceiveCommited StoreValue time:%v", end.Sub(start))
 	if err != nil {
@@ -255,7 +255,7 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 
 func finalCommit(dataBlock *entity.DataBlock, log *entity.ConsensusLog) {
 	start := time.Now()
-	err := service2.GetDataBlockService().StoreValue(dataBlock, true)
+	err := service2.GetDataBlockService().StoreValue(dataBlock)
 	end := time.Now()
 	logger.Sugar.Infof("finalCommit StoreValue time:%v", end.Sub(start))
 	if err != nil {
