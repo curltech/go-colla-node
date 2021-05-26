@@ -179,39 +179,42 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 	 */
 	peerId := messageLog.PeerId
 	if peerId == primaryPeerId {
-		logger.Sugar.Errorf("%v", messageLog)
-		return nil, errors.New("SendPrimaryPreparedMessage")
+		logger.Sugar.Errorf("peerId == primaryPeerId: %v", messageLog)
+		return nil, errors.New("peerId == primaryPeerId")
 	}
 	if primaryPeerId != myPeerId {
-		logger.Sugar.Errorf("%v", messageLog)
-		return nil, errors.New("SendMyselfMessage")
+		logger.Sugar.Errorf("primaryPeerId != myPeerId: %v", messageLog)
+		return nil, errors.New("primaryPeerId != myPeerId")
 	}
-	key := this.GetLogCacheKey(messageLog)
-	var cacheLog *entity.ConsensusLog
-	l, found := MemCache.Get(key)
-	if found {
-		cacheLog = l.(*entity.ConsensusLog)
-	}
-	if cacheLog != nil {
-		existPayloadHash := cacheLog.PayloadHash
-		if len(payloadHash) > 0 && payloadHash != existPayloadHash {
-			//go service.GetPeerEndpointService().modifyBadCount()
-			return nil, errors.New("ErrorPayloadHash")
-		}
-	} else {
-		MemCache.SetDefault(key, messageLog)
-	}
-	key = this.GetDataBlockCacheKey(messageLog.BlockId, messageLog.SliceNumber)
+
+	var peerIds []string
+	dbKey := this.GetDataBlockCacheKey(messageLog.BlockId, messageLog.SliceNumber)
 	var dataBlock *entity.DataBlock
-	d, ok := MemCache.Get(key)
+	d, ok := MemCache.Get(dbKey)
 	if ok {
 		dataBlock = d.(*entity.DataBlock)
 	}
-	var peerIds []string
 	if dataBlock != nil {
 		peerIds = strings.Split(dataBlock.PeerIds, ",")
 	}
+
 	if peerIds != nil && len(peerIds) > 0 {
+		logKey := this.GetLogCacheKey(messageLog)
+		var cacheLog *entity.ConsensusLog
+		l, found := MemCache.Get(logKey)
+		if found {
+			cacheLog = l.(*entity.ConsensusLog)
+		}
+		if cacheLog != nil {
+			existPayloadHash := cacheLog.PayloadHash
+			if len(payloadHash) > 0 && payloadHash != existPayloadHash {
+				//go service.GetPeerEndpointService().modifyBadCount()
+				return nil, errors.New("ErrorPayloadHash")
+			}
+		} else {
+			MemCache.SetDefault(logKey, messageLog)
+		}
+
 		log := &entity.ConsensusLog{}
 		log.PrimaryPeerId = primaryPeerId
 		log.BlockId = messageLog.BlockId
@@ -222,7 +225,7 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 		count := 1
 		for _, id := range peerIds {
 			log.PeerId = id
-			key = this.GetLogCacheKey(log)
+			key := this.GetLogCacheKey(log)
 			l, found = MemCache.Get(key)
 			cacheLog = nil
 			if found {
@@ -235,14 +238,15 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 		}
 		logger.Sugar.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_REPLY, count)
 		// 收到足够的数目
-		if count == config.ConsensusParams.StdMinPeerNum + 1 {
+		if count >= config.ConsensusParams.StdMinPeerNum + 1 {
+			MemCache.Delete(dbKey)
 			// 保存dataBlock
 			dataBlock.Status = entity2.EntityStatus_Effective
 			log.PeerId = myPeerId
 			go finalCommit(dataBlock, log)
-			/*for _, key := range keys {
+			for _, key := range keys {
 				MemCache.Delete(key)
-			}*/
+			}
 		}
 	}
 
