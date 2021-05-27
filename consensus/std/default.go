@@ -262,11 +262,10 @@ func finalCommit(dataBlock *entity.DataBlock, log *entity.ConsensusLog) {
 	if err != nil {
 		logger.Sugar.Errorf("finalCommit StoreValue failed:%v", err)
 	} else {
-		peerId := dataBlock.PeerId
 		if dataBlock.BlockType == entity.BlockType_P2pChat && len(dataBlock.TransportPayload) == 0 {
-			peerId = dataBlock.BusinessNumber
+			log.PeerId = "" // change to empty to specify this is a delete (otherwise create) P2pChat consensus reply
 		}
-		go action.ConsensusAction.ConsensusLog(peerId, msgtype.CONSENSUS_REPLY, log, "")
+		go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_REPLY, log, "")
 	}
 }
 
