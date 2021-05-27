@@ -24,6 +24,7 @@ type ConsensusLog struct {
 	Address     string `xorm:"varchar(255)" json:"address,omitempty"`
 	PublicKey   string `xorm:"varchar(1024)" json:"publicKey,omitempty"`
 	BlockId     string `xorm:"varchar(255)" json:"blockId,omitempty"`
+	BlockType   BlockType `xorm:"varchar(255)" json:"blockType,omitempty"`
 	SliceNumber uint64 `json:"sliceNumber,omitempty"`
 	// 交易请求的payloadhash
 	PayloadHash string `xorm:"varchar(255)" json:"payloadHash,omitempty"`

@@ -105,6 +105,7 @@ func (this *Consensus) ChooseConsensusPeer(dataBlock *entity.DataBlock) []string
 func (this *Consensus) CreateConsensusLog(chainMessage *msg.ChainMessage, dataBlock *entity.DataBlock, myselfPeer *entity1.MyselfPeer, status string) *entity.ConsensusLog {
 	log := &entity.ConsensusLog{}
 	log.BlockId = dataBlock.BlockId
+	log.BlockType = dataBlock.BlockType
 	log.SliceNumber = dataBlock.SliceNumber
 	log.PrimarySequenceId = dataBlock.PrimarySequenceId
 	log.PayloadHash = dataBlock.PayloadHash

@@ -218,6 +218,7 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 		log := &entity.ConsensusLog{}
 		log.PrimaryPeerId = primaryPeerId
 		log.BlockId = messageLog.BlockId
+		log.BlockType = messageLog.BlockType
 		log.SliceNumber = messageLog.SliceNumber
 		log.PrimarySequenceId = messageLog.PrimarySequenceId
 		log.Status = msgtype.CONSENSUS_REPLY
@@ -261,7 +262,11 @@ func finalCommit(dataBlock *entity.DataBlock, log *entity.ConsensusLog) {
 	if err != nil {
 		logger.Sugar.Errorf("finalCommit StoreValue failed:%v", err)
 	} else {
-		go action.ConsensusAction.ConsensusLog(dataBlock.PeerId, msgtype.CONSENSUS_REPLY, log, "")
+		peerId := dataBlock.PeerId
+		if dataBlock.BlockType == entity.BlockType_P2pChat && len(dataBlock.TransportPayload) == 0 {
+			peerId = dataBlock.BusinessNumber
+		}
+		go action.ConsensusAction.ConsensusLog(peerId, msgtype.CONSENSUS_REPLY, log, "")
 	}
 }
 
