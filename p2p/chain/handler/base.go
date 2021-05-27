@@ -128,6 +128,8 @@ func GetPublicKey(targetPeerId string) (*crypto.Key, error) {
 
 const CompressLimit = 2048
 
+const PayloadLimit = 32 * 1024
+
 const (
 	PayloadType_PeerClient   = "peerClient"
 	PayloadType_PeerEndpoint = "peerEndpoint"

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/curltech/go-colla-core/container"
+	"github.com/curltech/go-colla-core/content"
 	"github.com/curltech/go-colla-core/crypto/openpgp"
 	"github.com/curltech/go-colla-core/crypto/std"
 	baseentity "github.com/curltech/go-colla-core/entity"
@@ -270,6 +271,10 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 		if len(db.TransportPayload) == 0 {
 			// 只针对第一个分片处理一次
 			if sliceNumber == 1 {
+				for i := uint64(1); i <= oldDb.SliceSize; i++ {
+					contentId := std.EncodeHex(std.Hash(fmt.Sprintf("%v-%v", oldDb.BlockId, i), "sha3_256"))
+					content.FileContent.Write(contentId, nil)
+				}
 				dbCondition := &entity.DataBlock{}
 				dbCondition.BlockId = blockId
 				this.Delete(dbCondition, "")
@@ -301,6 +306,12 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 		if len(db.TransportPayload) == 0 {
 			return nil
 		}
+	}
+	if len(db.TransportPayload) > handler2.PayloadLimit {
+		transportPayload := std.DecodeBase64(db.TransportPayload)
+		contentId := std.EncodeHex(std.Hash(fmt.Sprintf("%v-%v", db.BlockId, db.SliceNumber), "sha3_256"))
+		content.FileContent.Write(contentId, transportPayload)
+		db.TransportPayload = ""
 	}
 
 	dbAffected := this.Upsert(db)
@@ -418,14 +429,21 @@ func (this *DataBlockService) QueryValue(dataBlocks *[]*entity.DataBlock, blockI
 	condition.BlockId = blockId
 	condition.SliceNumber = sliceNumber
 	this.Find(dataBlocks, condition, "", 0, 0, "")
-	if len(*dataBlocks) > 0 && sliceNumber == 1 {
+	if len(*dataBlocks) > 0 {
 		for _, dataBlock := range *dataBlocks {
-			condition := &entity.TransactionKey{}
-			condition.BlockId = dataBlock.BlockId
-			transactionKeys := make([]*entity.TransactionKey, 0)
-			GetTransactionKeyService().Find(&transactionKeys, condition, "", 0, 0, "")
-			if len(transactionKeys) > 0 {
-				dataBlock.TransactionKeys = transactionKeys
+			if sliceNumber == 1 {
+				condition := &entity.TransactionKey{}
+				condition.BlockId = dataBlock.BlockId
+				transactionKeys := make([]*entity.TransactionKey, 0)
+				GetTransactionKeyService().Find(&transactionKeys, condition, "", 0, 0, "")
+				if len(transactionKeys) > 0 {
+					dataBlock.TransactionKeys = transactionKeys
+				}
+			}
+			if dataBlock.TransportPayload == "" {
+				contentId := std.EncodeHex(std.Hash(fmt.Sprintf("%v-%v", dataBlock.BlockId, dataBlock.SliceNumber), "sha3_256"))
+				transportPayload, _ := content.FileContent.Read(contentId)
+				dataBlock.TransportPayload = std.EncodeBase64(transportPayload)
 			}
 		}
 	}

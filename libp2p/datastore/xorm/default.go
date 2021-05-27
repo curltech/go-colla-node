@@ -3,6 +3,7 @@ package xorm
 import (
 	"errors"
 	"fmt"
+	"github.com/curltech/go-colla-core/content"
 	"github.com/curltech/go-colla-core/crypto/openpgp"
 	"github.com/curltech/go-colla-core/crypto/std"
 	baseentity "github.com/curltech/go-colla-core/entity"
@@ -211,6 +212,10 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				if len(p.TransportPayload) == 0 {
 					// 只针对第一个分片处理一次
 					if p.SliceNumber == 1 {
+						for i := uint64(1); i <= oldp.SliceSize; i++ {
+							contentId := std.EncodeHex(std.Hash(fmt.Sprintf("%v-%v", oldp.BlockId, i), "sha3_256"))
+							content.FileContent.Write(contentId, nil)
+						}
 						condition := &chainentity.DataBlock{}
 						condition.BlockId = p.BlockId
 						req.Service.Delete(condition, "")
@@ -276,6 +281,15 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				if p.Status == baseentity.EntityState_Deleted {
 					continue
 				}
+			}
+		}
+		if namespace == ns.DataBlock_Prefix || namespace == ns.DataBlock_Owner_Prefix {
+			p := entity.(*chainentity.DataBlock)
+			if len(p.TransportPayload) > handler2.PayloadLimit {
+				transportPayload := std.DecodeBase64(p.TransportPayload)
+				contentId := std.EncodeHex(std.Hash(fmt.Sprintf("%v-%v", p.BlockId, p.SliceNumber), "sha3_256"))
+				content.FileContent.Write(contentId, transportPayload)
+				p.TransportPayload = ""
 			}
 		}
 
@@ -496,6 +510,15 @@ func (this *XormDatastore) get(req *handler.DispatchRequest) interface{} {
 	}
 	entities, _ := req.Service.NewEntities(nil)
 	req.Service.Find(entities, entity, "", 0, 0, "")
+	if req.Name == ns.DataBlock_Prefix || req.Name == ns.DataBlock_Owner_Prefix {
+		for _, entity := range *entities.(*[]*chainentity.DataBlock) {
+			if entity.TransportPayload == "" {
+				contentId := std.EncodeHex(std.Hash(fmt.Sprintf("%v-%v", entity.BlockId, entity.SliceNumber), "sha3_256"))
+				transportPayload, _ := content.FileContent.Read(contentId)
+				entity.TransportPayload = std.EncodeBase64(transportPayload)
+			}
+		}
+	}
 
 	return entities
 }
