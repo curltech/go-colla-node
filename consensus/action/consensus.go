@@ -17,7 +17,6 @@ type consensusAction struct {
 var ConsensusAction consensusAction
 
 func (this *consensusAction) ConsensusDataBlock(peerId string, msgType string, dataBlock *entity.DataBlock, targetPeerId string) (interface{}, error) {
-	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	if targetPeerId == "" {
 		targetPeerId = peerId
 	}
@@ -42,7 +41,6 @@ func (this *consensusAction) ConsensusDataBlock(peerId string, msgType string, d
 }
 
 func (this *consensusAction) ConsensusLog(peerId string, msgType string, consensusLog *entity.ConsensusLog, targetPeerId string) (interface{}, error) {
-	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	if targetPeerId == "" {
 		targetPeerId = peerId
 	}
