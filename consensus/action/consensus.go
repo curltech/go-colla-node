@@ -28,6 +28,7 @@ func (this *consensusAction) ConsensusDataBlock(peerId string, msgType string, d
 	chainMessage.PayloadType = handler.PayloadType_DataBlock
 	chainMessage.MessageType = msgtype.MsgType(msgType)
 	chainMessage.MessageDirect = msgtype.MsgDirect_Request
+	chainMessage.NeedCompress = true
 
 	response, err := sender.DirectSend(&chainMessage) // 定位器之间
 	if err != nil {
@@ -52,6 +53,7 @@ func (this *consensusAction) ConsensusLog(peerId string, msgType string, consens
 	chainMessage.PayloadType = handler.PayloadType_ConsensusLog
 	chainMessage.MessageType = msgtype.MsgType(msgType)
 	chainMessage.MessageDirect = msgtype.MsgDirect_Request
+	chainMessage.NeedCompress = true
 
 	var response *msg.ChainMessage
 	var err error
