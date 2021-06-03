@@ -51,7 +51,8 @@ func (this *peerEndPointAction) Receive(chainMessage *msg.ChainMessage) (*msg.Ch
 		if err != nil {
 			logger.Sugar.Errorf("failed to Marshal SrcMyselfPeer, err: %v", err)
 		} else {
-			err = dht.PeerEndpointDHT.PutLocal(key, byteSrcPeerEndpoint)
+			//err = dht.PeerEndpointDHT.PutLocal(key, byteSrcPeerEndpoint)
+			go dht.PeerEndpointDHT.PutLocal(key, byteSrcPeerEndpoint)
 		}
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
