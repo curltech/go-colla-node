@@ -310,7 +310,11 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 	if len(db.TransportPayload) > handler2.PayloadLimit {
 		transportPayload := std.DecodeBase64(db.TransportPayload)
 		contentId := std.EncodeHex(std.Hash(fmt.Sprintf("%v-%v", db.BlockId, db.SliceNumber), "sha3_256"))
-		content.FileContent.Write(contentId, transportPayload)
+		err := content.FileContent.Write(contentId, transportPayload)
+		if err != nil {
+			logger.Sugar.Errorf(fmt.Sprintf("failed to Write FileContent:%v", err))
+			return errors.New(fmt.Sprintf("failed to Write FileContent:%v", err))
+		}
 		db.TransportPayload = ""
 	}
 
