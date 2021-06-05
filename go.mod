@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/ProtonMail/gopenpgp/v2 v2.0.1
 	github.com/at-wat/ebml-go v0.11.0
-	github.com/curltech/go-colla-core v0.1.5
+	github.com/curltech/go-colla-core v0.1.6
 	github.com/davidlazar/go-crypto v0.0.0-20190912175916-7055855a373f // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/emersion/go-imap v1.0.6
