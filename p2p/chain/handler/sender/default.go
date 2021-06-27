@@ -164,7 +164,7 @@ func RelaySend(chainMessage *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 							chainMessage.TargetConnectPeerId = peerClient.ConnectPeerId
 							chainMessage.ConnectPeerId = peerClient.ConnectPeerId
 						}
-						go SendCM(chainMessage)
+						SendCM(chainMessage)
 					}
 				}
 				return chainMessage, nil
