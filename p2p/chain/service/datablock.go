@@ -219,22 +219,23 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 	if dbFound {
 		db.Id = oldDb.Id
 		// 校验Owner
-		if db.BlockType == entity.BlockType_P2pChat && len(db.TransportPayload) == 0 {
-			if oldDb.BusinessNumber != db.PeerId {
-				return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldBusinessNumber: %v", db.BlockId, db.PeerId, oldDb.BusinessNumber))
-			} else {
-				// 校验Signature
-				if db.ExpireDate > 0 {
-					publicKey, err := handler2.GetPublicKey(oldDb.BusinessNumber)
-					if err != nil {
-						return errors.New(fmt.Sprintf("GetPublicKey failure, blockId: %v, oldBusinessNumber: %v", db.BlockId, oldDb.BusinessNumber))
-					} else {
-						signatureData := strconv.FormatInt(db.ExpireDate, 10) + db.PeerId
-						signature := std.DecodeBase64(db.Signature)
-						pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
-						if pass != true {
-							return errors.New(fmt.Sprintf("SignatureVerifyFailure, blockId: %v, PeerId: %v", db.BlockId, db.PeerId))
-						}
+		if (db.BlockType == entity.BlockType_P2pChat || db.BlockType == entity.BlockType_GroupFile) && len(db.TransportPayload) == 0 {
+			if db.BlockType == entity.BlockType_P2pChat {
+				if oldDb.BusinessNumber != db.PeerId {
+					return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldBusinessNumber: %v", db.BlockId, db.PeerId, oldDb.BusinessNumber))
+				}
+			}
+			// 校验Signature
+			if db.ExpireDate > 0 {
+				publicKey, err := handler2.GetPublicKey(oldDb.BusinessNumber)
+				if err != nil {
+					return errors.New(fmt.Sprintf("GetPublicKey failure, blockId: %v, oldBusinessNumber: %v", db.BlockId, oldDb.BusinessNumber))
+				} else {
+					signatureData := strconv.FormatInt(db.ExpireDate, 10) + db.PeerId
+					signature := std.DecodeBase64(db.Signature)
+					pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
+					if pass != true {
+						return errors.New(fmt.Sprintf("SignatureVerifyFailure, blockId: %v, PeerId: %v", db.BlockId, db.PeerId))
 					}
 				}
 			}
