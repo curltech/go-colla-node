@@ -304,7 +304,7 @@ func (v PeerTransactionValidator) Validate(key string, value []byte) error {
 		return err
 	}
 	if ns != PeerTransaction_Src_Prefix && ns != PeerTransaction_Target_Prefix &&
-		ns != PeerTransaction_P2PChat_Prefix || ns != PeerTransaction_GroupFile_Prefix {
+		ns != PeerTransaction_P2PChat_Prefix && ns != PeerTransaction_GroupFile_Prefix {
 		return errors.New("namespace neither '" + PeerTransaction_Src_Prefix + "' nor '" + PeerTransaction_Target_Prefix +
 			"' nor '" + PeerTransaction_P2PChat_Prefix + "' nor '" + PeerTransaction_GroupFile_Prefix + "'")
 	}
