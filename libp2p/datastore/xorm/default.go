@@ -316,6 +316,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 							peerTransaction.SliceNumber = i
 							peerTransaction.TransactionType = fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, p.BlockType)
 							peerTransaction.BusinessNumber = p.BusinessNumber
+							peerTransaction.Status = baseentity.EntityState_Deleted
 							err = service1.GetPeerTransactionService().PutPTs(&peerTransaction)
 							if err != nil {
 								return err
@@ -394,6 +395,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 					peerTransaction.CreateTimestamp = p.CreateTimestamp
 					peerTransaction.Amount = p.TransactionAmount
 					peerTransaction.TransactionType = fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, p.BlockType)
+					peerTransaction.Metadata = p.Metadata
 					err = service1.GetPeerTransactionService().PutPTs(&peerTransaction)
 					if err != nil {
 						return err
