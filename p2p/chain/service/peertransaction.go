@@ -69,11 +69,16 @@ func (this *PeerTransactionService) GetLocalPTs(keyKind string, srcPeerId string
 			return nil, errors.New("NullTargetPeerId")
 		}
 		key = ns.GetPeerTransactionTargetKey(targetPeerId)
-	} else if keyKind == ns.PeerTransaction_P2pChat_KeyKind {
+	} else if keyKind == ns.PeerTransaction_P2PChat_KeyKind {
 		if len(businessNumber) == 0 {
 			return nil, errors.New("NullBusinessNumber")
 		}
 		key = ns.GetPeerTransactionP2pChatKey(businessNumber)
+	} else if keyKind == ns.PeerTransaction_GroupFile_KeyKind {
+		if len(businessNumber) == 0 {
+			return nil, errors.New("NullBusinessNumber")
+		}
+		key = ns.GetPeerTransactionGroupFileKey(businessNumber)
 	} else {
 		logger.Sugar.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
 		return nil, errors.New("InvalidPeerTransactionKeyKind")
@@ -113,11 +118,16 @@ func (this *PeerTransactionService) PutLocalPTs(keyKind string, peerTransactions
 				return errors.New("NullTargetPeerId")
 			}
 			key = ns.GetPeerTransactionTargetKey(peerTransaction.TargetPeerId)
-		} else if keyKind == ns.PeerTransaction_P2pChat_KeyKind {
+		} else if keyKind == ns.PeerTransaction_P2PChat_KeyKind {
 			if len(peerTransaction.BusinessNumber) == 0 {
 				return errors.New("NullBusinessNumber")
 			}
 			key = ns.GetPeerTransactionP2pChatKey(peerTransaction.BusinessNumber)
+		} else if keyKind == ns.PeerTransaction_GroupFile_KeyKind {
+			if len(peerTransaction.BusinessNumber) == 0 {
+				return errors.New("NullBusinessNumber")
+			}
+			key = ns.GetPeerTransactionGroupFileKey(peerTransaction.BusinessNumber)
 		} else {
 			logger.Sugar.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
 			return errors.New("InvalidPeerTransactionKeyKind")
@@ -142,8 +152,13 @@ func (this *PeerTransactionService) PutPTs(peerTransaction *entity.PeerTransacti
 			return err
 		}
 		return this.PutPT(peerTransaction, ns.PeerTransaction_Target_KeyKind)
+	} else if peerTransaction.TransactionType == fmt.Sprintf("%v-%v", entity2.TransactionType_DataBlock, chainentity.BlockType_P2pChat) {
+		return this.PutPT(peerTransaction, ns.PeerTransaction_P2PChat_KeyKind)
+	} else if peerTransaction.TransactionType == fmt.Sprintf("%v-%v", entity2.TransactionType_DataBlock, chainentity.BlockType_GroupFile) {
+		return this.PutPT(peerTransaction, ns.PeerTransaction_GroupFile_KeyKind)
 	} else {
-		return this.PutPT(peerTransaction, ns.PeerTransaction_P2pChat_KeyKind)
+		logger.Sugar.Errorf("InvalidTransactionType: %v", peerTransaction.TransactionType)
+		return errors.New("InvalidTransactionType")
 	}
 }
 
@@ -163,11 +178,16 @@ func (this *PeerTransactionService) PutPT(peerTransaction *entity.PeerTransactio
 			return errors.New("NullTargetPeerId")
 		}
 		key = ns.GetPeerTransactionTargetKey(peerTransaction.TargetPeerId)
-	} else if keyKind == ns.PeerTransaction_P2pChat_KeyKind {
+	} else if keyKind == ns.PeerTransaction_P2PChat_KeyKind {
 		if len(peerTransaction.BusinessNumber) == 0 {
 			return errors.New("NullBusinessNumber")
 		}
 		key = ns.GetPeerTransactionP2pChatKey(peerTransaction.BusinessNumber)
+	} else if keyKind == ns.PeerTransaction_GroupFile_KeyKind {
+		if len(peerTransaction.BusinessNumber) == 0 {
+			return errors.New("NullBusinessNumber")
+		}
+		key = ns.GetPeerTransactionGroupFileKey(peerTransaction.BusinessNumber)
 	} else {
 		logger.Sugar.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
 		return errors.New("InvalidPeerTransactionKeyKind")
@@ -185,5 +205,6 @@ func init() {
 	service.RegistSeq(seqname, 0)
 	container.RegistService(ns.PeerTransaction_Src_Prefix, peerTransactionService)
 	container.RegistService(ns.PeerTransaction_Target_Prefix, peerTransactionService)
-	container.RegistService(ns.PeerTransaction_P2pChat_Prefix, peerTransactionService)
+	container.RegistService(ns.PeerTransaction_P2PChat_Prefix, peerTransactionService)
+	container.RegistService(ns.PeerTransaction_GroupFile_Prefix, peerTransactionService)
 }

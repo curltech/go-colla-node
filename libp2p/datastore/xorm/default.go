@@ -105,7 +105,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 			}
 			reflect.SetValue(old, "SliceNumber", sliceNumber)
 		} else if namespace == ns.PeerTransaction_Src_Prefix || namespace == ns.PeerTransaction_Target_Prefix ||
-			namespace == ns.PeerTransaction_P2pChat_Prefix {
+			namespace == ns.PeerTransaction_P2PChat_Prefix || namespace == ns.PeerTransaction_GroupFile_Prefix {
 			targetPeerId, err := reflect.GetValue(entity, "TargetPeerId")
 			if err != nil || targetPeerId == nil {
 				logger.Sugar.Errorf("NoTargetPeerId")
@@ -164,22 +164,23 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				oldp := old.(*chainentity.DataBlock)
 				p := entity.(*chainentity.DataBlock)
 				// 校验Owner
-				if p.BlockType == chainentity.BlockType_P2pChat && len(p.TransportPayload) == 0 {
-					if oldp.BusinessNumber != p.PeerId {
-						return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldBusinessNumber: %v", p.BlockId, p.PeerId, oldp.BusinessNumber))
-					} else {
-						// 校验Signature
-						if p.ExpireDate > 0 {
-							publicKey, err := handler2.GetPublicKey(oldp.BusinessNumber)
-							if err != nil {
-								return errors.New(fmt.Sprintf("GetPublicKey failure, blockId: %v, oldBusinessNumber: %v", p.BlockId, oldp.BusinessNumber))
-							} else {
-								signatureData := strconv.FormatInt(p.ExpireDate, 10) + p.PeerId
-								signature := std.DecodeBase64(p.Signature)
-								pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
-								if pass != true {
-									return errors.New(fmt.Sprintf("SignatureVerifyFailure, blockId: %v, PeerId: %v", p.BlockId, p.PeerId))
-								}
+				if (p.BlockType == chainentity.BlockType_P2pChat || p.BlockType == chainentity.BlockType_GroupFile) && len(p.TransportPayload) == 0 {
+					if p.BlockType == chainentity.BlockType_P2pChat {
+						if oldp.BusinessNumber != p.PeerId {
+							return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldBusinessNumber: %v", p.BlockId, p.PeerId, oldp.BusinessNumber))
+						}
+					}
+					// 校验Signature
+					if p.ExpireDate > 0 {
+						publicKey, err := handler2.GetPublicKey(p.PeerId)
+						if err != nil {
+							return errors.New(fmt.Sprintf("GetPublicKey failure, blockId: %v, peerId: %v", p.BlockId, p.PeerId))
+						} else {
+							signatureData := strconv.FormatInt(p.ExpireDate, 10) + p.PeerId
+							signature := std.DecodeBase64(p.Signature)
+							pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
+							if pass != true {
+								return errors.New(fmt.Sprintf("SignatureVerifyFailure, blockId: %v, PeerId: %v", p.BlockId, p.PeerId))
 							}
 						}
 					}
@@ -242,7 +243,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 					continue
 				}
 			} else if namespace == ns.PeerTransaction_Src_Prefix || namespace == ns.PeerTransaction_Target_Prefix ||
-				namespace == ns.PeerTransaction_P2pChat_Prefix {
+				namespace == ns.PeerTransaction_P2PChat_Prefix || namespace == ns.PeerTransaction_GroupFile_Prefix {
 				oldp := old.(*chainentity.PeerTransaction)
 				p := entity.(*chainentity.PeerTransaction)
 				// Status == baseentity.EntityState_Deleted表示删除
@@ -275,7 +276,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 					continue
 				}
 			} else if namespace == ns.PeerTransaction_Src_Prefix || namespace == ns.PeerTransaction_Target_Prefix ||
-				namespace == ns.PeerTransaction_P2pChat_Prefix {
+				namespace == ns.PeerTransaction_P2PChat_Prefix || namespace == ns.PeerTransaction_GroupFile_Prefix {
 				p := entity.(*chainentity.PeerTransaction)
 				// Status == baseentity.EntityState_Deleted表示删除
 				if p.Status == baseentity.EntityState_Deleted {
@@ -497,9 +498,13 @@ func (this *XormDatastore) get(req *handler.DispatchRequest) interface{} {
 			reflect.SetValue(entity, ns.PeerTransaction_Target_KeyKind, v)
 			reflect.SetValue(entity, ns.PeerTransaction_Type_KeyKind, fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, chainentity.BlockType_Collection))
 			break
-		} else if req.Name == ns.PeerTransaction_P2pChat_Prefix {
-			reflect.SetValue(entity, ns.PeerTransaction_P2pChat_KeyKind, v)
+		} else if req.Name == ns.PeerTransaction_P2PChat_Prefix {
+			reflect.SetValue(entity, ns.PeerTransaction_BusinessNumber_KeyKind, v)
 			reflect.SetValue(entity, ns.PeerTransaction_Type_KeyKind, fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, chainentity.BlockType_P2pChat))
+			break
+		} else if req.Name == ns.PeerTransaction_GroupFile_Prefix {
+			reflect.SetValue(entity, ns.PeerTransaction_BusinessNumber_KeyKind, v)
+			reflect.SetValue(entity, ns.PeerTransaction_Type_KeyKind, fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, chainentity.BlockType_GroupFile))
 			break
 		} else {
 			err := reflect.SetValue(entity, k, v)
@@ -626,6 +631,9 @@ func init() {
 	handler.RegistDatastore(ns.TransactionKey_Prefix, NewXormDatastore())
 	handler.RegistKeyname(ns.TransactionKey_Prefix, chainentity.TransactionKey{}.KeyName())
 
-	handler.RegistDatastore(ns.PeerTransaction_P2pChat_Prefix, NewXormDatastore())
-	handler.RegistKeyname(ns.PeerTransaction_P2pChat_Prefix, ns.PeerTransaction_P2pChat_KeyKind)
+	handler.RegistDatastore(ns.PeerTransaction_P2PChat_Prefix, NewXormDatastore())
+	handler.RegistKeyname(ns.PeerTransaction_P2PChat_Prefix, ns.PeerTransaction_P2PChat_KeyKind)
+
+	handler.RegistDatastore(ns.PeerTransaction_GroupFile_Prefix, NewXormDatastore())
+	handler.RegistKeyname(ns.PeerTransaction_GroupFile_Prefix, ns.PeerTransaction_GroupFile_KeyKind)
 }

@@ -68,7 +68,17 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 				return response, nil
 			}
 			key = ns.GetPeerTransactionP2pChatKey(businessNumber)
-			keyKind = ns.PeerTransaction_P2pChat_KeyKind
+			keyKind = ns.PeerTransaction_P2PChat_KeyKind
+		} else if blockType == entity2.BlockType_GroupFile {
+			if conditionBean["businessNumber"] != nil {
+				businessNumber = conditionBean["businessNumber"].(string)
+			}
+			if len(businessNumber) == 0 {
+				response = handler.Error(chainMessage.MessageType, errors.New("NullBusinessNumber"))
+				return response, nil
+			}
+			key = ns.GetPeerTransactionGroupFileKey(businessNumber)
+			keyKind = ns.PeerTransaction_GroupFile_KeyKind
 		}
 		if config.Libp2pParams.FaultTolerantLevel == 0 {
 			recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)

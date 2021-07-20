@@ -11,6 +11,7 @@ const (
 	BlockType_ChatAttach = "ChatAttach"
 	BlockType_Collection = "Collection"
 	BlockType_P2pChat = "P2pChat"
+	BlockType_GroupFile = "GroupFile"
 )
 
 type DataBlock struct {
