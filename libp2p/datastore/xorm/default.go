@@ -499,11 +499,11 @@ func (this *XormDatastore) get(req *handler.DispatchRequest) interface{} {
 			reflect.SetValue(entity, ns.PeerTransaction_Type_KeyKind, fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, chainentity.BlockType_Collection))
 			break
 		} else if req.Name == ns.PeerTransaction_P2PChat_Prefix {
-			reflect.SetValue(entity, ns.PeerTransaction_BusinessNumber_KeyKind, v)
+			reflect.SetValue(entity, ns.PeerTransaction_P2PChat_KeyKind, v)
 			reflect.SetValue(entity, ns.PeerTransaction_Type_KeyKind, fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, chainentity.BlockType_P2pChat))
 			break
 		} else if req.Name == ns.PeerTransaction_GroupFile_Prefix {
-			reflect.SetValue(entity, ns.PeerTransaction_BusinessNumber_KeyKind, v)
+			reflect.SetValue(entity, ns.PeerTransaction_GroupFile_KeyKind, v)
 			reflect.SetValue(entity, ns.PeerTransaction_Type_KeyKind, fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, chainentity.BlockType_GroupFile))
 			break
 		} else {

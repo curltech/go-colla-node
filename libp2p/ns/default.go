@@ -32,11 +32,9 @@ const DataBlock_Owner_KeyKind = "PeerId"
 const PeerTransaction_Src_KeyKind = "SrcPeerId"
 const PeerTransaction_Target_KeyKind = "TargetPeerId"
 
-const PeerTransaction_P2PChat_KeyKind = "P2PChat"
+const PeerTransaction_P2PChat_KeyKind = "BusinessNumber"
 
-const PeerTransaction_GroupFile_KeyKind = "GroupFile"
-
-const PeerTransaction_BusinessNumber_KeyKind = "BusinessNumber"
+const PeerTransaction_GroupFile_KeyKind = "BusinessNumber"
 
 const PeerTransaction_Type_KeyKind = "TransactionType"
 
