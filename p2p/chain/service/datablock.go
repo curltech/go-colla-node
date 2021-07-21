@@ -227,7 +227,7 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 			}
 			// 校验Signature
 			if db.ExpireDate > 0 {
-				publicKey, err := handler2.GetPublicKey(oldDb.BusinessNumber)
+				publicKey, err := handler2.GetPublicKey(db.PeerId)
 				if err != nil {
 					return errors.New(fmt.Sprintf("GetPublicKey failure, blockId: %v, oldBusinessNumber: %v", db.BlockId, oldDb.BusinessNumber))
 				} else {
@@ -416,6 +416,7 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 			peerTransaction.CreateTimestamp = db.CreateTimestamp
 			peerTransaction.Amount = db.TransactionAmount
 			peerTransaction.TransactionType = fmt.Sprintf("%v-%v", entity2.TransactionType_DataBlock, db.BlockType)
+			peerTransaction.Metadata = db.Metadata
 			err := GetPeerTransactionService().PutPTs(&peerTransaction)
 			if err != nil {
 				return err
