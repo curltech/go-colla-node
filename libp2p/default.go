@@ -434,6 +434,13 @@ func Start() {
 	//routingDiscovery()
 	//10.局域网可设置mdns路由发现方式
 	//mdns()
+	//11.schedule to delete expired data blocks
+	go func() {
+		ticker := time.NewTicker(time.Minute * 60)
+		for range ticker.C {
+			service1.GetDataBlockService().DeleteExpiredDB()
+		}
+	}()
 
 	//handler.SetNetNotifiee()
 

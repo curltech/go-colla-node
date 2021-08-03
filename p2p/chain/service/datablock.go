@@ -461,6 +461,47 @@ func (this *DataBlockService) GetTransactionAmount(transportPayload []byte) floa
 	return float64(len(transportPayload)) / float64(1024*1024)
 }
 
+func (this *DataBlockService) DeleteExpiredDB() error {
+	dataBlocks := make([]*entity.DataBlock, 0)
+	condiBean := &entity.DataBlock{}
+	now := time.Now().UnixNano()/1e6
+	err := this.Find(&dataBlocks, condiBean, "", 0, 0, "ExpireDate <= ?", now)
+	if err != nil {
+		return err
+	}
+	for _, dataBlock := range dataBlocks {
+		if dataBlock.SliceNumber == 1 {
+			for i := uint64(1); i <= dataBlock.SliceSize; i++ {
+				contentId := std.EncodeHex(std.Hash(fmt.Sprintf("%v-%v", dataBlock.BlockId, i), "sha3_256"))
+				content.FileContent.Write(contentId, nil)
+			}
+			condition := &entity.DataBlock{}
+			condition.BlockId = dataBlock.BlockId
+			this.Delete(condition, "")
+			// 删除TransactionKeys
+			condition2 := &entity.TransactionKey{}
+			condition2.BlockId = dataBlock.BlockId
+			GetTransactionKeyService().Delete(condition2, "")
+			// 删除PeerTransaction
+			for i := uint64(1); i <= dataBlock.SliceSize; i++ {
+				peerTransaction := entity.PeerTransaction{}
+				peerTransaction.SrcPeerId = dataBlock.PeerId
+				peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
+				peerTransaction.BlockId = dataBlock.BlockId
+				peerTransaction.SliceNumber = i
+				peerTransaction.TransactionType = fmt.Sprintf("%v-%v", entity2.TransactionType_DataBlock, dataBlock.BlockType)
+				peerTransaction.BusinessNumber = dataBlock.BusinessNumber
+				peerTransaction.Status = baseentity.EntityState_Deleted
+				err = GetPeerTransactionService().PutPTs(&peerTransaction)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func init() {
 	service.GetSession().Sync(new(entity.DataBlock))
 
