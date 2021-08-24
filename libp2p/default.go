@@ -17,6 +17,7 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/pubsub"
 	"github.com/curltech/go-colla-node/libp2p/routingtable"
 	"github.com/curltech/go-colla-node/libp2p/util"
+	service1 "github.com/curltech/go-colla-node/p2p/chain/service"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/transport/websocket/wss"
