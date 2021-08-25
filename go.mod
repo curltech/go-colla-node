@@ -1,11 +1,11 @@
 module github.com/curltech/go-colla-node
 
-go 1.15
+go 1.17
 
 require (
 	github.com/ProtonMail/gopenpgp/v2 v2.0.1
 	github.com/at-wat/ebml-go v0.11.0
-	github.com/curltech/go-colla-core v0.1.6
+	github.com/curltech/go-colla-core v0.1.7
 	github.com/davidlazar/go-crypto v0.0.0-20190912175916-7055855a373f // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/emersion/go-imap v1.0.6
@@ -27,7 +27,7 @@ require (
 	github.com/ipfs/go-ds-redis v0.1.0
 	github.com/ipfs/go-ds-sql v0.2.0
 	github.com/ipfs/go-filestore v1.0.0 // indirect
-	github.com/ipfs/go-ipfs v0.8.0
+	github.com/ipfs/go-ipfs v0.9.1
 	github.com/ipfs/go-ipfs-blockstore v1.0.1 // indirect
 	github.com/ipfs/go-ipfs-config v0.12.0
 	github.com/ipfs/go-ipfs-files v0.0.8
