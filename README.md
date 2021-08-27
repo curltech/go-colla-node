@@ -44,8 +44,8 @@ No  | OS  | Version and Spec.
 ## Linux
 1. Download and uncompress
 ```
-azureuser@myVM:~$ sudo wget https://github.com/curltech/go-colla-node/releases/download/v0.0.1/go-colla-node-linux-0.0.1.tar.gz
-azureuser@myVM:~$ sudo tar zxvf go-colla-node-linux-0.0.1.tar.gz
+azureuser@myVM:~$ sudo wget https://github.com/curltech/go-colla-node/releases/download/v0.0.2/go-colla-node-linux-0.0.2.tar.gz
+azureuser@myVM:~$ sudo tar zxvf go-colla-node-linux-0.0.2.tar.gz
 ```
 
 2. Configure and run
