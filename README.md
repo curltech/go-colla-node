@@ -25,7 +25,7 @@ defer syscall.Umask(mask) // comment this line for Windows platform
 ## Optimized Settings
 It's recommended to optimize following settings before building your own executable file:
 No  | Package | File | Default Setting | Recommended Setting
- ---- | ----- | ------  
+ ---- | ----- | ------ | ----- | ------  
  1  | go-mplex@v0.3.0 | multiplex.go | var MaxMessageSize = 1 << 20 | var MaxMessageSize = 1 << 30
  2  | go-libp2p-kad-dht@v0.12.2 | internal\net\massage_manager.go | var dhtReadMessageTimeout = 10 * time.Second | var dhtReadMessageTimeout = 300 * time.Second
  3  | go-libp2p-core@v0.8.5 | network\network.go | const MessageSizeMax = 1 << 22 | const MessageSizeMax = 1 << 30
