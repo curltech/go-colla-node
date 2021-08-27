@@ -6,6 +6,7 @@
 
 # Table of Contents
 - [Introduction](#introduction)
+- [Custom Build](#Custom Build)
 - [Installation](#installation)
 - [License](#license)
 
