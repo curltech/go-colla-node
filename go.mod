@@ -70,7 +70,7 @@ require (
 	github.com/pion/stun v0.3.5
 	github.com/pion/turn/v2 v2.0.5
 	github.com/pion/webrtc/v3 v3.0.20
-	github.com/valyala/fasthttp v1.16.0
+	github.com/valyala/fasthttp v1.24.0
 	github.com/yeqown/fasthttp-reverse-proxy/v2 v2.1.4
 	github.com/yeqown/log v1.0.5 // indirect
 	golang.org/x/crypto v0.0.0-20210506145944-38f3c27a63bf
@@ -87,7 +87,7 @@ require (
 	github.com/Stebalien/go-bitfield v0.0.1 // indirect
 	github.com/alexbrainman/goissue34681 v0.0.0-20191006012335-3fc7a47baff5 // indirect
 	github.com/allegro/bigcache v1.2.1 // indirect
-	github.com/andybalholm/brotli v1.0.0 // indirect
+	github.com/andybalholm/brotli v1.0.1 // indirect
 	github.com/benbjohnson/clock v1.0.3 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bep/debounce v1.2.0 // indirect
