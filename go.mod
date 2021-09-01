@@ -6,15 +6,14 @@ require (
 	github.com/ProtonMail/gopenpgp/v2 v2.0.1
 	github.com/at-wat/ebml-go v0.11.0
 	github.com/curltech/go-colla-core v0.1.7
-	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/emersion/go-imap v1.0.6
 	github.com/emersion/go-imap-idle v0.0.0-20201224103203-6f42b9020098
 	github.com/emersion/go-message v0.14.1
 	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21
-	github.com/emersion/go-smtp v0.14.0
+	github.com/emersion/go-smtp v0.15.0
 	github.com/fasthttp/websocket v1.4.1
-	github.com/foxcpp/maddy v0.4.3
+	github.com/foxcpp/maddy v0.4.4
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/uuid v1.2.0
 	github.com/gorilla/websocket v1.4.2
@@ -72,7 +71,6 @@ require (
 	github.com/pion/turn/v2 v2.0.5
 	github.com/pion/webrtc/v3 v3.0.20
 	github.com/valyala/fasthttp v1.16.0
-	github.com/whyrusleeping/cbor-gen v0.0.0-20210219115102-f37d292932f2 // indirect
 	github.com/yeqown/fasthttp-reverse-proxy/v2 v2.1.4
 	github.com/yeqown/log v1.0.5 // indirect
 	golang.org/x/crypto v0.0.0-20210506145944-38f3c27a63bf
@@ -117,6 +115,7 @@ require (
 	github.com/couchbase/vellum v1.0.2 // indirect
 	github.com/crackcomm/go-gitignore v0.0.0-20170627025303-887ab5e44cc3 // indirect
 	github.com/cskr/pubsub v1.0.2 // indirect
+	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
 	github.com/dgraph-io/badger v1.6.2 // indirect
 	github.com/dgraph-io/badger/v2 v2.0.3 // indirect
 	github.com/dgraph-io/ristretto v0.0.2 // indirect
@@ -124,7 +123,7 @@ require (
 	github.com/ebml-go/ebml v0.0.0-20160925193348-ca8851a10894 // indirect
 	github.com/ebml-go/webm v0.0.0-20160924163542-629e38feef2a // indirect
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200929065430-35fd8bce1107 // indirect
-	github.com/emersion/go-msgauth v0.6.4 // indirect
+	github.com/emersion/go-msgauth v0.6.5 // indirect
 	github.com/emersion/go-textwrapper v0.0.0-20200911093747-65d896831594 // indirect
 	github.com/ethereum/go-ethereum v1.9.21 // indirect
 	github.com/facebookgo/atomicfile v0.0.0-20151019160806-2de1f203e7d5 // indirect
@@ -196,11 +195,11 @@ require (
 	github.com/jinzhu/now v1.1.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
-	github.com/klauspost/compress v1.11.7 // indirect
+	github.com/klauspost/compress v1.11.13 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.4 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/koron/go-ssdp v0.0.0-20191105050749-2e1c40ed0b5d // indirect
-	github.com/lib/pq v1.8.0 // indirect
+	github.com/lib/pq v1.10.0 // indirect
 	github.com/libp2p/go-addr-util v0.0.2 // indirect
 	github.com/libp2p/go-buffer-pool v0.0.2 // indirect
 	github.com/libp2p/go-cidranger v1.1.0 // indirect
@@ -231,7 +230,7 @@ require (
 	github.com/libp2p/go-yamux/v2 v2.2.0 // indirect
 	github.com/lucas-clemente/quic-go v0.21.2 // indirect
 	github.com/lucsky/cuid v1.0.2 // indirect
-	github.com/mailru/easyjson v0.7.6 // indirect
+	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/marten-seemann/qtls-go1-15 v0.1.5 // indirect
 	github.com/marten-seemann/qtls-go1-16 v0.1.4 // indirect
 	github.com/marten-seemann/qtls-go1-17 v0.1.0-rc.1 // indirect
@@ -278,7 +277,7 @@ require (
 	github.com/polydawn/refmt v0.0.0-20201211092308-30ac6d18308e // indirect
 	github.com/prometheus/client_golang v1.10.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
-	github.com/prometheus/common v0.18.0 // indirect
+	github.com/prometheus/common v0.20.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/rs/zerolog v1.20.0 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
@@ -293,6 +292,7 @@ require (
 	github.com/vmihailenco/msgpack/v5 v5.0.0-beta.9 // indirect
 	github.com/vmihailenco/tagparser v0.1.2 // indirect
 	github.com/whyrusleeping/base32 v0.0.0-20170828182744-c30ac30633cc // indirect
+	github.com/whyrusleeping/cbor-gen v0.0.0-20210219115102-f37d292932f2 // indirect
 	github.com/whyrusleeping/chunker v0.0.0-20181014151217-fe64bd25879f // indirect
 	github.com/whyrusleeping/go-keyspace v0.0.0-20160322163242-5b898ac5add1 // indirect
 	github.com/whyrusleeping/mdns v0.0.0-20190826153040-b9b60ed33aa9 // indirect
