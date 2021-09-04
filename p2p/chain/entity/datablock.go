@@ -12,6 +12,8 @@ const (
 	BlockType_Collection = "Collection"
 	BlockType_P2pChat = "P2pChat"
 	BlockType_GroupFile = "GroupFile"
+	BlockType_Channel = "Channel"
+	BlockType_ChannelArticle = "ChannelArticle"
 )
 
 type DataBlock struct {
