@@ -134,6 +134,10 @@ func dhtOptions() []kaddht.Option {
 	options = append(options, validator)
 	validator = kaddht.NamespacedValidator(ns.PeerTransaction_GroupFile_Prefix, ns.PeerTransactionValidator{})
 	options = append(options, validator)
+	validator = kaddht.NamespacedValidator(ns.PeerTransaction_Channel_Prefix, ns.PeerTransactionValidator{})
+	options = append(options, validator)
+	validator = kaddht.NamespacedValidator(ns.PeerTransaction_ChannelArticle_Prefix, ns.PeerTransactionValidator{})
+	options = append(options, validator)
 
 	// RoutingTableRefreshPeriod sets the period for refreshing buckets in the
 	// routing table. The DHT will refresh buckets every period by:

@@ -21,6 +21,8 @@ const PeerTransaction_Src_Prefix = "peerTransactionSrc"
 const PeerTransaction_Target_Prefix = "peerTransactionTarget"
 const PeerTransaction_P2PChat_Prefix = "peerTransactionP2PChat"
 const PeerTransaction_GroupFile_Prefix = "peerTransactionGroupFile"
+const PeerTransaction_Channel_Prefix = "peerTransactionChannel"
+const PeerTransaction_ChannelArticle_Prefix = "peerTransactionChannelArticle"
 const TransactionKey_Prefix = "transactionKey"
 
 const PeerClient_KeyKind = "PeerId"
@@ -35,6 +37,10 @@ const PeerTransaction_Target_KeyKind = "TargetPeerId"
 const PeerTransaction_P2PChat_KeyKind = "BusinessNumber"
 
 const PeerTransaction_GroupFile_KeyKind = "BusinessNumber"
+
+const PeerTransaction_Channel_KeyKind = "BusinessNumber"
+
+const PeerTransaction_ChannelArticle_KeyKind = "BusinessNumber"
 
 const PeerTransaction_Type_KeyKind = "TransactionType"
 
@@ -104,6 +110,18 @@ func GetPeerTransactionP2pChatKey(id string) string {
 
 func GetPeerTransactionGroupFileKey(id string) string {
 	key := fmt.Sprintf("/%v/%v", PeerTransaction_GroupFile_Prefix, id)
+
+	return key
+}
+
+func GetPeerTransactionChannelKey(id string) string {
+	key := fmt.Sprintf("/%v/%v", PeerTransaction_Channel_Prefix, id)
+
+	return key
+}
+
+func GetPeerTransactionChannelArticleKey(id string) string {
+	key := fmt.Sprintf("/%v/%v", PeerTransaction_ChannelArticle_Prefix, id)
 
 	return key
 }
@@ -302,9 +320,11 @@ func (v PeerTransactionValidator) Validate(key string, value []byte) error {
 		return err
 	}
 	if ns != PeerTransaction_Src_Prefix && ns != PeerTransaction_Target_Prefix &&
-		ns != PeerTransaction_P2PChat_Prefix && ns != PeerTransaction_GroupFile_Prefix {
+		ns != PeerTransaction_P2PChat_Prefix && ns != PeerTransaction_GroupFile_Prefix &&
+		ns != PeerTransaction_Channel_Prefix && ns != PeerTransaction_ChannelArticle_Prefix {
 		return errors.New("namespace neither '" + PeerTransaction_Src_Prefix + "' nor '" + PeerTransaction_Target_Prefix +
-			"' nor '" + PeerTransaction_P2PChat_Prefix + "' nor '" + PeerTransaction_GroupFile_Prefix + "'")
+			"' nor '" + PeerTransaction_P2PChat_Prefix + "' nor '" + PeerTransaction_GroupFile_Prefix +
+			"' nor '" + PeerTransaction_Channel_Prefix + "' nor '" + PeerTransaction_ChannelArticle_Prefix + "'")
 	}
 
 	return nil

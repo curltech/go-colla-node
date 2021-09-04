@@ -219,48 +219,31 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 	if dbFound {
 		db.Id = oldDb.Id
 		// 校验Owner
-		if (db.BlockType == entity.BlockType_P2pChat || db.BlockType == entity.BlockType_GroupFile) && len(db.TransportPayload) == 0 {
-			if db.BlockType == entity.BlockType_P2pChat {
-				if oldDb.BusinessNumber != db.PeerId {
-					return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldBusinessNumber: %v", db.BlockId, db.PeerId, oldDb.BusinessNumber))
-				}
-			}
-			// 校验Signature
-			if db.ExpireDate > 0 {
-				publicKey, err := handler2.GetPublicKey(db.PeerId)
-				if err != nil {
-					return errors.New(fmt.Sprintf("GetPublicKey failure, blockId: %v, oldBusinessNumber: %v", db.BlockId, oldDb.BusinessNumber))
-				} else {
-					signatureData := strconv.FormatInt(db.ExpireDate, 10) + db.PeerId
-					signature := std.DecodeBase64(db.Signature)
-					pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
-					if pass != true {
-						return errors.New(fmt.Sprintf("SignatureVerifyFailure, blockId: %v, PeerId: %v", db.BlockId, db.PeerId))
-					}
-				}
+		if db.BlockType == entity.BlockType_P2pChat && len(db.TransportPayload) == 0 {
+			if oldDb.BusinessNumber != db.PeerId {
+				return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldBusinessNumber: %v", db.BlockId, db.PeerId, oldDb.BusinessNumber))
 			}
 		} else {
 			if oldDb.PeerId != db.PeerId {
 				return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldPeerId: %v", db.BlockId, db.PeerId, oldDb.PeerId))
-			} else {
-				// 校验Signature
-				publicKey, err := handler2.GetPublicKey(oldDb.PeerId)
-				if err != nil {
-					return errors.New(fmt.Sprintf("GetPublicKey failure, blockId: %v, oldPeerId: %v", db.BlockId, oldDb.PeerId))
-				} else {
-					var signatureData string
-					if len(db.TransportPayload) > 0 {
-						signatureData = db.TransportPayload
-					} else if db.ExpireDate > 0 {
-						signatureData = strconv.FormatInt(db.ExpireDate, 10) + db.PeerId
-					}
-					if len(signatureData) > 0 {
-						signature := std.DecodeBase64(db.Signature)
-						pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
-						if pass != true {
-							return errors.New(fmt.Sprintf("SignatureVerifyFailure, blockId: %v, PeerId: %v", db.BlockId, db.PeerId))
-						}
-					}
+			}
+		}
+		// 校验Signature
+		publicKey, err := handler2.GetPublicKey(oldDb.PeerId)
+		if err != nil {
+			return errors.New(fmt.Sprintf("GetPublicKey failure, blockId: %v, peerId: %v", db.BlockId, db.PeerId))
+		} else {
+			var signatureData string
+			if len(db.TransportPayload) > 0 {
+				signatureData = db.TransportPayload
+			} else if db.ExpireDate > 0 {
+				signatureData = strconv.FormatInt(db.ExpireDate, 10) + db.PeerId
+			}
+			if len(signatureData) > 0 {
+				signature := std.DecodeBase64(db.Signature)
+				pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
+				if pass != true {
+					return errors.New(fmt.Sprintf("SignatureVerifyFailure, blockId: %v, peerId: %v", db.BlockId, db.PeerId))
 				}
 			}
 		}
@@ -457,10 +440,6 @@ func (this *DataBlockService) QueryValue(dataBlocks *[]*entity.DataBlock, blockI
 	return nil
 }
 
-func (this *DataBlockService) GetTransactionAmount(transportPayload []byte) float64 {
-	return float64(len(transportPayload)) / float64(1024*1024)
-}
-
 func (this *DataBlockService) DeleteExpiredDB() error {
 	dataBlocks := make([]*entity.DataBlock, 0)
 	condiBean := &entity.DataBlock{}
@@ -500,6 +479,10 @@ func (this *DataBlockService) DeleteExpiredDB() error {
 		}
 	}
 	return nil
+}
+
+func (this *DataBlockService) GetTransactionAmount(transportPayload []byte) float64 {
+	return float64(len(transportPayload)) / float64(1024*1024)
 }
 
 func init() {

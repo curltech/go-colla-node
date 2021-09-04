@@ -79,6 +79,26 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			}
 			key = ns.GetPeerTransactionGroupFileKey(businessNumber)
 			keyKind = ns.PeerTransaction_GroupFile_KeyKind
+		} else if blockType == entity2.BlockType_Channel {
+			if conditionBean["businessNumber"] != nil {
+				businessNumber = conditionBean["businessNumber"].(string)
+			}
+			if len(businessNumber) == 0 {
+				response = handler.Error(chainMessage.MessageType, errors.New("NullBusinessNumber"))
+				return response, nil
+			}
+			key = ns.GetPeerTransactionChannelKey(businessNumber)
+			keyKind = ns.PeerTransaction_Channel_KeyKind
+		} else if blockType == entity2.BlockType_ChannelArticle {
+			if conditionBean["businessNumber"] != nil {
+				businessNumber = conditionBean["businessNumber"].(string)
+			}
+			if len(businessNumber) == 0 {
+				response = handler.Error(chainMessage.MessageType, errors.New("NullBusinessNumber"))
+				return response, nil
+			}
+			key = ns.GetPeerTransactionChannelArticleKey(businessNumber)
+			keyKind = ns.PeerTransaction_ChannelArticle_KeyKind
 		}
 		if config.Libp2pParams.FaultTolerantLevel == 0 {
 			recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)
