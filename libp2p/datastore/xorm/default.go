@@ -382,6 +382,9 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 					peerTransaction.Amount = p.TransactionAmount
 					peerTransaction.TransactionType = fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, p.BlockType)
 					peerTransaction.Metadata = p.Metadata
+					peerTransaction.Thumbnail = p.Thumbnail
+					peerTransaction.Name = p.Name
+					peerTransaction.Description = p.Description
 					err = service1.GetPeerTransactionService().PutPTs(&peerTransaction)
 					if err != nil {
 						return err

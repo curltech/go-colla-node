@@ -90,7 +90,10 @@ type DataBlock struct {
 	StateHash       string            `xorm:"varchar(255)" json:"stateHash,omitempty"`
 	TransactionKeys []*TransactionKey `xorm:"-" json:"transactionKeys,omitempty"`
 	// 共识可能会引入的一些可选的元数据
-	Metadata string `xorm:"varchar(255)" json:"metadata,omitempty"`
+	Metadata string `xorm:"varchar(32768)" json:"metadata,omitempty"`
+	Thumbnail string `xorm:"varchar(32768)" json:"thumbnail,omitempty"`
+	Name string `xorm:"varchar(255)" json:"name,omitempty"`
+	Description string `xorm:"varchar(255)" json:"description,omitempty"`
 	MimeType string `xorm:"varchar(255)" json:"mimeType,omitempty"`
 
 	// 由区块提议者填充的时间戳

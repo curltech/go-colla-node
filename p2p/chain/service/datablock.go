@@ -400,6 +400,9 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 			peerTransaction.Amount = db.TransactionAmount
 			peerTransaction.TransactionType = fmt.Sprintf("%v-%v", entity2.TransactionType_DataBlock, db.BlockType)
 			peerTransaction.Metadata = db.Metadata
+			peerTransaction.Thumbnail = db.Thumbnail
+			peerTransaction.Name = db.Name
+			peerTransaction.Description = db.Description
 			err := GetPeerTransactionService().PutPTs(&peerTransaction)
 			if err != nil {
 				return err

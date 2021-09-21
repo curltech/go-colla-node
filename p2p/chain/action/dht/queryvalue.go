@@ -170,6 +170,9 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			db.CreateTimestamp = v.CreateTimestamp
 			db.PrimaryPeerId = v.PrimaryPeerId
 			db.Metadata = v.Metadata
+			db.Thumbnail = v.Thumbnail
+			db.Name = v.Name
+			db.Description = v.Description
 			dataBlocks = append(dataBlocks, &db)
 		}
 	} else {

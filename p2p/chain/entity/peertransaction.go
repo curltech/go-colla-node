@@ -24,7 +24,10 @@ type PeerTransaction struct {
 	BusinessNumber         string     `xorm:"varchar(255)" json:"businessNumber,omitempty"`
 	SliceNumber            uint64	  `xorm:"notnull" json:"sliceNumber"`
 	CreateTimestamp        uint64     `json:"createTimestamp,omitempty"`
-	Metadata 			   string     `xorm:"varchar(255)" json:"metadata,omitempty"`
+	Metadata 			   string     `xorm:"varchar(32768)" json:"metadata,omitempty"`
+	Thumbnail 			   string     `xorm:"varchar(32768)" json:"thumbnail,omitempty"`
+	Name 			   	   string     `xorm:"varchar(255)" json:"name,omitempty"`
+	Description 		   string     `xorm:"varchar(255)" json:"description,omitempty"`
 }
 
 func (PeerTransaction) TableName() string {
