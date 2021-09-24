@@ -388,7 +388,7 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 		// PeerTransaction（BlockType_ChatAttach不需要保存PeerTransaction）
 		if db.BlockType != entity.BlockType_ChatAttach {
 			peerTransaction := entity.PeerTransaction{}
-			peerTransaction.primaryPeerId = db.primaryPeerId
+			peerTransaction.PrimaryPeerId = db.PrimaryPeerId
 			peerTransaction.SrcPeerId = db.PeerId
 			peerTransaction.SrcPeerType = entity2.PeerType_PeerClient
 			peerTransaction.TargetPeerId = myselfPeerId
