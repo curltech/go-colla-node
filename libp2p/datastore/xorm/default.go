@@ -369,6 +369,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				// PeerTransaction（BlockType_ChatAttach不需要保存PeerTransaction）
 				if p.BlockType != chainentity.BlockType_ChatAttach {
 					peerTransaction := chainentity.PeerTransaction{}
+					peerTransaction.primaryPeerId = p.primaryPeerId
 					peerTransaction.SrcPeerId = p.PeerId
 					peerTransaction.SrcPeerType = dhtentity.PeerType_PeerClient
 					peerTransaction.PrimaryPeerId = p.PrimaryPeerId

@@ -75,8 +75,8 @@ func (this *PbftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*ms
 	}
 	if dataBlock.PrimaryPeerId == "" {
 		dataBlock.PrimaryPeerId = myselfPeer.PeerId
-		dataBlock.PrimaryAddress = myselfPeer.Address
-		dataBlock.PrimaryPublicKey = myselfPeer.PublicKey
+		//dataBlock.PrimaryAddress = myselfPeer.Address
+		//dataBlock.PrimaryPublicKey = myselfPeer.PublicKey
 	} else {
 		if dataBlock.PrimaryPeerId != myselfPeer.PeerId {
 			return nil, errors.New("MustPrimaryPeer")

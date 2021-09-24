@@ -60,6 +60,8 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 	}
 	if dataBlock.PrimaryPeerId == "" {
 		dataBlock.PrimaryPeerId = myselfPeer.PeerId
+		//dataBlock.PrimaryAddress = myselfPeer.Address
+		//dataBlock.PrimaryPublicKey = myselfPeer.PublicKey
 	} else {
 		if dataBlock.PrimaryPeerId != myselfPeer.PeerId {
 			return nil, errors.New("MustPrimaryPeer")
