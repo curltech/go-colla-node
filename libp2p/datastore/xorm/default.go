@@ -500,10 +500,10 @@ func (this *XormDatastore) get(req *handler.DispatchRequest) interface{} {
 			break
 		} else if req.Name == ns.PeerTransaction_Channel_Prefix {
 			reflect.SetValue(entity, ns.PeerTransaction_Channel_KeyKind, v)
-			reflect.SetValue(entity, ns.PeerTransaction_Type_KeyKind, fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, chainentity.BlockType_Channel))
+			/*reflect.SetValue(entity, ns.PeerTransaction_Type_KeyKind, fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, chainentity.BlockType_Channel))*/
 			break
 		} else if req.Name == ns.PeerTransaction_ChannelArticle_Prefix {
-			reflect.SetValue(entity, ns.PeerTransaction_GroupFile_KeyKind, v)
+			reflect.SetValue(entity, ns.PeerTransaction_ChannelArticle_KeyKind, v)
 			reflect.SetValue(entity, ns.PeerTransaction_Type_KeyKind, fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, chainentity.BlockType_ChannelArticle))
 			break
 		} else {

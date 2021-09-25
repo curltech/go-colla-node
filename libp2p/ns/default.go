@@ -38,7 +38,7 @@ const PeerTransaction_P2PChat_KeyKind = "BusinessNumber"
 
 const PeerTransaction_GroupFile_KeyKind = "BusinessNumber"
 
-const PeerTransaction_Channel_KeyKind = "BusinessNumber"
+const PeerTransaction_Channel_KeyKind = "TransactionType"
 
 const PeerTransaction_ChannelArticle_KeyKind = "BusinessNumber"
 

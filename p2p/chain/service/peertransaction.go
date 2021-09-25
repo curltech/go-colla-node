@@ -80,10 +80,11 @@ func (this *PeerTransactionService) GetLocalPTs(keyKind string, srcPeerId string
 		}
 		key = ns.GetPeerTransactionGroupFileKey(businessNumber)
 	} else if keyKind == ns.PeerTransaction_Channel_KeyKind {
-		if len(businessNumber) == 0 {
+		/*if len(businessNumber) == 0 {
 			return nil, errors.New("NullBusinessNumber")
 		}
-		key = ns.GetPeerTransactionChannelKey(businessNumber)
+		key = ns.GetPeerTransactionChannelKey(businessNumber)*/
+		key = ns.GetPeerTransactionChannelKey(fmt.Sprintf("%v-%v", entity2.TransactionType_DataBlock, chainentity.BlockType_Channel))
 	} else if keyKind == ns.PeerTransaction_ChannelArticle_KeyKind {
 		if len(businessNumber) == 0 {
 			return nil, errors.New("NullBusinessNumber")
@@ -139,10 +140,11 @@ func (this *PeerTransactionService) PutLocalPTs(keyKind string, peerTransactions
 			}
 			key = ns.GetPeerTransactionGroupFileKey(peerTransaction.BusinessNumber)
 		} else if keyKind == ns.PeerTransaction_Channel_KeyKind {
-			if len(peerTransaction.BusinessNumber) == 0 {
+			/*if len(peerTransaction.BusinessNumber) == 0 {
 				return errors.New("NullBusinessNumber")
 			}
-			key = ns.GetPeerTransactionChannelKey(peerTransaction.BusinessNumber)
+			key = ns.GetPeerTransactionChannelKey(peerTransaction.BusinessNumber)*/
+			key = ns.GetPeerTransactionChannelKey(fmt.Sprintf("%v-%v", entity2.TransactionType_DataBlock, chainentity.BlockType_Channel))
 		} else if keyKind == ns.PeerTransaction_ChannelArticle_KeyKind {
 			if len(peerTransaction.BusinessNumber) == 0 {
 				return errors.New("NullBusinessNumber")
@@ -213,10 +215,11 @@ func (this *PeerTransactionService) PutPT(peerTransaction *entity.PeerTransactio
 		}
 		key = ns.GetPeerTransactionGroupFileKey(peerTransaction.BusinessNumber)
 	} else if keyKind == ns.PeerTransaction_Channel_KeyKind {
-		if len(peerTransaction.BusinessNumber) == 0 {
+		/*if len(peerTransaction.BusinessNumber) == 0 {
 			return errors.New("NullBusinessNumber")
 		}
-		key = ns.GetPeerTransactionChannelKey(peerTransaction.BusinessNumber)
+		key = ns.GetPeerTransactionChannelKey(peerTransaction.BusinessNumber)*/
+		key = ns.GetPeerTransactionChannelKey(fmt.Sprintf("%v-%v", entity2.TransactionType_DataBlock, chainentity.BlockType_Channel))
 	} else if keyKind == ns.PeerTransaction_ChannelArticle_KeyKind {
 		if len(peerTransaction.BusinessNumber) == 0 {
 			return errors.New("NullBusinessNumber")

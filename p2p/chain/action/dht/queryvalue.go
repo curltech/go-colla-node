@@ -2,6 +2,7 @@ package dht
 
 import (
 	"errors"
+	"fmt"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
@@ -11,6 +12,7 @@ import (
 	entity2 "github.com/curltech/go-colla-node/p2p/chain/entity"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	service1 "github.com/curltech/go-colla-node/p2p/chain/service"
+	dhtentity "github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 )
@@ -80,14 +82,15 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			key = ns.GetPeerTransactionGroupFileKey(businessNumber)
 			keyKind = ns.PeerTransaction_GroupFile_KeyKind
 		} else if blockType == entity2.BlockType_Channel {
-			if conditionBean["businessNumber"] != nil {
+			/*if conditionBean["businessNumber"] != nil {
 				businessNumber = conditionBean["businessNumber"].(string)
 			}
 			if len(businessNumber) == 0 {
 				response = handler.Error(chainMessage.MessageType, errors.New("NullBusinessNumber"))
 				return response, nil
 			}
-			key = ns.GetPeerTransactionChannelKey(businessNumber)
+			key = ns.GetPeerTransactionChannelKey(businessNumber)*/
+			key = ns.GetPeerTransactionChannelKey(fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, entity2.BlockType_Channel))
 			keyKind = ns.PeerTransaction_Channel_KeyKind
 		} else if blockType == entity2.BlockType_ChannelArticle {
 			if conditionBean["businessNumber"] != nil {
