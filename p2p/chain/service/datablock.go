@@ -465,19 +465,21 @@ func (this *DataBlockService) DeleteExpiredDB() error {
 			condition2 := &entity.TransactionKey{}
 			condition2.BlockId = dataBlock.BlockId
 			GetTransactionKeyService().Delete(condition2, "")
-			// 删除PeerTransaction
-			for i := uint64(1); i <= dataBlock.SliceSize; i++ {
-				peerTransaction := entity.PeerTransaction{}
-				peerTransaction.SrcPeerId = dataBlock.PeerId
-				peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
-				peerTransaction.BlockId = dataBlock.BlockId
-				peerTransaction.SliceNumber = i
-				peerTransaction.TransactionType = fmt.Sprintf("%v-%v", entity2.TransactionType_DataBlock, dataBlock.BlockType)
-				peerTransaction.BusinessNumber = dataBlock.BusinessNumber
-				peerTransaction.Status = baseentity.EntityState_Deleted
-				err = GetPeerTransactionService().PutPTs(&peerTransaction)
-				if err != nil {
-					return err
+			// 删除PeerTransaction（BlockType_ChatAttach不需要保存PeerTransaction）
+			if dataBlock.BlockType != entity.BlockType_ChatAttach {
+				for i := uint64(1); i <= dataBlock.SliceSize; i++ {
+					peerTransaction := entity.PeerTransaction{}
+					peerTransaction.SrcPeerId = dataBlock.PeerId
+					peerTransaction.TargetPeerId = global.Global.MyselfPeer.PeerId
+					peerTransaction.BlockId = dataBlock.BlockId
+					peerTransaction.SliceNumber = i
+					peerTransaction.TransactionType = fmt.Sprintf("%v-%v", entity2.TransactionType_DataBlock, dataBlock.BlockType)
+					peerTransaction.BusinessNumber = dataBlock.BusinessNumber
+					peerTransaction.Status = baseentity.EntityState_Deleted
+					err = GetPeerTransactionService().PutPTs(&peerTransaction)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
