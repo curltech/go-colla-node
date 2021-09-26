@@ -57,7 +57,7 @@ func (this *PeerTransactionService) NewEntities(data []byte) (interface{}, error
 	return &entities, err
 }
 
-func (this *PeerTransactionService) GetLocalPTs(keyKind string, srcPeerId string, targetPeerId string, businessNumber string) ([]*entity.PeerTransaction, error) {
+func (this *PeerTransactionService) GetLocalPTs(keyKind string, srcPeerId string, targetPeerId string, businessNumber string, parentBusinessNumber string) ([]*entity.PeerTransaction, error) {
 	var key string
 	if keyKind == ns.PeerTransaction_Src_KeyKind {
 		if len(srcPeerId) == 0 {
@@ -86,10 +86,10 @@ func (this *PeerTransactionService) GetLocalPTs(keyKind string, srcPeerId string
 		key = ns.GetPeerTransactionChannelKey(businessNumber)*/
 		key = ns.GetPeerTransactionChannelKey(fmt.Sprintf("%v-%v", entity2.TransactionType_DataBlock, chainentity.BlockType_Channel))
 	} else if keyKind == ns.PeerTransaction_ChannelArticle_KeyKind {
-		if len(businessNumber) == 0 {
-			return nil, errors.New("NullBusinessNumber")
+		if len(parentBusinessNumber) == 0 {
+			return nil, errors.New("NullParentBusinessNumber")
 		}
-		key = ns.GetPeerTransactionChannelArticleKey(businessNumber)
+		key = ns.GetPeerTransactionChannelArticleKey(parentBusinessNumber)
 	} else {
 		logger.Sugar.Errorf("InvalidPeerTransactionKeyKind: %v", keyKind)
 		return nil, errors.New("InvalidPeerTransactionKeyKind")

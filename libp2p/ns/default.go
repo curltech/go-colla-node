@@ -40,7 +40,7 @@ const PeerTransaction_GroupFile_KeyKind = "BusinessNumber"
 
 const PeerTransaction_Channel_KeyKind = "TransactionType"
 
-const PeerTransaction_ChannelArticle_KeyKind = "BusinessNumber"
+const PeerTransaction_ChannelArticle_KeyKind = "ParentBusinessNumber"
 
 const PeerTransaction_Type_KeyKind = "TransactionType"
 

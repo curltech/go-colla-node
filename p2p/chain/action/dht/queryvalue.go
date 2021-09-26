@@ -42,7 +42,7 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 	dataBlocks := make([]*entity2.DataBlock, 0)
 	if getAllBlockIndex == true {
 		ptMap := make(map[string]*entity2.PeerTransaction, 0)
-		var blockType, createPeerId, receiverPeerId, businessNumber string
+		var blockType, createPeerId, receiverPeerId, businessNumber, parentBusinessNumber string
 		if conditionBean["blockType"] != nil {
 			blockType = conditionBean["blockType"].(string)
 		}
@@ -93,14 +93,14 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			key = ns.GetPeerTransactionChannelKey(fmt.Sprintf("%v-%v", dhtentity.TransactionType_DataBlock, entity2.BlockType_Channel))
 			keyKind = ns.PeerTransaction_Channel_KeyKind
 		} else if blockType == entity2.BlockType_ChannelArticle {
-			if conditionBean["businessNumber"] != nil {
-				businessNumber = conditionBean["businessNumber"].(string)
+			if conditionBean["parentBusinessNumber"] != nil {
+				parentBusinessNumber = conditionBean["parentBusinessNumber"].(string)
 			}
-			if len(businessNumber) == 0 {
-				response = handler.Error(chainMessage.MessageType, errors.New("NullBusinessNumber"))
+			if len(parentBusinessNumber) == 0 {
+				response = handler.Error(chainMessage.MessageType, errors.New("NullParentBusinessNumber"))
 				return response, nil
 			}
-			key = ns.GetPeerTransactionChannelArticleKey(businessNumber)
+			key = ns.GetPeerTransactionChannelArticleKey(parentBusinessNumber)
 			keyKind = ns.PeerTransaction_ChannelArticle_KeyKind
 		}
 		if config.Libp2pParams.FaultTolerantLevel == 0 {
@@ -126,7 +126,7 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 
 		} else if config.Libp2pParams.FaultTolerantLevel == 2 {
 			// 查询删除local记录
-			locals, err := service1.GetPeerTransactionService().GetLocalPTs(keyKind, createPeerId, receiverPeerId, businessNumber)
+			locals, err := service1.GetPeerTransactionService().GetLocalPTs(keyKind, createPeerId, receiverPeerId, businessNumber, parentBusinessNumber)
 			if err != nil {
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
