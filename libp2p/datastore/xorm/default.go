@@ -377,6 +377,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 					peerTransaction.TargetPeerType = dhtentity.PeerType_PeerEndpoint
 					peerTransaction.BlockId = p.BlockId
 					peerTransaction.SliceNumber = p.SliceNumber
+					peerTransaction.ParentBusinessNumber = p.ParentBusinessNumber
 					peerTransaction.BusinessNumber = p.BusinessNumber
 					peerTransaction.TransactionTime = &currentTime
 					peerTransaction.CreateTimestamp = p.CreateTimestamp

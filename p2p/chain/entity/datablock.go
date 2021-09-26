@@ -34,9 +34,10 @@ type DataBlock struct {
 	StatusReason string     `xorm:"varchar(255)" json:"statusReason,omitempty"`
 	StatusDate   *time.Time `json:"statusDate,omitempty"`
 
-	BlockId        string `xorm:"varchar(255) notnull" json:"blockId,omitempty"`
-	BusinessNumber string `xorm:"varchar(255)" json:"businessNumber,omitempty"`
-	BlockType      BlockType `xorm:"varchar(255)" json:"blockType,omitempty"`
+	BlockId              string    `xorm:"varchar(255) notnull" json:"blockId,omitempty"`
+	ParentBusinessNumber string    `xorm:"varchar(255)" json:"parentBusinessNumber,omitempty"`
+	BusinessNumber       string    `xorm:"varchar(255)" json:"businessNumber,omitempty"`
+	BlockType            BlockType `xorm:"varchar(255)" json:"blockType,omitempty"`
 	/**
 	 * 双方的公钥不能被加密传输，因为需要根据公钥决定配对的是哪一个版本的私钥
 	 *

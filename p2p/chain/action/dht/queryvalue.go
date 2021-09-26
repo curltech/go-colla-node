@@ -169,6 +169,7 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 		for _, v := range ptMap {
 			db := entity2.DataBlock{}
 			db.BlockId = v.BlockId
+			db.ParentBusinessNumber = v.ParentBusinessNumber
 			db.BusinessNumber = v.BusinessNumber
 			db.CreateTimestamp = v.CreateTimestamp
 			db.PrimaryPeerId = v.PrimaryPeerId

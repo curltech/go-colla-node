@@ -395,6 +395,7 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 			peerTransaction.TargetPeerType = entity2.PeerType_PeerEndpoint
 			peerTransaction.BlockId = blockId
 			peerTransaction.SliceNumber = sliceNumber
+			peerTransaction.ParentBusinessNumber = db.ParentBusinessNumber
 			peerTransaction.BusinessNumber = db.BusinessNumber
 			peerTransaction.TransactionTime = &currentTime
 			peerTransaction.CreateTimestamp = db.CreateTimestamp
