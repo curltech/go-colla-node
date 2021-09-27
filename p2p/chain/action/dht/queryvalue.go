@@ -177,6 +177,7 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			db.Thumbnail = v.Thumbnail
 			db.Name = v.Name
 			db.Description = v.Description
+			db.PeerId = v.SrcPeerId
 			dataBlocks = append(dataBlocks, &db)
 		}
 	} else {
