@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/ProtonMail/gopenpgp/v2 v2.0.1
 	github.com/at-wat/ebml-go v0.11.0
-	github.com/curltech/go-colla-core v0.1.13
+	github.com/curltech/go-colla-core v0.1.14
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/emersion/go-imap v1.0.6
 	github.com/emersion/go-imap-idle v0.0.0-20201224103203-6f42b9020098
@@ -299,7 +299,6 @@ require (
 	github.com/whyrusleeping/multiaddr-filter v0.0.0-20160516205228-e903e4adabd7 // indirect
 	github.com/whyrusleeping/timecache v0.0.0-20160911033111-cfcb2f1abfee // indirect
 	github.com/willf/bitset v1.1.10 // indirect
-	github.com/yanyiwu/gojieba v1.1.2 // indirect
 	go.etcd.io/bbolt v1.3.5 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect

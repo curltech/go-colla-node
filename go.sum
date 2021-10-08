@@ -226,8 +226,8 @@ github.com/crackcomm/go-gitignore v0.0.0-20170627025303-887ab5e44cc3/go.mod h1:p
 github.com/creack/pty v1.1.7/go.mod h1:lj5s0c3V2DBrqTV7llrYr5NG6My20zk30Fl46Y7DoTY=
 github.com/cskr/pubsub v1.0.2 h1:vlOzMhl6PFn60gRlTQQsIfVwaPB/B/8MziK8FhEPt/0=
 github.com/cskr/pubsub v1.0.2/go.mod h1:/8MzYXk/NJAz782G8RPkFzXTZVu63VotefPnR9TIRis=
-github.com/curltech/go-colla-core v0.1.13 h1:K1mPiLnUOL18eRlmHpPRovCvdXQRFvF6ZMRpVsls4lk=
-github.com/curltech/go-colla-core v0.1.13/go.mod h1:6zi8X79/eOvSBMke98im00ZwfkIhLb7mi5JHnoHrOi8=
+github.com/curltech/go-colla-core v0.1.14 h1:yX83XAH06U0u61U5jzDqwQNys3NCUlkVP2TwyajIU0I=
+github.com/curltech/go-colla-core v0.1.14/go.mod h1:CBorkQVWb+W2TM6pAaE9i5iPwzbIzwd3KzRPnNCOO64=
 github.com/davecgh/go-spew v0.0.0-20171005155431-ecdeabc65495/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
@@ -1742,8 +1742,6 @@ github.com/x-cray/logrus-prefixed-formatter v0.5.2/go.mod h1:2duySbKsL6M18s5GU7V
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
 github.com/xwb1989/sqlparser v0.0.0-20180606152119-120387863bf2/go.mod h1:hzfGeIUDq/j97IG+FhNqkowIyEcD88LrW6fyU3K3WqY=
-github.com/yanyiwu/gojieba v1.1.2 h1:BMwKCwg3G+Nw/Ctqzm/gNgN/6Ljf0Y4f7ddKlzTA+TM=
-github.com/yanyiwu/gojieba v1.1.2/go.mod h1:54wkP7sMJ6bklf7yPl6F+JG71dzVUU1WigZbR47nGdY=
 github.com/yeqown/fasthttp-reverse-proxy/v2 v2.1.4 h1:sgsNp4jmihQIHegMnH6Fgph1qEtFRzsf9NR6sWgTa5g=
 github.com/yeqown/fasthttp-reverse-proxy/v2 v2.1.4/go.mod h1:/rXIfLOB5vp1KD7Mp+s+kID8QlgggpoiFcmXn+/shSA=
 github.com/yeqown/log v1.0.3/go.mod h1:RTslXFTg+8Uj5AizIxdfichvBZi/OOKao6yP3tMtTns=
