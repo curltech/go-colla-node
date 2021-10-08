@@ -79,7 +79,7 @@ func (this *ChainAppService) GetFromCache(peerId string) *entity.ChainApp {
 	if !found {
 		chainApp := entity.ChainApp{}
 		chainApp.PeerId = peerId
-		found = this.Get(&chainApp, false, "", "")
+		found, _ = this.Get(&chainApp, false, "", "")
 		if found {
 			ptr = &chainApp
 		} else {

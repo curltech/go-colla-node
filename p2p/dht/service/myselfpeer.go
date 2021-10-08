@@ -83,7 +83,7 @@ func (this *MyselfPeerService) GetFromCache(refreshs ...bool) *entity.MyselfPeer
 	if !found || refresh {
 		myselfPeer := entity.MyselfPeer{}
 		myselfPeer.Status = entity2.EntityStatus_Effective
-		found = this.Get(&myselfPeer, false, "", "")
+		found, _ = this.Get(&myselfPeer, false, "", "")
 		if found {
 			ptr = &myselfPeer
 		} else {

@@ -83,7 +83,7 @@ func (this *PeerClientService) GetFromCache(peerId string) *entity.PeerClient {
 	if !found {
 		peerClient := entity.PeerClient{}
 		peerClient.PeerId = peerId
-		found = this.Get(&peerClient, false, "", "")
+		found, _ = this.Get(&peerClient, false, "", "")
 		if found {
 			ptr = &peerClient
 		} else {
@@ -187,7 +187,7 @@ func (this *PeerClientService) GetValues(peerId string, mobile string) ([]*entit
 		}
 	} else if config.Libp2pParams.FaultTolerantLevel == 2 {
 		// 查询删除local记录
-		locals, err := this.GetLocals(key,"")
+		locals, err := this.GetLocals(key, "")
 		if err != nil {
 			return nil, err
 		}

@@ -226,8 +226,8 @@ github.com/crackcomm/go-gitignore v0.0.0-20170627025303-887ab5e44cc3/go.mod h1:p
 github.com/creack/pty v1.1.7/go.mod h1:lj5s0c3V2DBrqTV7llrYr5NG6My20zk30Fl46Y7DoTY=
 github.com/cskr/pubsub v1.0.2 h1:vlOzMhl6PFn60gRlTQQsIfVwaPB/B/8MziK8FhEPt/0=
 github.com/cskr/pubsub v1.0.2/go.mod h1:/8MzYXk/NJAz782G8RPkFzXTZVu63VotefPnR9TIRis=
-github.com/curltech/go-colla-core v0.1.8 h1:nVQNyBXfp/eQRvF7g2o7ZWvcb8PKB13jcEIpM3Fo9hE=
-github.com/curltech/go-colla-core v0.1.8/go.mod h1:6zi8X79/eOvSBMke98im00ZwfkIhLb7mi5JHnoHrOi8=
+github.com/curltech/go-colla-core v0.1.13 h1:K1mPiLnUOL18eRlmHpPRovCvdXQRFvF6ZMRpVsls4lk=
+github.com/curltech/go-colla-core v0.1.13/go.mod h1:6zi8X79/eOvSBMke98im00ZwfkIhLb7mi5JHnoHrOi8=
 github.com/davecgh/go-spew v0.0.0-20171005155431-ecdeabc65495/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

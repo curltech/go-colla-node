@@ -14,8 +14,8 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	chainentity "github.com/curltech/go-colla-node/p2p/chain/entity"
-	service1 "github.com/curltech/go-colla-node/p2p/chain/service"
 	handler2 "github.com/curltech/go-colla-node/p2p/chain/handler"
+	service1 "github.com/curltech/go-colla-node/p2p/chain/service"
 	dhtentity "github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/gogo/protobuf/proto"
 	"github.com/ipfs/go-datastore"
@@ -133,7 +133,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 			reflect.SetValue(old, "BusinessNumber", businessNumber)
 		}
 		currentTime := time.Now()
-		found := req.Service.Get(old, false, "", "")
+		found, err := req.Service.Get(old, false, "", "")
 		if found {
 			id, err := reflect.GetValue(old, baseentity.FieldName_Id)
 			if err != nil {
@@ -280,7 +280,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 			}
 		}
 
-		affected := req.Service.Upsert(entity)
+		affected, err := req.Service.Upsert(entity)
 		if affected > 0 {
 			logger.Sugar.Debugf("%v:%v put successfully", req.Keyname, req.Keyvalue)
 			if namespace == ns.DataBlock_Prefix || namespace == ns.DataBlock_Owner_Prefix {
@@ -324,14 +324,14 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 						oldTk := &chainentity.TransactionKey{}
 						oldTk.BlockId = tkBlockId
 						oldTk.PeerId = tkPeerId
-						tkFound := service1.GetTransactionKeyService().Get(oldTk, false, "", "")
+						tkFound, _ := service1.GetTransactionKeyService().Get(oldTk, false, "", "")
 						if tkFound {
 							tk.Id = oldTk.Id
 						} else {
 							tk.Id = uint64(0)
 						}
 
-						tkAffected := service1.GetTransactionKeyService().Upsert(tk)
+						tkAffected, _ := service1.GetTransactionKeyService().Upsert(tk)
 						if tkAffected > 0 {
 							logger.Sugar.Infof("BlockId: %v, PeerId: %v, upsert TransactionKey successfully", tkBlockId, tkPeerId)
 						} else {
@@ -559,7 +559,7 @@ func (this *XormDatastore) GetSize(key datastore.Key) (size int, err error) {
 			continue
 		}
 	}
-	count := req.Service.Count(entity, "")
+	count, _ := req.Service.Count(entity, "")
 
 	return int(count), nil
 }
@@ -579,7 +579,7 @@ func (this *XormDatastore) Delete(key datastore.Key) (err error) {
 		return errors.New("Delete need keyvalue")
 	}
 	reflect.SetValue(entity, req.Keyname, v)
-	affected := req.Service.Delete(entity, "")
+	affected, err := req.Service.Delete(entity, "")
 	if affected > 0 {
 		logger.Sugar.Infof("%v:%v delete successfully", req.Keyname, req.Keyvalue)
 	} else {
@@ -614,20 +614,20 @@ func init() {
 	handler.RegistDatastore(ns.PeerClient_Mobile_Prefix, NewXormDatastore())
 	handler.RegistKeyname(ns.PeerClient_Mobile_Prefix, ns.PeerClient_Mobile_KeyKind)
 
- 	handler.RegistDatastore(ns.ChainApp_Prefix, NewXormDatastore())
- 	handler.RegistKeyname(ns.ChainApp_Prefix, dhtentity.ChainApp{}.KeyName())
+	handler.RegistDatastore(ns.ChainApp_Prefix, NewXormDatastore())
+	handler.RegistKeyname(ns.ChainApp_Prefix, dhtentity.ChainApp{}.KeyName())
 
- 	handler.RegistDatastore(ns.DataBlock_Prefix, NewXormDatastore())
- 	handler.RegistKeyname(ns.DataBlock_Prefix, chainentity.DataBlock{}.KeyName())
+	handler.RegistDatastore(ns.DataBlock_Prefix, NewXormDatastore())
+	handler.RegistKeyname(ns.DataBlock_Prefix, chainentity.DataBlock{}.KeyName())
 
- 	handler.RegistDatastore(ns.DataBlock_Owner_Prefix, NewXormDatastore())
- 	handler.RegistKeyname(ns.DataBlock_Owner_Prefix, ns.DataBlock_Owner_KeyKind)
+	handler.RegistDatastore(ns.DataBlock_Owner_Prefix, NewXormDatastore())
+	handler.RegistKeyname(ns.DataBlock_Owner_Prefix, ns.DataBlock_Owner_KeyKind)
 
- 	handler.RegistDatastore(ns.PeerTransaction_Src_Prefix, NewXormDatastore())
- 	handler.RegistKeyname(ns.PeerTransaction_Src_Prefix, chainentity.PeerTransaction{}.KeyName())
+	handler.RegistDatastore(ns.PeerTransaction_Src_Prefix, NewXormDatastore())
+	handler.RegistKeyname(ns.PeerTransaction_Src_Prefix, chainentity.PeerTransaction{}.KeyName())
 
- 	handler.RegistDatastore(ns.PeerTransaction_Target_Prefix, NewXormDatastore())
- 	handler.RegistKeyname(ns.PeerTransaction_Target_Prefix, ns.PeerTransaction_Target_KeyKind)
+	handler.RegistDatastore(ns.PeerTransaction_Target_Prefix, NewXormDatastore())
+	handler.RegistKeyname(ns.PeerTransaction_Target_Prefix, ns.PeerTransaction_Target_KeyKind)
 
 	handler.RegistDatastore(ns.TransactionKey_Prefix, NewXormDatastore())
 	handler.RegistKeyname(ns.TransactionKey_Prefix, chainentity.TransactionKey{}.KeyName())

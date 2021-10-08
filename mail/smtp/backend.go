@@ -15,7 +15,7 @@ func (bkd *Backend) Login(state *smtp.ConnectionState, username, password string
 	account := &entity.MailAccount{}
 	account.Name = username
 	account.Password = password
-	found := service.GetMailAccountService().Get(account, false, "", "")
+	found, _ := service.GetMailAccountService().Get(account, false, "", "")
 	if !found {
 		return nil, errors.New("Bad name or password")
 	}

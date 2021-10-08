@@ -182,7 +182,7 @@ func (mbox *Mailbox) UpdateMessagesFlags(uid bool, seqset *imap.SeqSet, op imap.
 func (mbox *Mailbox) CopyMessages(uid bool, seqset *imap.SeqSet, destName string) error {
 	mailbox := &Mailbox{}
 	mailbox.BoxName = destName
-	ok := service.GetMailBoxService().Get(mailbox, false, "", "")
+	ok, _ := service.GetMailBoxService().Get(mailbox, false, "", "")
 	if !ok {
 		return errors.New("ErrNoSuchMailbox")
 	}

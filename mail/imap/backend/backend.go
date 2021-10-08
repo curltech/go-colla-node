@@ -22,7 +22,7 @@ func (be *Backend) Login(connInfo *imap.ConnInfo, username, password string) (ba
 	account := &MailAccount{}
 	account.Name = username
 	account.Password = password
-	found := service.GetMailAccountService().Get(account, false, "", "")
+	found, _ := service.GetMailAccountService().Get(account, false, "", "")
 	if found {
 		return account, nil
 	}

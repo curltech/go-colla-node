@@ -309,7 +309,7 @@ func getMyselfPeer() (libp2pcrypto.PrivKey, *entity.MyselfPeer) {
 	if password == "" {
 		panic("NoPassword")
 	}
-	found := service.GetMyselfPeerService().Get(&myself, false, "", "")
+	found, _ := service.GetMyselfPeerService().Get(&myself, false, "", "")
 	if found {
 		privateKey := std.DecodeBase64(myself.PeerPrivateKey)
 		priv, err := libp2pcrypto.UnmarshalPrivateKey(privateKey)
@@ -508,7 +508,7 @@ func upsertMyselfPeer(priv libp2pcrypto.PrivKey, myself *entity.MyselfPeer) (nee
 			panic(err)
 		}
 		myself.DiscoveryAddress = discoveryAddress
-		affected := service.GetMyselfPeerService().Insert(myself)
+		affected, _ := service.GetMyselfPeerService().Insert(myself)
 		if affected == 0 {
 			panic("NoInsert")
 		}
@@ -562,7 +562,7 @@ func upsertMyselfPeer(priv libp2pcrypto.PrivKey, myself *entity.MyselfPeer) (nee
 		}
 
 		if needUpdate {
-			affected := service.GetMyselfPeerService().Update([]interface{}{myself}, nil, "")
+			affected, _ := service.GetMyselfPeerService().Update([]interface{}{myself}, nil, "")
 			if affected == 0 {
 				panic("NoUpdate")
 			}

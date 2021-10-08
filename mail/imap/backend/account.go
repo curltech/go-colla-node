@@ -37,7 +37,7 @@ func (ma *MailAccount) GetMailbox(name string) (backend2.Mailbox, error) {
 	mailbox.BoxName = name
 	mailbox.AccountName = ma.Name
 	var err error
-	found := service.GetMailBoxService().Get(mailbox, false, "", "")
+	found, _ := service.GetMailBoxService().Get(mailbox, false, "", "")
 	if found {
 		ma.Mailboxes[mailbox.BoxName] = mailbox
 		return mailbox, nil

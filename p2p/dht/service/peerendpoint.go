@@ -82,7 +82,7 @@ func (this *PeerEndpointService) GetFromCache(peerId string) *entity.PeerEndpoin
 	if !found {
 		peerEndpoint := entity.PeerEndpoint{}
 		peerEndpoint.PeerId = peerId
-		found = this.Get(&peerEndpoint, false, "", "")
+		found, _ = this.Get(&peerEndpoint, false, "", "")
 		if found {
 			ptr = &peerEndpoint
 		} else {
@@ -167,11 +167,11 @@ func (this *PeerEndpointService) GetRand(seed int64) []*entity.PeerEndpoint {
 	peerEndpoint := &entity.PeerEndpoint{}
 	//peerEndpoint.Status = entity2.EntityStatus_Effective
 	peerEndpoint.ActiveStatus = entity.ActiveStatus_Up
-	count := int(this.Count(peerEndpoint, ""))
+	count, _ := this.Count(peerEndpoint, "")
 	from := 0
-	if count > limit {
+	if int(count) > limit {
 		rand.Seed(seed)
-		from = rand.Intn(count - limit)
+		from = rand.Intn(int(count) - limit)
 	}
 	err := this.Find(&peerEndpoints, peerEndpoint, "", from, limit, "")
 	if err == nil {

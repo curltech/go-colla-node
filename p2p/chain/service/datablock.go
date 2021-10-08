@@ -215,7 +215,7 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 	oldDb := &entity.DataBlock{}
 	oldDb.BlockId = blockId
 	oldDb.SliceNumber = sliceNumber
-	dbFound := this.Get(oldDb, false, "", "")
+	dbFound, _ := this.Get(oldDb, false, "", "")
 	if dbFound {
 		db.Id = oldDb.Id
 		// 校验Owner
@@ -302,7 +302,7 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 		db.TransportPayload = ""
 	}
 
-	dbAffected := this.Upsert(db)
+	dbAffected, _ := this.Upsert(db)
 	if dbAffected > 0 {
 		logger.Sugar.Infof("BlockId: %v, upsert DataBlock successfully", blockId)
 		// 只针对第一个分片处理一次
@@ -343,14 +343,14 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 				oldTk := &entity.TransactionKey{}
 				oldTk.BlockId = tkBlockId
 				oldTk.PeerId = tkPeerId
-				tkFound := GetTransactionKeyService().Get(oldTk, false, "", "")
+				tkFound, _ := GetTransactionKeyService().Get(oldTk, false, "", "")
 				if tkFound {
 					tk.Id = oldTk.Id
 				} else {
 					tk.Id = uint64(0)
 				}
 
-				tkAffected := GetTransactionKeyService().Upsert(tk)
+				tkAffected, _ := GetTransactionKeyService().Upsert(tk)
 				if tkAffected > 0 {
 					logger.Sugar.Infof("BlockId: %v, PeerId: %v, upsert TransactionKey successfully", tkBlockId, tkPeerId)
 				} else {
@@ -448,7 +448,7 @@ func (this *DataBlockService) QueryValue(dataBlocks *[]*entity.DataBlock, blockI
 func (this *DataBlockService) DeleteExpiredDB() error {
 	dataBlocks := make([]*entity.DataBlock, 0)
 	condiBean := &entity.DataBlock{}
-	now := time.Now().UnixNano()/1e6
+	now := time.Now().UnixNano() / 1e6
 	err := this.Find(&dataBlocks, condiBean, "", 0, 0, "ExpireDate <= ?", now)
 	if err != nil {
 		return err
