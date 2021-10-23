@@ -15,14 +15,14 @@ http:
   externalAddr: peer1.domain
   externalPort: 9091
   tls:
-    mode: none
+    mode: cert
     port: 9091
     url: peer1.domain
     email: user@mailbox
     cert: conf/peer1.domain.crt
     key: conf/peer1.domain.key
   proxy:
-    mode: tls
+    mode: none
     address: :5720
     target: http://peer1.domain:4720
     redirect: true
@@ -49,6 +49,7 @@ libp2p:
   addr: 0.0.0.0
   port: 3720
   wsPort: 4720
+  wssPort: 5720
   dht:
     bootstraps: /dns4/peer0.domain/tcp/3720/p2p/peerId0,/dns4/peer2.domain/tcp/3720/p2p/peerId2
   enableAddressFactory: true
