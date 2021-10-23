@@ -20,7 +20,8 @@ import (
 	service1 "github.com/curltech/go-colla-node/p2p/chain/service"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
-	"github.com/curltech/go-colla-node/transport/websocket/fastwss"
+	"github.com/curltech/go-colla-node/transport/websocket/wss"
+	//"github.com/curltech/go-colla-node/transport/websocket/fastwss"
 	"github.com/libp2p/go-libp2p"
 	autonat "github.com/libp2p/go-libp2p-autonat"
 	relay "github.com/libp2p/go-libp2p-circuit"
@@ -257,8 +258,8 @@ func p2pOptions() []libp2p.Option {
 		options = append(options, tcpOption)
 		logger.Sugar.Debugf("start EnableTcp option")
 
-		//wssOption := libp2p.Transport(wss.New)
-		wssOption := libp2p.Transport(fastwss.New)
+		wssOption := libp2p.Transport(wss.New)
+		//wssOption := libp2p.Transport(fastwss.New)
 		options = append(options, wssOption)
 		logger.Sugar.Debugf("start EnableWss option")
 	}
