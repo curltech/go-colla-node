@@ -14,15 +14,6 @@
 Colla Network is a decentralized peer-to-peer communication and storage network, Colla DApp (e.g. [CollaChat](https://github.com/curltech/CollaChat)) connects to Colla Network via selected Colla Node, there is no centralized storage and control of user data, user can specify which node or even easily setup own node(s) to connect to.
 
 # Build
-## Windows
-When building for Windows platform, you need to comment following 3 lines in go-colla-core@v0.1.7\content\default.go:
-```
-"syscall" // comment this line for Windows platform
-...
-mask := syscall.Umask(0) // comment this line for Windows platform
-defer syscall.Umask(mask) // comment this line for Windows platform
-```
-
 ## Optimized Settings
 It's recommended to optimize following settings before building your own executable file:
 No  | Package | File | Default Setting | Recommended Setting
