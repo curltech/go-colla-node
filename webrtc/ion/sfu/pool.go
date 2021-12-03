@@ -149,7 +149,7 @@ func (this *SfuPeerPool) Receive(netPeer *p2p.NetPeer, payload map[string]interf
 func (this *SfuPeerPool) trickle(netPeer *p2p.NetPeer, sfuSignal *SfuSignal) (interface{}, error) {
 	var sfuPeer = this.GetPeer(netPeer)
 	if sfuPeer == nil {
-		logger.Sugar.Errorf("sfuPeers:%v is not exist", netPeer)
+		logger.Sugar.Errorf("sfuPeer:%v does not exist", netPeer)
 		return nil, errors.New("NotExist")
 	}
 	err := sfuPeer.Trickle(*sfuSignal.Candidate, sfuSignal.Target)
@@ -162,7 +162,7 @@ func (this *SfuPeerPool) trickle(netPeer *p2p.NetPeer, sfuSignal *SfuSignal) (in
 func (this *SfuPeerPool) answer(netPeer *p2p.NetPeer, sfuSignal *SfuSignal) (interface{}, error) {
 	var sfuPeer = this.GetPeer(netPeer)
 	if sfuPeer == nil {
-		logger.Sugar.Errorf("sfuPeers:%v is not exist", netPeer)
+		logger.Sugar.Errorf("sfuPeer:%v does not exist", netPeer)
 		return nil, errors.New("NotExist")
 	}
 	err := sfuPeer.SetRemoteDescription(*sfuSignal.Sdp)
@@ -175,7 +175,7 @@ func (this *SfuPeerPool) answer(netPeer *p2p.NetPeer, sfuSignal *SfuSignal) (int
 func (this *SfuPeerPool) offer(netPeer *p2p.NetPeer, sfuSignal *SfuSignal, isSync bool) (interface{}, error) {
 	var sfuPeer = this.GetPeer(netPeer)
 	if sfuPeer == nil {
-		logger.Sugar.Errorf("sfuPeers:%v is not exist, will recreate new sfuPeer", netPeer)
+		logger.Sugar.Errorf("sfuPeer:%v does not exist", netPeer)
 		return nil, errors.New("NotExist")
 	}
 	answer, err := sfuPeer.Answer(*sfuSignal.Sdp)
@@ -204,7 +204,7 @@ func (this *SfuPeerPool) join(netPeer *p2p.NetPeer, sfuSignal *SfuSignal, isSync
 	//先判断客户端是否已经存在
 	var sfuPeer = this.GetPeer(netPeer)
 	if sfuPeer != nil {
-		logger.Sugar.Errorf("sfuPeers:%v is exist, will recreate new sfuPeer", netPeer)
+		logger.Sugar.Errorf("sfuPeer:%v already exists", netPeer)
 		return nil, errors.New("Exist")
 	}
 	sfuPeer = NewSfuPeer(netPeer, nil)
@@ -268,7 +268,7 @@ func (this *SfuPeerPool) GetPeer(netPeer *p2p.NetPeer) *SfuPeer {
 	defer this.lock.Unlock()
 	sfuPeers, ok := this.sfuPeers[netPeer.TargetPeerId]
 	if !ok {
-		logger.Sugar.Errorf("sfuPeers:%v is exist, will recreate new sfuPeer", netPeer)
+		logger.Sugar.Errorf("sfuPeers:%v does not exist", netPeer)
 		return nil
 	}
 	var sfuPeer *SfuPeer
@@ -276,7 +276,7 @@ func (this *SfuPeerPool) GetPeer(netPeer *p2p.NetPeer) *SfuPeer {
 		for _, sfuPeer = range sfuPeers {
 			// 如果连接没有完成
 			if sfuPeer.ConnectPeerId == netPeer.ConnectPeerId && sfuPeer.ConnectSessionId == netPeer.ConnectSessionId {
-				logger.Sugar.Infof("webrtcPeer:+  + ' exist, connected:%v", netPeer, sfuPeer.Connected())
+				logger.Sugar.Infof("webrtcPeer:%v exists, connected:%v", netPeer, sfuPeer.Connected())
 				break
 			}
 		}
@@ -287,7 +287,7 @@ func (this *SfuPeerPool) GetPeer(netPeer *p2p.NetPeer) *SfuPeer {
 func (this *SfuPeerPool) leave(netPeer *p2p.NetPeer) error {
 	var sfuPeer = this.GetPeer(netPeer)
 	if sfuPeer == nil {
-		logger.Sugar.Errorf("sfuPeers:%v is not exist, will recreate new sfuPeer", netPeer)
+		logger.Sugar.Errorf("sfuPeer:%v does not exist", netPeer)
 		return errors.New("NotExist")
 	}
 	return sfuPeer.Close()
