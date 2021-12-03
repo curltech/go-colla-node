@@ -298,13 +298,14 @@ func (this *SfuPeerPool) Remove(netPeer *p2p.NetPeer) error {
 	defer this.lock.Unlock()
 	sfuPeers, ok := this.sfuPeers[netPeer.TargetPeerId]
 	if !ok {
-		logger.Sugar.Errorf("sfuPeers:%v is not exist", netPeer)
+		logger.Sugar.Errorf("sfuPeers:%v does not exist", netPeer)
 		return nil
 	}
 	if sfuPeers != nil && len(sfuPeers) > 0 {
-		for i, sfuPeer := range sfuPeers {
+		for i := len(sfuPeers) - 1; i >= 0; i-- {
+			sfuPeer := sfuPeers[i]
 			if sfuPeer.ConnectPeerId == netPeer.ConnectPeerId && sfuPeer.ConnectSessionId == netPeer.ConnectSessionId {
-				logger.Sugar.Infof("sfuPeer:%v exist, connected:%v, will be left", netPeer, sfuPeer.Connected())
+				logger.Sugar.Infof("sfuPeer:%v exists, connected:%v, it is removed", netPeer, sfuPeer.Connected())
 				sfuPeers = append(sfuPeers[:i], sfuPeers[i+1:]...)
 				break
 			}
