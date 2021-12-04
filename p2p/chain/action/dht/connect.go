@@ -146,7 +146,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 				pc.Signature = signature
 				pc.SignatureData = signatureData
 				pc.ExpireDate = expireDate
-				pc.Mobile = std.EncodeBase64(std.Hash(pc.Mobile, "sha3_256"))
+				pc.Mobile = std.EncodeBase64(std.Hash(peerClient.Mobile, "sha3_256"))
 				pc.PublicKey = peerClient.PublicKey // 可能resetKey
 				pc.LastUpdateTime = peerClient.LastUpdateTime
 				err := service.GetPeerClientService().PutValues(pc)
