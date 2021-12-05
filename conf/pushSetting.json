@@ -1,0 +1,40 @@
+{
+  "huawei": {
+    "projectId": "",
+    "appPkgName": "",
+    "clientId": "",
+    "clientSecret": ""
+  },
+  "meizu": {
+    "appPkgName": "",
+    "appId": "",
+    "appSecret": ""
+  },
+  "xiaomi": {
+    "appPkgName": "",
+    "appSecret": ""
+  },
+  "oppo": {
+    "appPkgName": "",
+    "appKey": "",
+    "masterSecret": ""
+  },
+  "vivo": {
+    "appPkgName": "",
+    "appId": "",
+    "appKey": "",
+    "appSecret": ""
+  },
+  "ios": {
+    "isSandBox": true,
+    "certPath": "*.pem",
+    "password": ""
+  },
+  "ios-token": {
+    "isSandBox": true,
+    "teamId": "",
+    "keyId": "",
+    "secretFile": "*p8",
+    "bundleId": ""
+  }
+}
