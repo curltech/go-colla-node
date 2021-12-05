@@ -3,6 +3,8 @@ package libp2p
 import (
 	"context"
 	"fmt"
+	"time"
+	"gitee.com/cristiane/go-push-sdk/push"
 	openpgpcrypto "github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/crypto"
@@ -41,7 +43,6 @@ import (
 	"github.com/libp2p/go-tcp-transport"
 	ws "github.com/libp2p/go-ws-transport"
 	ma "github.com/multiformats/go-multiaddr"
-	"time"
 )
 
 /**
@@ -448,6 +449,12 @@ func Start() {
 	//handler.SetNetNotifiee()
 
 	//ipfs.Start()
+
+	// push notification
+	global.Global.PushRegisterClient, err = push.NewRegisterClient("./conf/pushSetting.json")
+	if err != nil {
+		panic(err)
+	}
 
 	global.Global.PeerEndpointDHT.RoutingTable().Print()
 	global.Print()

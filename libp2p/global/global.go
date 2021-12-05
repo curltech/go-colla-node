@@ -2,6 +2,7 @@ package global
 
 import (
 	"context"
+	"gitee.com/cristiane/go-push-sdk/push"
 	openpgp "github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
@@ -31,6 +32,9 @@ type global struct {
 	MyselfPeer        *entity.MyselfPeer
 
 	WebrtcstarHost host.Host
+
+	PushRegisterClient *push.RegisterClient
+	HuaweiAccessToken string
 }
 
 var Global = global{}

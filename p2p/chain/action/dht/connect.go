@@ -149,6 +149,8 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 				pc.Mobile = std.EncodeBase64(std.Hash(peerClient.Mobile, "sha3_256"))
 				pc.PublicKey = peerClient.PublicKey // 可能resetKey
 				pc.LastUpdateTime = peerClient.LastUpdateTime
+				pc.DeviceToken = peerClient.DeviceToken
+				pc.Language = peerClient.Language
 				err := service.GetPeerClientService().PutValues(pc)
 				if err != nil {
 					response = handler.Error(chainMessage.MessageType, err)

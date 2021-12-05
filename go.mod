@@ -3,6 +3,7 @@ module github.com/curltech/go-colla-node
 go 1.17
 
 require (
+	gitee.com/cristiane/go-push-sdk v1.1.0
 	github.com/ProtonMail/gopenpgp/v2 v2.0.1
 	github.com/at-wat/ebml-go v0.16.0
 	github.com/curltech/go-colla-core v0.1.15
