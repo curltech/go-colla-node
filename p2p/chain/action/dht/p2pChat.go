@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"gitee.com/cristiane/go-push-sdk/push/huawei_channel"
 	"gitee.com/cristiane/go-push-sdk/push/setting"
 	"github.com/curltech/go-colla-core/logger"
@@ -20,6 +19,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 	"github.com/google/uuid"
+	"strings"
 )
 
 type p2pChatAction struct {
@@ -126,7 +126,7 @@ func pushApple(peerClient *entity.PeerClient) {
 		if err != nil {
 			logger.Sugar.Errorf("ios push error: %+v\n", err)
 		}
-		logger.Sugar.Debugf("ios push response: %+v\n", respPush)
+		logger.Sugar.Infof("ios push response: %+v\n", respPush)
 	}
 }
 
@@ -137,7 +137,7 @@ func pushHuawei(peerClient *entity.PeerClient) {
 	} else {
 		ctx := context.Background()
 		respPush, _ := pushHuaweiSub(peerClient, huaweiClient)
-		if respPush == nil || respPush.(*huawei_channel.PushMessageResponse).Code == "80200003" {
+		if respPush == nil || respPush.(*huawei_channel.PushMessageResponse).Code == "" || respPush.(*huawei_channel.PushMessageResponse).Code == "80200003" {
 			accessTokenResp, err := huaweiClient.GetAccessToken(ctx)
 			if err != nil {
 				logger.Sugar.Errorf("huawei get access_token error: %+v\n", err)
@@ -177,7 +177,7 @@ func pushHuaweiSub(peerClient *entity.PeerClient, huaweiClient setting.PushClien
 		logger.Sugar.Errorf("huawei push error: %+v\n", err)
 		error = err
 	}
-	logger.Sugar.Debugf("huawei push response: %+v\n", respPush)
+	logger.Sugar.Infof("huawei push response: %+v\n", respPush)
 	return respPush, error
 }
 
