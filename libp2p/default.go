@@ -3,8 +3,6 @@ package libp2p
 import (
 	"context"
 	"fmt"
-	"time"
-	"gitee.com/cristiane/go-push-sdk/push"
 	openpgpcrypto "github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/crypto"
@@ -23,6 +21,8 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/transport/websocket/wss"
+	"github.com/curltech/go-push-sdk/push"
+	"time"
 	//"github.com/curltech/go-colla-node/transport/websocket/fastwss"
 	"github.com/libp2p/go-libp2p"
 	autonat "github.com/libp2p/go-libp2p-autonat"

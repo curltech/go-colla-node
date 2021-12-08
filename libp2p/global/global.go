@@ -2,10 +2,10 @@ package global
 
 import (
 	"context"
-	"gitee.com/cristiane/go-push-sdk/push"
 	openpgp "github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
+	"github.com/curltech/go-push-sdk/push"
 	"github.com/libp2p/go-libp2p-core/connmgr"
 	libp2pcrypto "github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
@@ -35,6 +35,8 @@ type global struct {
 
 	PushRegisterClient *push.RegisterClient
 	HuaweiAccessToken string
+	OppoAccessToken string
+	VivoAccessToken string
 }
 
 var Global = global{}

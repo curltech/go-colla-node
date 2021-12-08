@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitee.com/cristiane/go-push-sdk/push/huawei_channel"
-	"gitee.com/cristiane/go-push-sdk/push/setting"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/consensus/std"
 	"github.com/curltech/go-colla-node/libp2p/global"
@@ -18,6 +16,10 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msg"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
+	"github.com/curltech/go-push-sdk/push/huawei_channel"
+	"github.com/curltech/go-push-sdk/push/oppo_channel"
+	"github.com/curltech/go-push-sdk/push/setting"
+	"github.com/curltech/go-push-sdk/push/vivo_channel"
 	"github.com/google/uuid"
 	"strings"
 )
@@ -80,11 +82,13 @@ func (this *p2pChatAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 			case "HUAWEI":
 				pushHuawei(peerClient)
 			case "Xiaomi":
-
+				pushXiaomi(peerClient)
 			case "OPPO":
-
+				pushOppo(peerClient)
 			case "VIVO":
-
+				pushVivo(peerClient)
+			case "Meizu":
+				pushMeizu(peerClient)
 			default:
 				// GCM
 				// URORA
@@ -137,7 +141,7 @@ func pushHuawei(peerClient *entity.PeerClient) {
 	} else {
 		ctx := context.Background()
 		respPush, _ := pushHuaweiSub(peerClient, huaweiClient)
-		if respPush == nil || respPush.(*huawei_channel.PushMessageResponse).Code == "" || respPush.(*huawei_channel.PushMessageResponse).Code == "80200003" {
+		if respPush == nil || respPush.(*huawei_channel.PushMessageResponse).Code != "80000000" {
 			accessTokenResp, err := huaweiClient.GetAccessToken(ctx)
 			if err != nil {
 				logger.Sugar.Errorf("huawei get access_token error: %+v\n", err)
@@ -162,11 +166,6 @@ func pushHuaweiSub(peerClient *entity.PeerClient, huaweiClient setting.PushClien
 			Title:      getTitle(peerClient.Language),
 			SubTitle:   "",
 			Content:    getContent(peerClient.Language, peerClient.Name),
-			Extra: map[string]string{
-				"type":        "TodoRemind",
-				"link_type":   "TaskList",
-				"link_params": "[]",
-			},
 			CallBack:      "",
 			CallbackParam: "",
 		},
@@ -179,6 +178,156 @@ func pushHuaweiSub(peerClient *entity.PeerClient, huaweiClient setting.PushClien
 	}
 	logger.Sugar.Infof("huawei push response: %+v\n", respPush)
 	return respPush, error
+}
+
+func pushXiaomi(peerClient *entity.PeerClient) {
+	xiaomiClient, err := global.Global.PushRegisterClient.GetXIAOMIClient()
+	if err != nil {
+		logger.Sugar.Errorf("xiaomi GetXIAOMIClient error: %+v\n", err)
+	} else {
+		var deviceTokens = []string{
+			peerClient.DeviceToken,
+		}
+		msg := &setting.PushMessageRequest{
+			DeviceTokens: deviceTokens,
+			AccessToken:  "",
+			Message: &setting.Message{
+				BusinessId:    uuid.New().String(),
+				Title:         getTitle(peerClient.Language),
+				SubTitle:      "",
+				Content:       getContent(peerClient.Language, peerClient.Name),
+				CallBack:      "",
+				CallbackParam: "",
+			},
+		}
+		ctx := context.Background()
+		respPush, err := xiaomiClient.PushNotice(ctx, msg)
+		if err != nil {
+			logger.Sugar.Errorf("xiaomi push error: %+v\n", err)
+		}
+		logger.Sugar.Infof("xiaomi push response: %+v\n", respPush)
+	}
+}
+
+func pushOppo(peerClient *entity.PeerClient) {
+	oppoClient, err := global.Global.PushRegisterClient.GetOPPOClient()
+	if err != nil {
+		logger.Sugar.Errorf("oppo GetOPPOClient error: %+v\n", err)
+	} else {
+		ctx := context.Background()
+		respPush, _ := pushOppoSub(peerClient, oppoClient)
+		if respPush == nil || respPush.(*oppo_channel.PushMessageResponse).Code != 0 {
+			authTokenResp, err := oppoClient.GetAccessToken(ctx)
+			if err != nil {
+				logger.Sugar.Errorf("oppo get auth_token error: %+v\n", err)
+			} else {
+				global.Global.OppoAccessToken = authTokenResp.(*oppo_channel.AuthTokenResp).Data.AuthToken
+				pushOppoSub(peerClient, oppoClient)
+			}
+		}
+	}
+}
+
+func pushOppoSub(peerClient *entity.PeerClient, oppoClient setting.PushClientInterface) (interface{}, error) {
+	var error error = nil
+	var deviceTokens = []string{
+		peerClient.DeviceToken,
+	}
+	msg := &setting.PushMessageRequest{
+		DeviceTokens: deviceTokens,
+		AccessToken:  global.Global.OppoAccessToken,
+		Message: &setting.Message{
+			BusinessId: uuid.New().String(),
+			Title:      getTitle(peerClient.Language),
+			SubTitle:   "",
+			Content:    getContent(peerClient.Language, peerClient.Name),
+			CallBack:      "",
+			CallbackParam: "",
+		},
+	}
+	ctx := context.Background()
+	respPush, err := oppoClient.PushNotice(ctx, msg)
+	if err != nil {
+		logger.Sugar.Errorf("oppo push error: %+v\n", err)
+		error = err
+	}
+	logger.Sugar.Infof("oppo push response: %+v\n", respPush)
+	return respPush, error
+}
+
+func pushVivo(peerClient *entity.PeerClient) {
+	vivoClient, err := global.Global.PushRegisterClient.GetVIVOClient()
+	if err != nil {
+		logger.Sugar.Errorf("vivo GetVIVOClient error: %+v\n", err)
+	} else {
+		ctx := context.Background()
+		respPush, _ := pushVivoSub(peerClient, vivoClient)
+		if respPush == nil || respPush.(*vivo_channel.PushMessageResponse).Result != 0 {
+			authTokenResp, err := vivoClient.GetAccessToken(ctx)
+			if err != nil {
+				logger.Sugar.Errorf("vivo get auth_token error: %+v\n", err)
+			} else {
+				global.Global.VivoAccessToken = authTokenResp.(*vivo_channel.AuthTokenResp).AuthToken
+				pushVivoSub(peerClient, vivoClient)
+			}
+		}
+	}
+}
+
+func pushVivoSub(peerClient *entity.PeerClient, vivoClient setting.PushClientInterface) (interface{}, error) {
+	var error error = nil
+	var deviceTokens = []string{
+		peerClient.DeviceToken,
+	}
+	msg := &setting.PushMessageRequest{
+		DeviceTokens: deviceTokens,
+		AccessToken:  global.Global.VivoAccessToken,
+		Message: &setting.Message{
+			BusinessId: uuid.New().String(),
+			Title:      getTitle(peerClient.Language),
+			SubTitle:   "",
+			Content:    getContent(peerClient.Language, peerClient.Name),
+			CallBack:      "",
+			CallbackParam: "",
+		},
+	}
+	ctx := context.Background()
+	respPush, err := vivoClient.PushNotice(ctx, msg)
+	if err != nil {
+		logger.Sugar.Errorf("vivo push error: %+v\n", err)
+		error = err
+	}
+	logger.Sugar.Infof("vivo push response: %+v\n", respPush)
+	return respPush, error
+}
+
+func pushMeizu(peerClient *entity.PeerClient) {
+	meizuClient, err := global.Global.PushRegisterClient.GetMEIZUClient()
+	if err != nil {
+		logger.Sugar.Errorf("meizu GetMEIZUClient error: %+v\n", err)
+	} else {
+		var deviceTokens = []string{
+			peerClient.DeviceToken,
+		}
+		msg := &setting.PushMessageRequest{
+			DeviceTokens: deviceTokens,
+			AccessToken:  "",
+			Message: &setting.Message{
+				BusinessId:    uuid.New().String(),
+				Title:         getTitle(peerClient.Language),
+				SubTitle:      "",
+				Content:       getContent(peerClient.Language, peerClient.Name),
+				CallBack:      "",
+				CallbackParam: "",
+			},
+		}
+		ctx := context.Background()
+		respPush, err := meizuClient.PushNotice(ctx, msg)
+		if err != nil {
+			logger.Sugar.Errorf("meizu push error: %+v\n", err)
+		}
+		logger.Sugar.Infof("meizu push response: %+v\n", respPush)
+	}
 }
 
 func getTitle(language string) string {
