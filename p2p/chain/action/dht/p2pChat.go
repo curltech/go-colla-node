@@ -72,26 +72,34 @@ func (this *p2pChatAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 		handler.Decrypt(chainMessage)
 		response, _ = std.GetStdConsensus().ReceiveConsensus(chainMessage)
 		// push notification
-		for _, peerClient := range peerClients {
-			prefixArr := strings.Split(peerClient.ClientType, "(")
-			switch prefixArr[0] {
-			case "PC":
-				// do nothing
-			case "Apple":
-				pushApple(peerClient)
-			case "HUAWEI":
-				pushHuawei(peerClient)
-			case "Xiaomi":
-				pushXiaomi(peerClient)
-			case "OPPO":
-				pushOppo(peerClient)
-			case "VIVO":
-				pushVivo(peerClient)
-			case "Meizu":
-				pushMeizu(peerClient)
-			default:
-				// GCM
-				// URORA
+		var srcPeerClientName string = ""
+		srcPeerId := handler1.GetPeerId(chainMessage.SrcPeerId)
+		srcKey := ns.GetPeerClientKey(srcPeerId)
+		srcPeerClients, err := service.GetPeerClientService().GetLocals(srcKey, "")
+		if err == nil && srcPeerClients != nil && len(srcPeerClients) > 0 {
+			srcPeerClientName = srcPeerClients[0].Name
+			for _, peerClient := range peerClients {
+				content := getContent(peerClient.Language, srcPeerClientName)
+				prefixArr := strings.Split(peerClient.ClientType, "(")
+				switch prefixArr[0] {
+				case "PC":
+					// do nothing
+				case "Apple":
+					pushApple(peerClient, content)
+				case "HUAWEI":
+					pushHuawei(peerClient, content)
+				case "Xiaomi":
+					pushXiaomi(peerClient, content)
+				case "OPPO":
+					pushOppo(peerClient, content)
+				case "VIVO":
+					pushVivo(peerClient, content)
+				case "Meizu":
+					pushMeizu(peerClient, content)
+				default:
+					// GCM
+					// URORA
+				}
 			}
 		}
 
@@ -101,7 +109,7 @@ func (this *p2pChatAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 	return nil, nil
 }
 
-func pushApple(peerClient *entity.PeerClient) {
+func pushApple(peerClient *entity.PeerClient, content string) {
 	iosTokenClient, err := global.Global.PushRegisterClient.GetIosTokenClient()
 	if err != nil {
 		logger.Sugar.Errorf("ios GetIosTokenClient error: %+v\n", err)
@@ -115,7 +123,7 @@ func pushApple(peerClient *entity.PeerClient) {
 				BusinessId: uuid.New().String(),
 				Title:      getTitle(peerClient.Language),
 				SubTitle:   "",
-				Content:    getContent(peerClient.Language, peerClient.Name),
+				Content:    content,
 				Extra: map[string]string{
 					"type":        "TodoRemind",
 					"link_type":   "TaskList",
@@ -134,26 +142,26 @@ func pushApple(peerClient *entity.PeerClient) {
 	}
 }
 
-func pushHuawei(peerClient *entity.PeerClient) {
+func pushHuawei(peerClient *entity.PeerClient, content string) {
 	huaweiClient, err := global.Global.PushRegisterClient.GetHUAWEIClient()
 	if err != nil {
 		logger.Sugar.Errorf("huawei GetHUAWEIClient error: %+v\n", err)
 	} else {
 		ctx := context.Background()
-		respPush, _ := pushHuaweiSub(peerClient, huaweiClient)
+		respPush, _ := pushHuaweiSub(peerClient, huaweiClient, content)
 		if respPush == nil || respPush.(*huawei_channel.PushMessageResponse).Code != "80000000" {
 			accessTokenResp, err := huaweiClient.GetAccessToken(ctx)
 			if err != nil {
 				logger.Sugar.Errorf("huawei get access_token error: %+v\n", err)
 			} else {
 				global.Global.HuaweiAccessToken = accessTokenResp.(*huawei_channel.AccessTokenResp).AccessToken
-				pushHuaweiSub(peerClient, huaweiClient)
+				pushHuaweiSub(peerClient, huaweiClient, content)
 			}
 		}
 	}
 }
 
-func pushHuaweiSub(peerClient *entity.PeerClient, huaweiClient setting.PushClientInterface) (interface{}, error) {
+func pushHuaweiSub(peerClient *entity.PeerClient, huaweiClient setting.PushClientInterface, content string) (interface{}, error) {
 	var error error = nil
 	var deviceTokens = []string{
 		peerClient.DeviceToken,
@@ -165,7 +173,7 @@ func pushHuaweiSub(peerClient *entity.PeerClient, huaweiClient setting.PushClien
 			BusinessId: uuid.New().String(),
 			Title:      getTitle(peerClient.Language),
 			SubTitle:   "",
-			Content:    getContent(peerClient.Language, peerClient.Name),
+			Content:    content,
 			CallBack:      "",
 			CallbackParam: "",
 		},
@@ -180,7 +188,7 @@ func pushHuaweiSub(peerClient *entity.PeerClient, huaweiClient setting.PushClien
 	return respPush, error
 }
 
-func pushXiaomi(peerClient *entity.PeerClient) {
+func pushXiaomi(peerClient *entity.PeerClient, content string) {
 	xiaomiClient, err := global.Global.PushRegisterClient.GetXIAOMIClient()
 	if err != nil {
 		logger.Sugar.Errorf("xiaomi GetXIAOMIClient error: %+v\n", err)
@@ -195,7 +203,7 @@ func pushXiaomi(peerClient *entity.PeerClient) {
 				BusinessId:    uuid.New().String(),
 				Title:         getTitle(peerClient.Language),
 				SubTitle:      "",
-				Content:       getContent(peerClient.Language, peerClient.Name),
+				Content:       content,
 				CallBack:      "",
 				CallbackParam: "",
 			},
@@ -209,26 +217,26 @@ func pushXiaomi(peerClient *entity.PeerClient) {
 	}
 }
 
-func pushOppo(peerClient *entity.PeerClient) {
+func pushOppo(peerClient *entity.PeerClient, content string) {
 	oppoClient, err := global.Global.PushRegisterClient.GetOPPOClient()
 	if err != nil {
 		logger.Sugar.Errorf("oppo GetOPPOClient error: %+v\n", err)
 	} else {
 		ctx := context.Background()
-		respPush, _ := pushOppoSub(peerClient, oppoClient)
+		respPush, _ := pushOppoSub(peerClient, oppoClient, content)
 		if respPush == nil || respPush.(*oppo_channel.PushMessageResponse).Code != 0 {
 			authTokenResp, err := oppoClient.GetAccessToken(ctx)
 			if err != nil {
 				logger.Sugar.Errorf("oppo get auth_token error: %+v\n", err)
 			} else {
 				global.Global.OppoAccessToken = authTokenResp.(*oppo_channel.AuthTokenResp).Data.AuthToken
-				pushOppoSub(peerClient, oppoClient)
+				pushOppoSub(peerClient, oppoClient, content)
 			}
 		}
 	}
 }
 
-func pushOppoSub(peerClient *entity.PeerClient, oppoClient setting.PushClientInterface) (interface{}, error) {
+func pushOppoSub(peerClient *entity.PeerClient, oppoClient setting.PushClientInterface, content string) (interface{}, error) {
 	var error error = nil
 	var deviceTokens = []string{
 		peerClient.DeviceToken,
@@ -240,7 +248,7 @@ func pushOppoSub(peerClient *entity.PeerClient, oppoClient setting.PushClientInt
 			BusinessId: uuid.New().String(),
 			Title:      getTitle(peerClient.Language),
 			SubTitle:   "",
-			Content:    getContent(peerClient.Language, peerClient.Name),
+			Content:    content,
 			CallBack:      "",
 			CallbackParam: "",
 		},
@@ -255,26 +263,26 @@ func pushOppoSub(peerClient *entity.PeerClient, oppoClient setting.PushClientInt
 	return respPush, error
 }
 
-func pushVivo(peerClient *entity.PeerClient) {
+func pushVivo(peerClient *entity.PeerClient, content string) {
 	vivoClient, err := global.Global.PushRegisterClient.GetVIVOClient()
 	if err != nil {
 		logger.Sugar.Errorf("vivo GetVIVOClient error: %+v\n", err)
 	} else {
 		ctx := context.Background()
-		respPush, _ := pushVivoSub(peerClient, vivoClient)
+		respPush, _ := pushVivoSub(peerClient, vivoClient, content)
 		if respPush == nil || respPush.(*vivo_channel.PushMessageResponse).Result != 0 {
 			authTokenResp, err := vivoClient.GetAccessToken(ctx)
 			if err != nil {
 				logger.Sugar.Errorf("vivo get auth_token error: %+v\n", err)
 			} else {
 				global.Global.VivoAccessToken = authTokenResp.(*vivo_channel.AuthTokenResp).AuthToken
-				pushVivoSub(peerClient, vivoClient)
+				pushVivoSub(peerClient, vivoClient, content)
 			}
 		}
 	}
 }
 
-func pushVivoSub(peerClient *entity.PeerClient, vivoClient setting.PushClientInterface) (interface{}, error) {
+func pushVivoSub(peerClient *entity.PeerClient, vivoClient setting.PushClientInterface, content string) (interface{}, error) {
 	var error error = nil
 	var deviceTokens = []string{
 		peerClient.DeviceToken,
@@ -286,7 +294,7 @@ func pushVivoSub(peerClient *entity.PeerClient, vivoClient setting.PushClientInt
 			BusinessId: uuid.New().String(),
 			Title:      getTitle(peerClient.Language),
 			SubTitle:   "",
-			Content:    getContent(peerClient.Language, peerClient.Name),
+			Content:    content,
 			CallBack:      "",
 			CallbackParam: "",
 		},
@@ -301,7 +309,7 @@ func pushVivoSub(peerClient *entity.PeerClient, vivoClient setting.PushClientInt
 	return respPush, error
 }
 
-func pushMeizu(peerClient *entity.PeerClient) {
+func pushMeizu(peerClient *entity.PeerClient, content string) {
 	meizuClient, err := global.Global.PushRegisterClient.GetMEIZUClient()
 	if err != nil {
 		logger.Sugar.Errorf("meizu GetMEIZUClient error: %+v\n", err)
@@ -316,7 +324,7 @@ func pushMeizu(peerClient *entity.PeerClient) {
 				BusinessId:    uuid.New().String(),
 				Title:         getTitle(peerClient.Language),
 				SubTitle:      "",
-				Content:       getContent(peerClient.Language, peerClient.Name),
+				Content:       content,
 				CallBack:      "",
 				CallbackParam: "",
 			},
