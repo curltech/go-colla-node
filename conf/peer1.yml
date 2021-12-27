@@ -10,6 +10,7 @@ server:
 log:
   level: info
   encoder: console
+  filePath: /home/azureuser/colla/logs/peer1.log
 http:
   port: 8081
   externalAddr: peer1.domain
@@ -68,8 +69,8 @@ turn:
   realm: peer1.domain
   host: hostname
   ip: 10.1.1.4
-  tcpport: 3478
-  udpport: 3478
+  tcpPort: 3478
+  udpPort: 3478
   credentials: user=password
   # cert: path/to/cert.pem
   # key: path/to/key.pem
