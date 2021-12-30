@@ -131,6 +131,8 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				return errors.New("NoBusinessNumber")
 			}
 			reflect.SetValue(old, "BusinessNumber", businessNumber)
+		} else { // e.g. namespace == PeerEndpoint_Prefix
+			reflect.SetValue(old, req.Keyname, keyvalue)
 		}
 		currentTime := time.Now()
 		found, err := req.Service.Get(old, false, "", "")
