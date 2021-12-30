@@ -184,6 +184,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 					chat["type"] = msgtype.CHAT_LOGOUT
 					chat["srcClientId"] = peerClient.ClientId
 					chat["srcPeerId"] = peerClient.PeerId
+					chat["srcClientDevice"] = peerClient.ClientDevice
 					chat["srcClientType"] = peerClient.ClientType
 					chat["createDate"] = &currentTime
 					var connectSessionId string = ""
