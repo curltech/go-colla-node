@@ -129,6 +129,7 @@ func (this *PeerEntityDHT) PutValue(key string, value []byte, opts ...routing.Op
 	logger.Sugar.Infof("PutValue time:%v, %v", key, end.Sub(start))
 	if strings.HasPrefix(key, "/"+ns.PeerClient_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerClient_Mobile_Prefix) == true ||
+		strings.HasPrefix(key, "/"+ns.PeerClient_Name_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.DataBlock_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.DataBlock_Owner_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Src_Prefix) == true ||
@@ -188,6 +189,7 @@ func (this *PeerEntityDHT) GetValue(key string, opts ...routing.Option) (_ []byt
 	logger.Sugar.Infof("GetValue time:%v, %v", key, end.Sub(start))
 	if (strings.HasPrefix(key, "/"+ns.PeerClient_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerClient_Mobile_Prefix) == true ||
+		strings.HasPrefix(key, "/"+ns.PeerClient_Name_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.DataBlock_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.DataBlock_Owner_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Src_Prefix) == true ||
@@ -204,6 +206,7 @@ func (this *PeerEntityDHT) SearchValue(key string, opts ...routing.Option) (<-ch
 	valChs, error := this.DHT.SearchValue(global.Global.Context, key, opts...)
 	if (strings.HasPrefix(key, "/"+ns.PeerClient_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerClient_Mobile_Prefix) == true ||
+		strings.HasPrefix(key, "/"+ns.PeerClient_Name_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.DataBlock_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.DataBlock_Owner_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Src_Prefix) == true ||
@@ -223,6 +226,7 @@ func (this *PeerEntityDHT) GetValues(key string, nvals int) (_ []dht.RecvdVal, e
 	logger.Sugar.Infof("GetValues time:%v, %v", key, end.Sub(start))
 	if (strings.HasPrefix(key, "/"+ns.PeerClient_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerClient_Mobile_Prefix) == true ||
+		strings.HasPrefix(key, "/"+ns.PeerClient_Name_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.DataBlock_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.DataBlock_Owner_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Src_Prefix) == true ||

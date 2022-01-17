@@ -14,6 +14,7 @@ import (
 const PeerEndpoint_Prefix = "peerEndpoint"
 const PeerClient_Prefix = "peerClient"
 const PeerClient_Mobile_Prefix = "peerClientMobile"
+const PeerClient_Name_Prefix = "peerClientName"
 const ChainApp_Prefix = "chainApp"
 const DataBlock_Prefix = "dataBlock"
 const DataBlock_Owner_Prefix = "dataBlockOwner"
@@ -27,6 +28,7 @@ const TransactionKey_Prefix = "transactionKey"
 
 const PeerClient_KeyKind = "PeerId"
 const PeerClient_Mobile_KeyKind = "Mobile"
+const PeerClient_Name_KeyKind = "Name"
 
 const DataBlock_KeyKind = "BlockId"
 const DataBlock_Owner_KeyKind = "PeerId"
@@ -62,6 +64,12 @@ func GetPeerClientMobileKey(mobile string, hashed bool) string {
 		mobileHash = std.EncodeBase64(std.Hash(mobile, "sha3_256"))
 	}
 	key := fmt.Sprintf("/%v/%v", PeerClient_Mobile_Prefix, mobileHash)
+
+	return key
+}
+
+func GetPeerClientNameKey(name string) string {
+	key := fmt.Sprintf("/%v/%v", PeerClient_Name_Prefix, name)
 
 	return key
 }
@@ -136,7 +144,7 @@ func (v PeerEndpointValidator) Validate(key string, value []byte) error {
 		return err
 	}
 	if ns != PeerEndpoint_Prefix {
-		return errors.New("namespace not '" + PeerEndpoint_Prefix + "'")
+		return errors.New("invalid namespace:" + ns)
 	}
 
 	return nil
@@ -180,8 +188,8 @@ func (v PeerClientValidator) Validate(key string, value []byte) error {
 	if err != nil {
 		return err
 	}
-	if ns != PeerClient_Prefix && ns != PeerClient_Mobile_Prefix {
-		return errors.New("namespace neither '" + PeerClient_Prefix + "' nor '" + PeerClient_Mobile_Prefix + "'")
+	if ns != PeerClient_Prefix && ns != PeerClient_Mobile_Prefix && ns != PeerClient_Name_Prefix {
+		return errors.New("invalid namespace:" + ns)
 	}
 
 	return nil
@@ -229,7 +237,7 @@ func (v ChainAppValidator) Validate(key string, value []byte) error {
 		return err
 	}
 	if ns != ChainApp_Prefix {
-		return errors.New("namespace not '" + ChainApp_Prefix + "'")
+		return errors.New("invalid namespace:" + ns)
 	}
 
 	return nil
@@ -252,7 +260,7 @@ func (v DataBlockValidator) Validate(key string, value []byte) error {
 		return err
 	}
 	if ns != DataBlock_Prefix && ns != DataBlock_Owner_Prefix {
-		return errors.New("namespace neither '" + DataBlock_Prefix + "' nor '" + DataBlock_Owner_Prefix + "'")
+		return errors.New("invalid namespace:" + ns)
 	}
 
 	/*entities := make([]*entity2.DataBlock, 0)
@@ -322,9 +330,7 @@ func (v PeerTransactionValidator) Validate(key string, value []byte) error {
 	if ns != PeerTransaction_Src_Prefix && ns != PeerTransaction_Target_Prefix &&
 		ns != PeerTransaction_P2PChat_Prefix && ns != PeerTransaction_GroupFile_Prefix &&
 		ns != PeerTransaction_Channel_Prefix && ns != PeerTransaction_ChannelArticle_Prefix {
-		return errors.New("namespace neither '" + PeerTransaction_Src_Prefix + "' nor '" + PeerTransaction_Target_Prefix +
-			"' nor '" + PeerTransaction_P2PChat_Prefix + "' nor '" + PeerTransaction_GroupFile_Prefix +
-			"' nor '" + PeerTransaction_Channel_Prefix + "' nor '" + PeerTransaction_ChannelArticle_Prefix + "'")
+		return errors.New("invalid namespace:" + ns)
 	}
 
 	return nil
@@ -347,7 +353,7 @@ func (v TransactionKeyValidator) Validate(key string, value []byte) error {
 		return err
 	}
 	if ns != TransactionKey_Prefix {
-		return errors.New("namespace not '" + TransactionKey_Prefix + "'")
+		return errors.New("invalid namespace:" + ns)
 	}
 
 	return nil

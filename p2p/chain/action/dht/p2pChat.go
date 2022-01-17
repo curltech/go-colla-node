@@ -41,7 +41,7 @@ func (this *p2pChatAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 	key := ns.GetPeerClientKey(targetPeerId)
 	peerClients, err := service.GetPeerClientService().GetLocals(key, "")
 	if err != nil || len(peerClients) == 0 {
-		peerClients, err = service.GetPeerClientService().GetValues(targetPeerId, "")
+		peerClients, err = service.GetPeerClientService().GetValues(targetPeerId, "", "")
 	}
 	if err != nil {
 		response = handler.Error(chainMessage.MessageType, err)

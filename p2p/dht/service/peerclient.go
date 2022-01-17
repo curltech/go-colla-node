@@ -65,6 +65,7 @@ func init() {
 	peerClientService.OrmBaseService.FactNewEntities = peerClientService.NewEntities
 	container.RegistService(ns.PeerClient_Prefix, peerClientService)
 	container.RegistService(ns.PeerClient_Mobile_Prefix, peerClientService)
+	container.RegistService(ns.PeerClient_Name_Prefix, peerClientService)
 }
 
 func (this *PeerClientService) getCacheKey(key string) string {
@@ -149,17 +150,48 @@ func (this *PeerClientService) PutLocals(peerClients []*entity.PeerClient) error
 	return nil
 }
 
-func (this *PeerClientService) GetValues(peerId string, mobile string) ([]*entity.PeerClient, error) {
+func (this *PeerClientService) GetValues(peerId string, mobile string, name string) ([]*entity.PeerClient, error) {
+	if len(peerId) == 0 && len(mobile) == 0 && len(name) == 0 {
+		logger.Sugar.Errorf("InvalidPeerClientKey")
+		return nil, errors.New("InvalidPeerClientKey")
+	}
 	peerClients := make([]*entity.PeerClient, 0)
 	var key string
 	if len(peerId) > 0 {
 		key = ns.GetPeerClientKey(peerId)
-	} else if len(mobile) > 0 {
-		key = ns.GetPeerClientMobileKey(mobile, false)
-	} else {
-		logger.Sugar.Errorf("InvalidPeerClientKey")
-		return nil, errors.New("InvalidPeerClientKey")
+		pcs, err := this.GetKeyValues(key)
+		if err != nil {
+			return nil, err
+		}
+		for _, pc := range pcs {
+			peerClients = append(peerClients, pc)
+		}
 	}
+	if len(mobile) > 0 {
+		key = ns.GetPeerClientMobileKey(mobile, false)
+		pcs, err := this.GetKeyValues(key)
+		if err != nil {
+			return nil, err
+		}
+		for _, pc := range pcs {
+			peerClients = append(peerClients, pc)
+		}
+	}
+	if len(name) > 0 {
+		key = ns.GetPeerClientNameKey(name)
+		pcs, err := this.GetKeyValues(key)
+		if err != nil {
+			return nil, err
+		}
+		for _, pc := range pcs {
+			peerClients = append(peerClients, pc)
+		}
+	}
+	return peerClients, nil
+}
+
+func (this *PeerClientService) GetKeyValues(key string) ([]*entity.PeerClient, error) {
+	peerClients := make([]*entity.PeerClient, 0)
 	if config.Libp2pParams.FaultTolerantLevel == 0 {
 		recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)
 		if err != nil {
@@ -229,7 +261,11 @@ func (this *PeerClientService) PutValues(peerClient *entity.PeerClient) error {
 	if err != nil {
 		return err
 	}
-	return this.PutValue(peerClient, ns.PeerClient_Mobile_KeyKind)
+	err = this.PutValue(peerClient, ns.PeerClient_Mobile_KeyKind)
+	if err != nil {
+		return err
+	}
+	return this.PutValue(peerClient, ns.PeerClient_Name_KeyKind)
 }
 
 func (this *PeerClientService) PutValue(peerClient *entity.PeerClient, keyKind string) error {
@@ -242,6 +278,8 @@ func (this *PeerClientService) PutValue(peerClient *entity.PeerClient, keyKind s
 		key = ns.GetPeerClientKey(peerClient.PeerId)
 	} else if keyKind == ns.PeerClient_Mobile_KeyKind {
 		key = ns.GetPeerClientMobileKey(peerClient.Mobile, true)
+	} else if keyKind == ns.PeerClient_Name_KeyKind {
+		key = ns.GetPeerClientNameKey(peerClient.Name)
 	} else {
 		logger.Sugar.Errorf("InvalidPeerClientKeyKind: %v", keyKind)
 		return errors.New("InvalidPeerClientKeyKind")

@@ -78,7 +78,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 		}
 		old, _ := req.Service.NewEntity(nil)
 		//reflect.SetValue(old, req.Keyname, keyvalue)
-		if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix {
+		if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix || namespace == ns.PeerClient_Name_Prefix {
 			peerId, err := reflect.GetValue(entity, "PeerId")
 			if err != nil || peerId == nil {
 				logger.Sugar.Errorf("NoPeerId")
@@ -142,7 +142,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 				id = uint64(0)
 			}
 			reflect.SetValue(entity, baseentity.FieldName_Id, id)
-			if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix {
+			if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix || namespace == ns.PeerClient_Name_Prefix {
 				oldp := old.(*dhtentity.PeerClient)
 				p := entity.(*dhtentity.PeerClient)
 				// 校验Signature
@@ -241,7 +241,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 			}
 		} else {
 			reflect.SetValue(entity, baseentity.FieldName_Id, uint64(0))
-			if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix {
+			if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix || namespace == ns.PeerClient_Name_Prefix {
 				p := entity.(*dhtentity.PeerClient)
 				// 校验Signature
 				if p.ExpireDate > 0 {
@@ -434,7 +434,7 @@ func (this *XormDatastore) Get(key datastore.Key) (value []byte, err error) {
 
 	entities := this.get(req)
 
-	if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix {
+	if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix || namespace == ns.PeerClient_Name_Prefix {
 		if len(*entities.(*[]*dhtentity.PeerClient)) == 0 {
 			return nil, datastore.ErrNotFound
 		}
@@ -481,6 +481,9 @@ func (this *XormDatastore) get(req *handler.DispatchRequest) interface{} {
 	for k, v := range req.Keyvalue {
 		if req.Name == ns.PeerClient_Mobile_Prefix {
 			reflect.SetValue(entity, ns.PeerClient_Mobile_KeyKind, v)
+			break
+		} else if req.Name == ns.PeerClient_Name_Prefix {
+			reflect.SetValue(entity, ns.PeerClient_Name_KeyKind, v)
 			break
 		} else if req.Name == ns.DataBlock_Owner_Prefix {
 			reflect.SetValue(entity, ns.DataBlock_Owner_KeyKind, v)
@@ -615,6 +618,9 @@ func init() {
 
 	handler.RegistDatastore(ns.PeerClient_Mobile_Prefix, NewXormDatastore())
 	handler.RegistKeyname(ns.PeerClient_Mobile_Prefix, ns.PeerClient_Mobile_KeyKind)
+
+	handler.RegistDatastore(ns.PeerClient_Name_Prefix, NewXormDatastore())
+	handler.RegistKeyname(ns.PeerClient_Name_Prefix, ns.PeerClient_Name_KeyKind)
 
 	handler.RegistDatastore(ns.ChainApp_Prefix, NewXormDatastore())
 	handler.RegistKeyname(ns.ChainApp_Prefix, dhtentity.ChainApp{}.KeyName())

@@ -29,14 +29,18 @@ func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 	}
 	var peerId string = ""
 	var mobileNumber string = ""
+	var name string = ""
 	if conditionBean["peerId"] != nil {
 		peerId = conditionBean["peerId"].(string)
 	}
 	if conditionBean["mobileNumber"] != nil {
 		mobileNumber = conditionBean["mobileNumber"].(string)
 	}
+	if conditionBean["name"] != nil {
+		name = conditionBean["name"].(string)
+	}
 
-	peerClients, err := service.GetPeerClientService().GetValues(peerId, mobileNumber)
+	peerClients, err := service.GetPeerClientService().GetValues(peerId, mobileNumber, name)
 	if err != nil {
 		response = handler.Error(chainMessage.MessageType, err)
 		return response, nil

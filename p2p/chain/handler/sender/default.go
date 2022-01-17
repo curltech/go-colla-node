@@ -143,7 +143,7 @@ func RelaySend(chainMessage *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 		if err != nil || len(peerClients) == 0 {
 			peerEndPoints, err := service.GetPeerEndpointService().GetLocal(targetPeerId)
 			if err != nil || len(peerEndPoints) == 0 {
-				peerClients, err := service.GetPeerClientService().GetValues(targetPeerId, "")
+				peerClients, err := service.GetPeerClientService().GetValues(targetPeerId, "", "")
 				if err != nil || len(peerClients) == 0 {
 					connectPeerId, err = service.GetPeerEndpointService().FindPeer(targetPeerId)
 				}

@@ -88,7 +88,7 @@ func GetPublicKey(targetPeerId string) (*crypto.Key, error) {
 	if targetPeerId == "" {
 		return nil, errors.New("NoTargetPeerId")
 	}
-	peerClients, err := service.GetPeerClientService().GetValues(targetPeerId, "")
+	peerClients, err := service.GetPeerClientService().GetValues(targetPeerId, "", "")
 	if err == nil && len(peerClients) > 0 {
 		latestPeerClient := &entity.PeerClient{}
 		for _, peerClient := range peerClients {
