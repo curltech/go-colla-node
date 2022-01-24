@@ -177,7 +177,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 					}
 				}
 				// 校验Signature
-				publicKey, err := handler2.GetPublicKey(oldp.PeerId)
+				publicKey, err := handler2.GetPublicKey(p.PeerId)
 				if err != nil {
 					return errors.New(fmt.Sprintf("GetPublicKey failure, blockId: %v, peerId: %v", p.BlockId, p.PeerId))
 				} else {
