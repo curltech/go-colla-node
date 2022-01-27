@@ -1,4 +1,4 @@
-### The backend node of Colla Network, a decentralized peer-to-peer communication and storage network.
+### The backbone of the Colla Network, a Web3 decentralized peer-to-peer communication and storage network.
 
 [![use](https://img.shields.io/badge/use-go--libp2p-yellowgreen.svg)](https://github.com/libp2p/go-libp2p)
 [![use](https://img.shields.io/badge/use-go--ipfs-blue.svg)](https://github.com/ipfs/go-ipfs)
@@ -11,7 +11,7 @@
 - [License](#license)
 
 # Introduction
-Colla Network is a decentralized peer-to-peer communication and storage network, Colla DApp (e.g. [CollaChat](https://github.com/curltech/CollaChat)) connects to Colla Network via selected Colla Node, there is no centralized storage and control of user data, user can specify which node or even easily setup own node(s) to connect to.
+Colla Network is a Web3 decentralized peer-to-peer communication and storage network, Colla DApp (e.g. [CollaChat](https://github.com/curltech/CollaChat)) connects to Colla Network via selected Colla Node, there is no centralized storage and control of user data, user can specify which node or even easily setup own node(s) to connect to.
 
 # Build
 ## Optimized Settings
