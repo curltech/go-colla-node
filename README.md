@@ -11,7 +11,7 @@
 - [License](#license)
 
 # Introduction
-Colla Network is a Web3 decentralized peer-to-peer communication and storage network, Colla DApp (e.g. [CollaChat](https://github.com/curltech/CollaChat)) connects to Colla Network via selected Colla Node, there is no centralized storage and control of user data, user can specify which node or even easily setup own node(s) to connect to.
+Colla Network is a Web3 decentralized peer-to-peer communication and storage network, Colla DApps (e.g. [CollaChat](https://github.com/curltech/CollaChat)) connect to the Colla Network via selected Colla Node(s), there is no centralized storage and control of user data, user can specify which Node(s) or even easily setup own Node(s) to connect to.
 
 # Build
 ## Optimized Settings
