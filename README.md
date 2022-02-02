@@ -1,4 +1,4 @@
-### The backbone of the Colla Network, a Web3 decentralized peer-to-peer communication and storage network.
+### The backbone of the Colla Network - a Web3 decentralized peer-to-peer communication and storage network.
 
 [![use](https://img.shields.io/badge/use-go--libp2p-yellowgreen.svg)](https://github.com/libp2p/go-libp2p)
 [![use](https://img.shields.io/badge/use-go--ipfs-blue.svg)](https://github.com/ipfs/go-ipfs)
