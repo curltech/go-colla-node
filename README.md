@@ -11,7 +11,7 @@
 - [License](#license)
 
 # Introduction
-Colla Network is a Web3 decentralized peer-to-peer communication and storage network, Colla DApp (e.g. [CollaChat](https://github.com/curltech/CollaChat)) connects to it via Colla Node. There is no centralized storage and control of user data, users can specify which Node(s) or even easily setup own Node(s) to connect to.
+Colla Network is a Web3 decentralized peer-to-peer communication and storage network, Colla DApp (e.g. [CollaChat](https://github.com/curltech/collachat)) connects to it via Colla Node. There is no centralized storage and control of user data, users can specify which Node(s) or even easily setup own Node(s) to connect to.
 
 Learn more at https://curltech.io/#/collachat/.
 
@@ -48,7 +48,7 @@ azureuser@myVM:~/go-colla-node$ vi conf/peer1.yml
 azureuser@myVM:~/go-colla-node$ ./main (or ./main -appname peer1)
 ```
 
-3. Use custom node in Colla DApp (e.g. [CollaChat](https://github.com/curltech/CollaChat))
+3. Use custom node in Colla DApp (e.g. [CollaChat](https://github.com/curltech/collachat))
 ```
 azureuser@myVM:~/go-colla-node$ sqlite3 peer1.db
 sqlite> select discoveryaddress from blc_myselfpeer;
