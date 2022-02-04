@@ -214,10 +214,13 @@ func (v PeerClientValidator) Select(key string, vals [][]byte) (int, error) {
 	for _, existingEntity := range existingEntities {
 		if existingEntity.PeerId == currentEntity.PeerId && existingEntity.ClientId == currentEntity.ClientId &&
 			currentEntity.LastUpdateTime != nil && existingEntity.LastUpdateTime != nil &&
-			(currentEntity.LastUpdateTime.UTC().Before(existingEntity.LastUpdateTime.UTC()) ||
-				(currentEntity.LastUpdateTime.UTC().Equal(existingEntity.LastUpdateTime.UTC()) &&
-					currentEntity.LastAccessTime != nil && existingEntity.LastAccessTime != nil &&
-					currentEntity.LastAccessTime.UTC().Before(existingEntity.LastAccessTime.UTC()))) {
+		    (currentEntity.LastUpdateTime.UTC().Before(existingEntity.LastUpdateTime.UTC()) ||
+			    (currentEntity.LastUpdateTime.UTC().Equal(existingEntity.LastUpdateTime.UTC()) &&
+				    currentEntity.LastAccessTime != nil && existingEntity.LastAccessTime != nil &&
+				    currentEntity.LastAccessTime.UTC().Before(existingEntity.LastAccessTime.UTC()))) {
+						logger.Sugar.Errorf("Select failed", "ClientId", existingEntity.ClientId,
+							"existingEntity.LastUpdateTime", existingEntity.LastUpdateTime, "currentEntity.LastUpdateTime", currentEntity.LastUpdateTime,
+							"existingEntity.LastAccessTime", existingEntity.LastAccessTime, "currentEntity.LastAccessTime", currentEntity.LastAccessTime)
 			return 1, nil
 		}
 	}
