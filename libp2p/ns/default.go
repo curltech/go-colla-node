@@ -197,7 +197,7 @@ func (v PeerClientValidator) Validate(key string, value []byte) error {
 
 // Select conforms to the Validator interface.
 func (v PeerClientValidator) Select(key string, vals [][]byte) (int, error) {
-	currentVal := vals[0]
+	/*currentVal := vals[0]
 	existingVal := vals[1]
 	currentEntity := entity.PeerClient{}
 	err := message.Unmarshal(currentVal, &currentEntity)
@@ -223,7 +223,7 @@ func (v PeerClientValidator) Select(key string, vals [][]byte) (int, error) {
 							"existingEntity.LastAccessTime", existingEntity.LastAccessTime, "currentEntity.LastAccessTime", currentEntity.LastAccessTime)
 			return 1, nil
 		}
-	}
+	}*/
 
 	return 0, nil
 }
@@ -311,7 +311,8 @@ func (v DataBlockValidator) Select(key string, vals [][]byte) (int, error) {
 	}
 	for _, existingEntity := range existingEntities {
 		if existingEntity.BlockId == currentEntity.BlockId &&
-			existingEntity.SliceNumber == currentEntity.SliceNumber && currentEntity.CreateTimestamp <= existingEntity.CreateTimestamp {
+			existingEntity.SliceNumber == currentEntity.SliceNumber &&
+			currentEntity.CreateTimestamp <= existingEntity.CreateTimestamp {
 			return 1, nil
 		}
 	}
