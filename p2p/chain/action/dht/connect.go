@@ -33,6 +33,7 @@ var ConnectAction connectAction
 */
 func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
 	logger.Sugar.Infof("Receive %v message", this.MsgType)
+	start := time.Now()
 	var response *msg.ChainMessage = nil
 	v := chainMessage.Payload
 	peerClient, ok := v.(*entity.PeerClient)
@@ -151,11 +152,12 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 				pc.LastUpdateTime = peerClient.LastUpdateTime
 				pc.DeviceToken = peerClient.DeviceToken
 				pc.Language = peerClient.Language
-				err := service.GetPeerClientService().PutValues(pc)
+				/*err := service.GetPeerClientService().PutValues(pc)
 				if err != nil {
 					response = handler.Error(chainMessage.MessageType, err)
 					return response, nil
-				}
+				}*/
+				go service.GetPeerClientService().PutValues(pc)
 				break
 			}
 		}
@@ -165,11 +167,12 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 		peerClient.LastAccessTime = &currentTime
 		peerClient.ActiveStatus = entity.ActiveStatus_Up
 		peerClient.Mobile = std.EncodeBase64(std.Hash(peerClient.Mobile, "sha3_256"))
-		err := service.GetPeerClientService().PutValues(peerClient)
+		/*err := service.GetPeerClientService().PutValues(peerClient)
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
 			return response, nil
-		}
+		}*/
+		go service.GetPeerClientService().PutValues(peerClient)
 		if pcs == nil {
 			pcs = make([]*entity.PeerClient, 0)
 		}
@@ -256,6 +259,8 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 	}
 
 	response = handler.Response(chainMessage.MessageType, []interface{}{peers, pcs})
+	end := time.Now()
+	logger.Sugar.Infof("==============================connect time: %v", end.Sub(start))
 	return response, nil
 }
 
