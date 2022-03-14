@@ -232,6 +232,8 @@ github.com/curltech/go-colla-core v0.1.15 h1:a0g+OgLulwhLCW+/NR6GslWolyWQvzSyxTH
 github.com/curltech/go-colla-core v0.1.15/go.mod h1:CBorkQVWb+W2TM6pAaE9i5iPwzbIzwd3KzRPnNCOO64=
 github.com/curltech/go-colla-core v0.1.16 h1:lE/qYP5dIFNJZgaDNTGqXFpWaMG4qH3JcBqFOHT+PLc=
 github.com/curltech/go-colla-core v0.1.16/go.mod h1:Yf/+PpwNLs3v3krWpBgGRyvh4RMUYJmbSpFw9nyR2ck=
+github.com/curltech/go-colla-core v0.1.17 h1:T4BqGKCToEuM/9MnoSygH95UpzpGuWjaZyBZC4X1KhE=
+github.com/curltech/go-colla-core v0.1.17/go.mod h1:r2NdKh8/POIqHMLKtcgvUuxvsnlp1UpZfD2Thi3IcN4=
 github.com/curltech/go-push-sdk v1.1.1 h1:iQMKX64UbBVk2WAfsx1adxIlFElDgNpOUYl4W31HI1E=
 github.com/curltech/go-push-sdk v1.1.1/go.mod h1:6voN0mZFqf5C0vmAJOomwRSSTRmeM6xwLxbICxVyqSw=
 github.com/curltech/go-push-sdk v1.2.0 h1:AlhRmG6Bl0c8IBJzIs/T+jOwGi4Henhmt73M17u06B4=
