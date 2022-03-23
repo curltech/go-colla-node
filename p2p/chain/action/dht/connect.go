@@ -50,7 +50,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 
 	peerId := peerClient.PeerId
 	clientId := peerClient.ClientId
-	clientDevice := peerClient.ClientDevice
+	//clientDevice := peerClient.ClientDevice
 	connectAddress := peerClient.ConnectAddress
 	connectPeerId := peerClient.ConnectPeerId
 	connectPublicKey := peerClient.ConnectPublicKey
@@ -182,7 +182,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 		for _, pc := range pcs {
 			// 同种设备实例踢下线
 			if pc.ClientId != clientId {
-				if pc.ClientDevice == clientDevice && pc.ActiveStatus == entity.ActiveStatus_Up {
+				if /*pc.ClientDevice == clientDevice && */pc.ActiveStatus == entity.ActiveStatus_Up {
 					chat := make(map[string]interface{}, 0)
 					chat["type"] = msgtype.CHAT_LOGOUT
 					chat["srcClientId"] = peerClient.ClientId
