@@ -152,7 +152,7 @@ func (this *SfuPeerPool) trickle(netPeer *p2p.NetPeer, sfuSignal *SfuSignal) (in
 		logger.Sugar.Errorf("sfuPeer:%v does not exist", netPeer)
 		return nil, errors.New("NotExist")
 	}
-	err := sfuPeer.Trickle(*sfuSignal.Candidate, sfuSignal.Target)
+	err := sfuPeer.peer.Trickle(*sfuSignal.Candidate, sfuSignal.Target)
 	if err != nil {
 		logger.Sugar.Errorf("%v", err.Error())
 	}
@@ -165,7 +165,7 @@ func (this *SfuPeerPool) answer(netPeer *p2p.NetPeer, sfuSignal *SfuSignal) (int
 		logger.Sugar.Errorf("sfuPeer:%v does not exist", netPeer)
 		return nil, errors.New("NotExist")
 	}
-	err := sfuPeer.SetRemoteDescription(*sfuSignal.Sdp)
+	err := sfuPeer.peer.SetRemoteDescription(*sfuSignal.Sdp)
 	if err != nil {
 		logger.Sugar.Errorf("%v", err.Error())
 	}
@@ -178,7 +178,7 @@ func (this *SfuPeerPool) offer(netPeer *p2p.NetPeer, sfuSignal *SfuSignal, isSyn
 		logger.Sugar.Errorf("sfuPeer:%v does not exist", netPeer)
 		return nil, errors.New("NotExist")
 	}
-	answer, err := sfuPeer.Answer(*sfuSignal.Sdp)
+	answer, err := sfuPeer.peer.Answer(*sfuSignal.Sdp)
 	if err != nil {
 		return nil, err
 	}
@@ -212,13 +212,13 @@ func (this *SfuPeerPool) join(netPeer *p2p.NetPeer, sfuSignal *SfuSignal, isSync
 		return nil, errors.New("NewSfuPeerError")
 	}
 
-	sfuPeer.OnICEConnectionStateChange = func(state webrtc.ICEConnectionState) {
+	sfuPeer.peer.OnICEConnectionStateChange = func(state webrtc.ICEConnectionState) {
 		sfuPeer.state = state
 		event := &PoolEvent{Name: "onstatechange", Source: sfuPeer, Data: state}
 		this.EmitEvent("onstatechange", event)
 	}
 
-	sfuPeer.OnOffer = func(offer *webrtc.SessionDescription) {
+	sfuPeer.peer.OnOffer = func(offer *webrtc.SessionDescription) {
 		offerSfuSignal := &SfuSignal{}
 		offerSfuSignal.SignalType = "offer"
 		offerSfuSignal.Sdp = offer
@@ -228,7 +228,7 @@ func (this *SfuPeerPool) join(netPeer *p2p.NetPeer, sfuSignal *SfuSignal, isSync
 		}
 	}
 
-	sfuPeer.OnIceCandidate = func(candidate *webrtc.ICECandidateInit, target int) {
+	sfuPeer.peer.OnIceCandidate = func(candidate *webrtc.ICECandidateInit, target int) {
 		trickleSfuSignal := &SfuSignal{}
 		trickleSfuSignal.SignalType = "trickle"
 		trickleSfuSignal.Candidate = candidate
@@ -239,12 +239,12 @@ func (this *SfuPeerPool) join(netPeer *p2p.NetPeer, sfuSignal *SfuSignal, isSync
 		}
 	}
 
-	err := sfuPeer.Join(sfuSignal.Sid, "")
+	err := sfuPeer.peer.Join(sfuSignal.Sid, "")
 	if err != nil {
 		logger.Sugar.Errorf("error join %s", err.Error())
 		return nil, err
 	}
-	answer, err := sfuPeer.Answer(*sfuSignal.Sdp)
+	answer, err := sfuPeer.peer.Answer(*sfuSignal.Sdp)
 	if err != nil {
 		logger.Sugar.Errorf("error answer offer %s", err.Error())
 		return nil, err
@@ -290,7 +290,7 @@ func (this *SfuPeerPool) leave(netPeer *p2p.NetPeer) error {
 		logger.Sugar.Errorf("sfuPeer:%v does not exist", netPeer)
 		return errors.New("NotExist")
 	}
-	return sfuPeer.Close()
+	return sfuPeer.peer.Close()
 }
 
 func (this *SfuPeerPool) Remove(netPeer *p2p.NetPeer) error {
@@ -323,7 +323,7 @@ func (this *SfuPeerPool) onStateChange(event *PoolEvent) (interface{}, error) {
 	state, ok := event.Data.(webrtc.ICEConnectionState)
 	if ok {
 		if state == webrtc.ICEConnectionStateFailed {
-			sfuPeer.Close()
+			sfuPeer.peer.Close()
 		} else if state == webrtc.ICEConnectionStateDisconnected || state == webrtc.ICEConnectionStateClosed {
 			this.Remove(sfuPeer.NetPeer)
 		} else if state == webrtc.ICEConnectionStateCompleted || state == webrtc.ICEConnectionStateConnected {

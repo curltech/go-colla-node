@@ -20,21 +20,21 @@ http:
     port: 9091
     url: peer1.domain
     email: user@mailbox
-    cert: conf/peer1.domain.crt
-    key: conf/peer1.domain.key
+    cert: conf/camsi-server-ec.crt
+    key: conf/camsi-server-ec.key
   proxy:
     mode: none
     address: :5720
     target: http://peer1.domain:4720
     redirect: true
 database:
-  drivername: sqlite3 #postgres
-  dsn: /home/azureuser/colla/peer1.db
+  drivername: postgres
+  # dsn: /home/azureuser/colla/peer1.db
   host: localhost
   port: 5432
-  dbname: peer1
-  user: user
-  password: password
+  dbname: postgres
+  user: postgres
+  password: 123456
   orm: xorm
   sequence: table
   showSQL: false

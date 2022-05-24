@@ -30,7 +30,7 @@ const Protocol = "/proxy-example/0.0.1"
 // makeRandomHost creates a libp2p host with a randomly generated identity.
 // This step is described in depth in other tutorials.
 func makeRandomHost(port int) host.Host {
-	host, err := libp2p.New(context.Background(), libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", port)))
+	host, err := libp2p.New(libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", port)))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -65,7 +65,7 @@ func NewProxyService(h host.Host, proxyAddr ma.Multiaddr, dest peer.ID) *ProxySe
 	fmt.Println("Proxy server is ready")
 	fmt.Println("libp2p-peer addresses:")
 	for _, a := range h.Addrs() {
-		fmt.Printf("%s/ipfs/%s\n", a, peer.IDB58Encode(h.ID()))
+		fmt.Printf("%s/ipfs/%s\n", a, peer.Encode(h.ID()))
 	}
 
 	return &ProxyService{
@@ -206,7 +206,7 @@ func addAddrToPeerstore(h host.Host, addr string) peer.ID {
 		log.Fatalln(err)
 	}
 
-	peerid, err := peer.IDB58Decode(pid)
+	peerid, err := peer.Decode(pid)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -214,7 +214,7 @@ func addAddrToPeerstore(h host.Host, addr string) peer.ID {
 	// Decapsulate the /ipfs/<peerID> part from the target
 	// /ip4/<a.b.c.d>/ipfs/<peer> becomes /ip4/<a.b.c.d>
 	targetPeerAddr, _ := ma.NewMultiaddr(
-		fmt.Sprintf("/ipfs/%s", peer.IDB58Encode(peerid)))
+		fmt.Sprintf("/ipfs/%s", peer.Encode(peerid)))
 	targetAddr := ipfsaddr.Decapsulate(targetPeerAddr)
 
 	// We have a peer ID and a targetAddr so we add

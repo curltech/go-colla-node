@@ -65,16 +65,16 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 	var pcs []*entity.PeerClient
 	if config.Libp2pParams.FaultTolerantLevel == 0 {
 		pcs = make([]*entity.PeerClient, 0)
-		recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)
+		recvdVals, err := dht.PeerEndpointDHT.GetValues(key)
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
 			return response, nil
 		}
 		for _, recvdVal := range recvdVals {
 			pcArr := make([]*entity.PeerClient, 0)
-			err = message.TextUnmarshal(string(recvdVal.Val), &pcArr)
+			err = message.TextUnmarshal(string(recvdVal), &pcArr)
 			if err != nil {
-				logger.Sugar.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Sugar.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal, err)
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
 			}
@@ -83,7 +83,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 			}
 		}
 	} else if config.Libp2pParams.FaultTolerantLevel == 1 {
-		
+
 	} else if config.Libp2pParams.FaultTolerantLevel == 2 {
 		// 查询删除local历史记录
 		locals, err := service.GetPeerClientService().GetLocals(key, "")
@@ -95,7 +95,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 			service.GetPeerClientService().Delete(locals, "")
 		}
 		// 查询non-local历史记录
-		recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)
+		recvdVals, err := dht.PeerEndpointDHT.GetValues(key)
 		if err != nil {
 			response = handler.Error(chainMessage.MessageType, err)
 			return response, nil
@@ -109,15 +109,15 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 		// 更新local历史记录
 		for _, recvdVal := range recvdVals {
 			pcArr := make([]*entity.PeerClient, 0)
-			err = message.TextUnmarshal(string(recvdVal.Val), &pcArr)
+			err = message.TextUnmarshal(string(recvdVal), &pcArr)
 			if err != nil {
-				logger.Sugar.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Sugar.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal, err)
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
 			}
 			err = service.GetPeerClientService().PutLocals(pcArr)
 			if err != nil {
-				logger.Sugar.Errorf("failed to PutLocalPCs PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Sugar.Errorf("failed to PutLocalPCs PeerClient value: %v, err: %v", recvdVal, err)
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
 			}
@@ -182,7 +182,7 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 		for _, pc := range pcs {
 			// 同种设备实例踢下线
 			if pc.ClientId != clientId {
-				if /*pc.ClientDevice == clientDevice && */pc.ActiveStatus == entity.ActiveStatus_Up {
+				if /*pc.ClientDevice == clientDevice && */ pc.ActiveStatus == entity.ActiveStatus_Up {
 					chat := make(map[string]interface{}, 0)
 					chat["type"] = msgtype.CHAT_LOGOUT
 					chat["srcClientId"] = peerClient.ClientId
@@ -235,15 +235,15 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 					ID:   p,
 				})
 				k := ns.GetPeerEndpointKey(p.Pretty())
-				recvdVals, err := dht.PeerEndpointDHT.GetValues(k, config.Libp2pParams.Nvals)
+				recvdVals, err := dht.PeerEndpointDHT.GetValues(k)
 				if err != nil {
 					logger.Sugar.Errorf("failed to GetValues by PeerEndpoint key: %v, err: %v", k, err)
 				} else {
 					for _, recvdVal := range recvdVals {
 						entities := make([]*entity.PeerEndpoint, 0)
-						err = message.TextUnmarshal(string(recvdVal.Val), &entities)
+						err = message.TextUnmarshal(string(recvdVal), &entities)
 						if err != nil {
-							logger.Sugar.Errorf("failed to TextUnmarshal PeerEndpoint value: %v, err: %v", recvdVal.Val, err)
+							logger.Sugar.Errorf("failed to TextUnmarshal PeerEndpoint value: %v, err: %v", recvdVal, err)
 						} else {
 							if len(entities) > 0 {
 								peer := entities[0]

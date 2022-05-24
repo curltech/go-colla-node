@@ -3,6 +3,8 @@ package main
 import (
 	_ "github.com/curltech/go-colla-core/cache"
 	libp2p "github.com/curltech/go-colla-node/libp2p"
+	"github.com/curltech/go-colla-node/transport/websocket/http"
+
 	/**
 	  引入包定义，执行对应包的init函数，从而引入某功能，在init函数根据初始化参数配置决定是否启动该功能
 	*/
@@ -19,5 +21,6 @@ import (
 )
 
 func main() {
+	go http.Start()
 	libp2p.Start()
 }

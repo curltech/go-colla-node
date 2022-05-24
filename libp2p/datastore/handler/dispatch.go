@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"github.com/curltech/go-colla-core/container"
 	"github.com/curltech/go-colla-core/logger"
 	service2 "github.com/curltech/go-colla-core/service"
 	"github.com/curltech/go-colla-core/util/message"
+	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/ipfs/go-datastore"
 	dsq "github.com/ipfs/go-datastore/query"
 	"github.com/multiformats/go-base32"
@@ -41,7 +43,7 @@ func NewKeyRequest(key datastore.Key) (*DispatchRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	segs2 := strings.Split(path, "/" + prefix + "/")
+	segs2 := strings.Split(path, "/"+prefix+"/")
 	/**
 	在delete，put操作的时候，segs2[1]也就是key必须是唯一确定数据的主键和唯一索引，因为它决定了要删除和保存的数据存放的节点
 	最近节点是根据这个决定的
@@ -87,21 +89,21 @@ func NewDispatchDatastore() (this *DispatchDatastore) {
 }
 
 // Put implements Datastore.Put
-func (this *DispatchDatastore) Put(key datastore.Key, value []byte) (err error) {
+func (this *DispatchDatastore) Put(ctx context.Context, key datastore.Key, value []byte) (err error) {
 	request, err := NewKeyRequest(key)
 	if err != nil {
 		return err
 	}
-	return request.Datastore.Put(key, value)
+	return request.Datastore.Put(global.Global.Context, key, value)
 }
 
 // Sync implements Datastore.Sync
-func (this *DispatchDatastore) Sync(prefix datastore.Key) error {
+func (this *DispatchDatastore) Sync(ctx context.Context, prefix datastore.Key) error {
 	request, err := NewKeyRequest(prefix)
 	if err != nil {
 		return err
 	}
-	return request.Datastore.Sync(prefix)
+	return request.Datastore.Sync(global.Global.Context, prefix)
 }
 
 /**
@@ -109,52 +111,52 @@ GetValue其实可以支持返回多条记录和全文检索结果
 一般Key的格式是/peerEndpoint/12D3KooWG59NPEuY1dseFzXMSyYbHQb1pfpPiMq5fk7c48exxNJp
 如果需要支持条件查询，第二个/后的格式就不是这样的，可以用=表示条件，类似url，甚至类似elastic的查询条件
 */
-func (this *DispatchDatastore) Get(key datastore.Key) (value []byte, err error) {
+func (this *DispatchDatastore) Get(ctx context.Context, key datastore.Key) (value []byte, err error) {
 	request, err := NewKeyRequest(key)
 	if err != nil {
 		return nil, err
 	}
-	return request.Datastore.Get(key)
+	return request.Datastore.Get(global.Global.Context, key)
 }
 
 // Has implements Datastore.Has
-func (this *DispatchDatastore) Has(key datastore.Key) (exists bool, err error) {
+func (this *DispatchDatastore) Has(ctx context.Context, key datastore.Key) (exists bool, err error) {
 	request, err := NewKeyRequest(key)
 	if err != nil {
 		return false, err
 	}
-	return request.Datastore.Has(key)
+	return request.Datastore.Has(global.Global.Context, key)
 }
 
 // GetSize implements Datastore.GetSize
-func (this *DispatchDatastore) GetSize(key datastore.Key) (size int, err error) {
+func (this *DispatchDatastore) GetSize(ctx context.Context, key datastore.Key) (size int, err error) {
 	request, err := NewKeyRequest(key)
 	if err != nil {
 		return 0, err
 	}
-	return request.Datastore.GetSize(key)
+	return request.Datastore.GetSize(global.Global.Context, key)
 }
 
 // Delete implements Datastore.Delete
-func (this *DispatchDatastore) Delete(key datastore.Key) (err error) {
+func (this *DispatchDatastore) Delete(ctx context.Context, key datastore.Key) (err error) {
 	request, err := NewKeyRequest(key)
 	if err != nil {
 		return err
 	}
-	return request.Datastore.Delete(key)
+	return request.Datastore.Delete(global.Global.Context, key)
 }
 
 // Query implements Datastore.Query
-func (this *DispatchDatastore) Query(q dsq.Query) (dsq.Results, error) {
+func (this *DispatchDatastore) Query(ctx context.Context, q dsq.Query) (dsq.Results, error) {
 	logger.Sugar.Warnf("query trigger:%v:%v", q.Prefix, q.String())
 	request, err := NewPrefixRequest(q.Prefix)
 	if err != nil {
 		return nil, err
 	}
-	return request.Datastore.Query(q)
+	return request.Datastore.Query(global.Global.Context, q)
 }
 
-func (this *DispatchDatastore) Batch() (datastore.Batch, error) {
+func (this *DispatchDatastore) Batch(ctx context.Context) (datastore.Batch, error) {
 	return datastore.NewBasicBatch(this), nil
 }
 

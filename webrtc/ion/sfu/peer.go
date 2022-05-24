@@ -13,7 +13,7 @@ import (
 代表两个peer之间的webrtc连接
 */
 type SfuPeer struct {
-	*sfu.Peer
+	peer *sfu.PeerLocal
 	*p2p.NetPeer
 	iceServer []webrtc.ICEServer
 	start     time.Time
@@ -26,7 +26,7 @@ func NewSfuPeer(netPeer *p2p.NetPeer, iceServer []webrtc.ICEServer) *SfuPeer {
 	sfuPeerPool := GetSfuPeerPool()
 	peer := sfu.NewPeer(sfuPeerPool)
 	sfuPeer := &SfuPeer{}
-	sfuPeer.Peer = peer
+	sfuPeer.peer = peer
 	p := p2p.NetPeer{}
 	sfuPeer.NetPeer = &p
 	sfuPeer.TargetPeerId = netPeer.TargetPeerId

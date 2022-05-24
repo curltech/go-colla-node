@@ -193,15 +193,15 @@ func (this *PeerClientService) GetValues(peerId string, mobile string, name stri
 func (this *PeerClientService) GetKeyValues(key string) ([]*entity.PeerClient, error) {
 	peerClients := make([]*entity.PeerClient, 0)
 	if config.Libp2pParams.FaultTolerantLevel == 0 {
-		recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)
+		recvdVals, err := dht.PeerEndpointDHT.GetValues(key)
 		if err != nil {
 			return nil, err
 		}
 		for _, recvdVal := range recvdVals {
 			pcs := make([]*entity.PeerClient, 0)
-			err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
+			err = message.TextUnmarshal(string(recvdVal), &pcs)
 			if err != nil {
-				logger.Sugar.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Sugar.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal, err)
 				return nil, err
 			}
 			for _, pc := range pcs {
@@ -230,7 +230,7 @@ func (this *PeerClientService) GetKeyValues(key string) ([]*entity.PeerClient, e
 			this.Delete(locals, "")
 		}
 		// 查询non-local记录
-		recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)
+		recvdVals, err := dht.PeerEndpointDHT.GetValues(key)
 		if err != nil {
 			return nil, err
 		}
@@ -242,9 +242,9 @@ func (this *PeerClientService) GetKeyValues(key string) ([]*entity.PeerClient, e
 		// 整合记录
 		for _, recvdVal := range recvdVals {
 			pcs := make([]*entity.PeerClient, 0)
-			err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
+			err = message.TextUnmarshal(string(recvdVal), &pcs)
 			if err != nil {
-				logger.Sugar.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal.Val, err)
+				logger.Sugar.Errorf("failed to TextUnmarshal PeerClient value: %v, err: %v", recvdVal, err)
 				return nil, err
 			}
 			for _, pc := range pcs {

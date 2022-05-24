@@ -2,6 +2,7 @@ package libp2p
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	openpgpcrypto "github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/curltech/go-colla-core/config"
@@ -20,13 +21,8 @@ import (
 	service1 "github.com/curltech/go-colla-node/p2p/chain/service"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
-	"github.com/curltech/go-colla-node/transport/websocket/wss"
 	"github.com/curltech/go-push-sdk/push"
-	"time"
-	//"github.com/curltech/go-colla-node/transport/websocket/fastwss"
 	"github.com/libp2p/go-libp2p"
-	autonat "github.com/libp2p/go-libp2p-autonat"
-	relay "github.com/libp2p/go-libp2p-circuit"
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
 	libp2pcrypto "github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
@@ -37,12 +33,13 @@ import (
 	mplex "github.com/libp2p/go-libp2p-mplex"
 	noise "github.com/libp2p/go-libp2p-noise"
 	libp2pquic "github.com/libp2p/go-libp2p-quic-transport"
-	secio "github.com/libp2p/go-libp2p-secio"
 	libp2ptls "github.com/libp2p/go-libp2p-tls"
 	"github.com/libp2p/go-libp2p/p2p/protocol/ping"
 	"github.com/libp2p/go-tcp-transport"
 	ws "github.com/libp2p/go-ws-transport"
 	ma "github.com/multiformats/go-multiaddr"
+	"golang.org/x/crypto/acme/autocert"
+	"time"
 )
 
 /**
@@ -106,11 +103,11 @@ func p2pOptions() []libp2p.Option {
 	}
 
 	// support secio connections
-	if config.Libp2pParams.EnableSecio {
-		secioOption := libp2p.Security(secio.ID, secio.New)
-		options = append(options, secioOption)
-		logger.Sugar.Debugf("start secio option")
-	}
+	//if config.Libp2pParams.EnableSecio {
+	//	secioOption := libp2p.Security(secio.ID, secio.New)
+	//	options = append(options, secioOption)
+	//	logger.Sugar.Debugf("start secio option")
+	//}
 
 	// support QUIC - experimental
 	if config.Libp2pParams.EnableQuic {
@@ -121,16 +118,20 @@ func p2pOptions() []libp2p.Option {
 
 	// Let's prevent our peer from having too many
 	// connections by attaching a connection manager.
-	basicConnMgr := connmgr.NewConnManager(
-		config.Libp2pParams.LowWater,                               // Lowwater
-		config.Libp2pParams.HighWater,                              // HighWater,
-		time.Duration(config.Libp2pParams.GracePeriod)*time.Minute, // GracePeriod
+	basicConnMgr, err := connmgr.NewConnManager(
+		config.Libp2pParams.LowWater,  // Lowwater
+		config.Libp2pParams.HighWater, // HighWater,
+		//time.Duration(config.Libp2pParams.GracePeriod)*time.Minute, // GracePeriod
 	)
-	monitorConnMgr := NewConnManager(basicConnMgr)
-	global.Global.ConnectionManager = monitorConnMgr
-	connectionManagerOption := libp2p.ConnectionManager(global.Global.ConnectionManager)
-	options = append(options, connectionManagerOption)
-	logger.Sugar.Debugf("start ConnectionManager option")
+	if err == nil {
+		monitorConnMgr := NewConnManager(basicConnMgr)
+		global.Global.ConnectionManager = monitorConnMgr
+		connectionManagerOption := libp2p.ConnectionManager(global.Global.ConnectionManager)
+		options = append(options, connectionManagerOption)
+		logger.Sugar.Debugf("start ConnectionManager option")
+	} else {
+		logger.Sugar.Errorf(err.Error())
+	}
 
 	//是否用缺省的ping服务
 	defaultPing, _ := config.GetBool("p2p.dht.defaultPing", true)
@@ -191,7 +192,7 @@ func p2pOptions() []libp2p.Option {
 	}
 
 	if config.Libp2pParams.EnableRelay {
-		relay := libp2p.EnableRelay(relay.OptHop)
+		relay := libp2p.EnableRelay()
 		options = append(options, relay)
 		logger.Sugar.Debugf("start EnableRelay option")
 	}
@@ -258,9 +259,28 @@ func p2pOptions() []libp2p.Option {
 		tcpOption := libp2p.Transport(tcp.NewTCPTransport)
 		options = append(options, tcpOption)
 		logger.Sugar.Debugf("start EnableTcp option")
-
-		wssOption := libp2p.Transport(wss.New)
-		//wssOption := libp2p.Transport(fastwss.New)
+		tlsmode := config.TlsParams.Mode
+		var tlsConfig *tls.Config
+		if tlsmode == "auto" {
+			url := config.TlsParams.Url
+			mail := config.TlsParams.Email
+			autoTLSManager := &autocert.Manager{
+				Prompt:     autocert.AcceptTOS,
+				HostPolicy: autocert.HostWhitelist(url),
+				Email:      mail,
+				Cache:      autocert.DirCache("letscache"),
+			}
+			tlsConfig = &tls.Config{GetCertificate: autoTLSManager.GetCertificate}
+		} else if tlsmode == "cert" {
+			certAddr := config.TlsParams.Cert
+			keyAddr := config.TlsParams.Key
+			cert, err := tls.LoadX509KeyPair(certAddr, keyAddr)
+			if err != nil {
+				logger.Sugar.Errorf(err.Error())
+			}
+			tlsConfig = &tls.Config{Certificates: []tls.Certificate{cert}}
+		}
+		wssOption := libp2p.Transport(ws.WithTLSConfig(tlsConfig))
 		options = append(options, wssOption)
 		logger.Sugar.Debugf("start EnableWss option")
 	}
@@ -288,18 +308,29 @@ func p2pOptions() []libp2p.Option {
 	return options
 }
 
-func autoNat() {
-	// If you want to help other peers to figure out if they are behind
-	// NATs, you can launch the server-side of AutoNAT too (AutoRelay
-	// already runs the client)
-	if config.Libp2pParams.EnableAutoNat {
-		//_ = autonat.EnableService(nil)
-		_, err := autonat.New(global.Global.Context, global.Global.Host)
-		if err != nil {
-			panic(err)
-		}
+func generateTLSConfig() *tls.Config {
+	cert, err := tls.LoadX509KeyPair("server.pem", "server.key")
+	if err != nil {
+		logger.Sugar.Errorf(err.Error())
+		return nil
 	}
+	config := &tls.Config{Certificates: []tls.Certificate{cert}}
+
+	return config
 }
+
+//func autoNat() {
+//	// If you want to help other peers to figure out if they are behind
+//	// NATs, you can launch the server-side of AutoNAT too (AutoRelay
+//	// already runs the client)
+//	if config.Libp2pParams.EnableAutoNat {
+//		//_ = autonat.EnableService(nil)
+//		_, err := autonat.New(global.Global.Host)
+//		if err != nil {
+//			panic(err)
+//		}
+//	}
+//}
 
 /**
 获取自己节点的记录，如果没有就创建一个，返回私钥用于启动节点
@@ -314,7 +345,7 @@ func getMyselfPeer() (libp2pcrypto.PrivKey, *entity.MyselfPeer) {
 	found, _ := service.GetMyselfPeerService().Get(&myself, false, "", "")
 	if found {
 		privateKey := std.DecodeBase64(myself.PeerPrivateKey)
-		priv, err := libp2pcrypto.UnmarshalPrivateKey(privateKey)
+		priv, err := libp2pcrypto.UnmarshalEd25519PrivateKey(privateKey)
 		if err != nil {
 			panic(err)
 		}
@@ -354,13 +385,13 @@ func getMyselfPeer() (libp2pcrypto.PrivKey, *entity.MyselfPeer) {
 		priv, _, _ := libp2pcrypto.GenerateKeyPair(libp2pcrypto.Ed25519, 0)
 		global.Global.PeerPrivateKey = priv
 		global.Global.PeerPublicKey = priv.GetPublic()
-		bs, err := priv.Bytes()
+		bs, err := priv.Raw()
 		if err != nil {
 			panic(err)
 		}
 		myself.PeerPrivateKey = std.EncodeBase64(bs)
 		logger.Sugar.Debugf("PeerPrivateKey length: %v", len(myself.PeerPrivateKey))
-		bs, err = priv.GetPublic().Bytes()
+		bs, err = priv.GetPublic().Raw()
 		if err != nil {
 			panic(err)
 		}
@@ -417,12 +448,11 @@ func Start() {
 	//	logger.Sugar.Infof("start EnableWebrtcStar option")
 	//}
 
-	global.Global.Host, err = libp2p.New(global.Global.Context, options...)
+	global.Global.Host, err = libp2p.New(options...)
 	if err != nil {
 		panic(err)
 	}
 	logger.Sugar.Infof("Host created, Addrs: %v", global.Global.Host.Addrs())
-	autoNat()
 	//5.启动成功后更新自己节点的信息到数据库
 	upsertMyselfPeer(priv, myself)
 	//6.自定义数据传输的流协议
@@ -541,7 +571,7 @@ func upsertMyselfPeer(priv libp2pcrypto.PrivKey, myself *entity.MyselfPeer) (nee
 			myself.DiscoveryAddress = discoveryAddress
 			logger.Sugar.Infof("DiscoveryAddress changed")
 		}
-		bs, err := priv.GetPublic().Bytes()
+		bs, err := priv.GetPublic().Raw()
 		if err != nil {
 			panic(err)
 		}

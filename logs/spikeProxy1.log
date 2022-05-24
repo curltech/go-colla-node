@@ -1437,3 +1437,64 @@
 2021-02-07T22:47:19.086+0800	error	/Users/hujingsong/go-workspace/src/go-colla-node/libp2p/dht/handler.go:15	failed to Ping:12D3KooWFi6YXbfWkfHQi3h5J5tYDFiKbdRi1Y2tgQQ8jiMGHzZU:sending request: message sender has been invalidated
 2021-02-07T22:47:19.086+0800	error	/Users/hujingsong/go-workspace/src/go-colla-node/libp2p/dht/handler.go:15	failed to Ping:12D3KooWFi6YXbfWkfHQi3h5J5tYDFiKbdRi1Y2tgQQ8jiMGHzZU:sending request: dial backoff
 2021-02-07T22:47:19.087+0800	error	/Users/hujingsong/go-workspace/src/go-colla-node/libp2p/dht/handler.go:15	failed to Ping:12D3KooWFi6YXbfWkfHQi3h5J5tYDFiKbdRi1Y2tgQQ8jiMGHzZU:sending request: dial backoff
+2021-10-08T23:28:40.426+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:sequence registed
+2021-10-08T23:28:40.447+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:session registed
+2021-10-08T23:28:40.456+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:sessionData registed
+2021-10-08T23:28:40.502+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:chainApp registed
+2021-10-08T23:28:40.573+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerClient registed
+2021-10-08T23:28:40.573+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerClientMobile registed
+2021-10-08T23:28:40.581+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerEndpoint registed
+2021-10-08T23:28:40.581+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/content/default.go:98	content basepath:/home/azureuser/colla/content/peer1
+2021-10-08T23:28:40.592+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:chainMessageLog registed
+2021-10-08T23:28:40.592+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:consensusLog registed
+2021-10-08T23:28:40.605+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:dataBlock registed
+2021-10-08T23:28:40.605+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:dataBlockOwner registed
+2021-10-08T23:28:40.612+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerTransactionSrc registed
+2021-10-08T23:28:40.612+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerTransactionTarget registed
+2021-10-08T23:28:40.612+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerTransactionP2PChat registed
+2021-10-08T23:28:40.612+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerTransactionGroupFile registed
+2021-10-08T23:28:40.612+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerTransactionChannel registed
+2021-10-08T23:28:40.612+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerTransactionChannelArticle registed
+2021-10-08T23:28:40.622+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:transactionKey registed
+2021-10-08T23:28:42.907+0800	error	C:/go-workspace/go-colla-node/turn/server/server.go:72	Failed to create TURN server listener: listen udp4: lookup hostname: no such host
+2021-10-08T23:28:42.964+0800	info	C:/go-workspace/go-colla-node/libp2p/default.go:422	Host created, Addrs: [/ip4/192.168.42.10/tcp/4720/ws /ip4/127.0.0.1/tcp/4720/ws /ip4/192.168.42.10/tcp/3720 /ip4/127.0.0.1/tcp/3720 /dns4/peer1.domain/tcp/3720 /dns4/peer1.domain/tcp/4720/ws]
+2021-10-08T23:28:43.058+0800	info	C:/go-workspace/go-colla-node/libp2p/bootstrap.go:29	config bootstraps:[]
+2021-10-08T23:28:43.059+0800	info	C:/go-workspace/go-colla-node/libp2p/bootstrap.go:29	config bootstraps:[]
+2021-10-08T23:28:43.061+0800	info	C:/go-workspace/go-colla-node/libp2p/bootstrap.go:113	Bootstrapping the DHT
+2021-10-08T23:28:43.066+0800	info	C:/go-workspace/go-colla-node/libp2p/dht/default.go:129	PutValue time:/peerEndpoint/12D3KooWCQDC5QQpHp9hatRTyHMUX3dynVJvbx8KWjAkWuAwD4nW, 4.218ms
+2021-10-08T23:28:43.066+0800	info	C:/go-workspace/go-colla-node/libp2p/global/global.go:57	p2p local peer address:[/ip4/192.168.42.10/tcp/3720 /ip4/127.0.0.1/tcp/3720 /ip4/192.168.42.10/tcp/4720/ws /ip4/127.0.0.1/tcp/4720/ws /dns4/peer1.domain/tcp/3720 /dns4/peer1.domain/tcp/4720/ws]
+2021-10-08T23:28:43.067+0800	info	C:/go-workspace/go-colla-node/libp2p/global/global.go:58	p2p local peer peerId:12D3KooWCQDC5QQpHp9hatRTyHMUX3dynVJvbx8KWjAkWuAwD4nW
+2021-10-08T23:28:43.067+0800	info	C:/go-workspace/go-colla-node/libp2p/global/global.go:59	p2p local peer rendezvous:
+2021-10-08T23:28:43.067+0800	info	C:/go-workspace/go-colla-node/libp2p/global/global.go:60	protocolID are:/chain/1.0.0
+2021-10-08T23:28:43.067+0800	info	C:/go-workspace/go-colla-node/libp2p/global/global.go:61	successfully start p2p server, enjoy it!
+2021-10-08T23:35:09.767+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:sequence registed
+2021-10-08T23:35:09.798+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:session registed
+2021-10-08T23:35:09.859+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:sessionData registed
+2021-10-08T23:35:09.918+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:chainApp registed
+2021-10-08T23:35:09.942+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerClient registed
+2021-10-08T23:35:09.942+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerClientMobile registed
+2021-10-08T23:35:09.952+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerEndpoint registed
+2021-10-08T23:35:09.952+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/content/default.go:98	content basepath:/home/azureuser/colla/content/peer1
+2021-10-08T23:35:09.965+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:chainMessageLog registed
+2021-10-08T23:35:09.973+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:consensusLog registed
+2021-10-08T23:35:09.998+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:dataBlock registed
+2021-10-08T23:35:09.998+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:dataBlockOwner registed
+2021-10-08T23:35:10.015+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerTransactionSrc registed
+2021-10-08T23:35:10.015+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerTransactionTarget registed
+2021-10-08T23:35:10.015+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerTransactionP2PChat registed
+2021-10-08T23:35:10.015+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerTransactionGroupFile registed
+2021-10-08T23:35:10.015+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerTransactionChannel registed
+2021-10-08T23:35:10.015+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:peerTransactionChannelArticle registed
+2021-10-08T23:35:10.024+0800	info	C:/Users/huawei/go/pkg/mod/github.com/curltech/go-colla-core@v0.1.14/container/default.go:26	service bean:transactionKey registed
+2021-10-08T23:35:12.311+0800	error	C:/go-workspace/go-colla-node/turn/server/server.go:72	Failed to create TURN server listener: listen udp4: lookup hostname: no such host
+2021-10-08T23:35:12.355+0800	info	C:/go-workspace/go-colla-node/libp2p/default.go:422	Host created, Addrs: [/ip4/192.168.42.10/tcp/3720 /ip4/127.0.0.1/tcp/3720 /ip4/192.168.42.10/tcp/4720/ws /ip4/127.0.0.1/tcp/4720/ws /dns4/peer1.domain/tcp/3720 /dns4/peer1.domain/tcp/4720/ws]
+2021-10-08T23:35:12.365+0800	info	C:/go-workspace/go-colla-node/libp2p/bootstrap.go:29	config bootstraps:[]
+2021-10-08T23:35:12.365+0800	info	C:/go-workspace/go-colla-node/libp2p/bootstrap.go:29	config bootstraps:[]
+2021-10-08T23:35:12.370+0800	info	C:/go-workspace/go-colla-node/libp2p/bootstrap.go:54	store bootstraps:[{12D3KooWCQDC5QQpHp9hatRTyHMUX3dynVJvbx8KWjAkWuAwD4nW: [/ip4/192.168.42.10/tcp/3720]} {12D3KooWCQDC5QQpHp9hatRTyHMUX3dynVJvbx8KWjAkWuAwD4nW: [/ip4/127.0.0.1/tcp/3720]} {12D3KooWCQDC5QQpHp9hatRTyHMUX3dynVJvbx8KWjAkWuAwD4nW: [/ip4/192.168.42.10/tcp/4720/ws]} {12D3KooWCQDC5QQpHp9hatRTyHMUX3dynVJvbx8KWjAkWuAwD4nW: [/ip4/127.0.0.1/tcp/4720/ws]} {12D3KooWCQDC5QQpHp9hatRTyHMUX3dynVJvbx8KWjAkWuAwD4nW: [/dns4/peer1.domain/tcp/3720]} {12D3KooWCQDC5QQpHp9hatRTyHMUX3dynVJvbx8KWjAkWuAwD4nW: [/dns4/peer1.domain/tcp/4720/ws]}]
+2021-10-08T23:35:12.370+0800	info	C:/go-workspace/go-colla-node/libp2p/bootstrap.go:113	Bootstrapping the DHT
+2021-10-08T23:35:12.376+0800	info	C:/go-workspace/go-colla-node/libp2p/dht/default.go:129	PutValue time:/peerEndpoint/12D3KooWCQDC5QQpHp9hatRTyHMUX3dynVJvbx8KWjAkWuAwD4nW, 5.3552ms
+2021-10-08T23:35:12.376+0800	info	C:/go-workspace/go-colla-node/libp2p/global/global.go:57	p2p local peer address:[/ip4/192.168.42.10/tcp/3720 /ip4/127.0.0.1/tcp/3720 /ip4/192.168.42.10/tcp/4720/ws /ip4/127.0.0.1/tcp/4720/ws /dns4/peer1.domain/tcp/3720 /dns4/peer1.domain/tcp/4720/ws]
+2021-10-08T23:35:12.376+0800	info	C:/go-workspace/go-colla-node/libp2p/global/global.go:58	p2p local peer peerId:12D3KooWCQDC5QQpHp9hatRTyHMUX3dynVJvbx8KWjAkWuAwD4nW
+2021-10-08T23:35:12.376+0800	info	C:/go-workspace/go-colla-node/libp2p/global/global.go:59	p2p local peer rendezvous:
+2021-10-08T23:35:12.376+0800	info	C:/go-workspace/go-colla-node/libp2p/global/global.go:60	protocolID are:/chain/1.0.0
+2021-10-08T23:35:12.376+0800	info	C:/go-workspace/go-colla-node/libp2p/global/global.go:61	successfully start p2p server, enjoy it!

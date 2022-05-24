@@ -104,14 +104,14 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			keyKind = ns.PeerTransaction_ChannelArticle_KeyKind
 		}
 		if config.Libp2pParams.FaultTolerantLevel == 0 {
-			recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)
+			recvdVals, err := dht.PeerEndpointDHT.GetValues(key)
 			if err != nil {
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
 			}
 			for _, recvdVal := range recvdVals {
 				pts := make([]*entity2.PeerTransaction, 0)
-				err = message.TextUnmarshal(string(recvdVal.Val), &pts)
+				err = message.TextUnmarshal(string(recvdVal), &pts)
 				if err != nil {
 					response = handler.Error(chainMessage.MessageType, err)
 					return response, nil
@@ -140,7 +140,7 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 				service1.GetPeerTransactionService().Delete(locals, "")
 			}
 			// 查询non-local记录
-			recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)
+			recvdVals, err := dht.PeerEndpointDHT.GetValues(key)
 			if err != nil {
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
@@ -154,7 +154,7 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			// 整合记录
 			for _, recvdVal := range recvdVals {
 				pts := make([]*entity2.PeerTransaction, 0)
-				err = message.TextUnmarshal(string(recvdVal.Val), &pts)
+				err = message.TextUnmarshal(string(recvdVal), &pts)
 				if err != nil {
 					response = handler.Error(chainMessage.MessageType, err)
 					return response, nil
@@ -211,14 +211,14 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 		//service1.GetDataBlockService().QueryValue(&dataBlocks, blockId, sliceNumber)
 		key := ns.GetDataBlockKey(blockId)
 		if config.Libp2pParams.FaultTolerantLevel == 0 {
-			recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)
+			recvdVals, err := dht.PeerEndpointDHT.GetValues(key)
 			if err != nil {
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
 			}
 			for _, recvdVal := range recvdVals {
 				dbs := make([]*entity2.DataBlock, 0)
-				err = message.TextUnmarshal(string(recvdVal.Val), &dbs)
+				err = message.TextUnmarshal(string(recvdVal), &dbs)
 				if err != nil {
 					response = handler.Error(chainMessage.MessageType, err)
 					return response, nil
@@ -257,7 +257,7 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 				service1.GetDataBlockService().Delete(locals, "")
 			}
 			// 查询non-local记录
-			recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)
+			recvdVals, err := dht.PeerEndpointDHT.GetValues(key)
 			if err != nil {
 				response = handler.Error(chainMessage.MessageType, err)
 				return response, nil
@@ -271,7 +271,7 @@ func (this *queryValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.Chai
 			// 更新local记录
 			for _, recvdVal := range recvdVals {
 				dbs := make([]*entity2.DataBlock, 0)
-				err = message.TextUnmarshal(string(recvdVal.Val), &dbs)
+				err = message.TextUnmarshal(string(recvdVal), &dbs)
 				if err != nil {
 					response = handler.Error(chainMessage.MessageType, err)
 					return response, nil

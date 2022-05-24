@@ -1,6 +1,7 @@
 package xorm
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/curltech/go-colla-core/content"
@@ -41,7 +42,7 @@ func NewXormDatastore() (this *XormDatastore) {
 }
 
 // Put implements Datastore.Put
-func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
+func (this *XormDatastore) Put(ctx context.Context, key datastore.Key, value []byte) (err error) {
 	req, err := handler.NewKeyRequest(key)
 	if err != nil {
 		return err
@@ -405,7 +406,7 @@ func (this *XormDatastore) Put(key datastore.Key, value []byte) (err error) {
 }
 
 // Sync implements Datastore.Sync
-func (this *XormDatastore) Sync(prefix datastore.Key) error {
+func (this *XormDatastore) Sync(ctx context.Context, prefix datastore.Key) error {
 	return nil
 }
 
@@ -414,7 +415,7 @@ GetValue其实可以支持返回多条记录和全文检索结果
 一般Key的格式是/peerEndpoint/12D3KooWG59NPEuY1dseFzXMSyYbHQb1pfpPiMq5fk7c48exxNJp
 如果需要支持条件查询，第二个/后的格式就不是这样的，可以用=表示条件，类似url，甚至类似elastic的查询条件
 */
-func (this *XormDatastore) Get(key datastore.Key) (value []byte, err error) {
+func (this *XormDatastore) Get(ctx context.Context, key datastore.Key) (value []byte, err error) {
 	req, err := handler.NewKeyRequest(key)
 	if err != nil {
 		return nil, err
@@ -535,7 +536,7 @@ func (this *XormDatastore) get(req *handler.DispatchRequest) interface{} {
 }
 
 // Has implements Datastore.Has
-func (this *XormDatastore) Has(key datastore.Key) (exists bool, err error) {
+func (this *XormDatastore) Has(ctx context.Context, key datastore.Key) (exists bool, err error) {
 	req, err := handler.NewKeyRequest(key)
 	if err != nil {
 		return false, err
@@ -552,7 +553,7 @@ func (this *XormDatastore) Has(key datastore.Key) (exists bool, err error) {
 }
 
 // GetSize implements Datastore.GetSize
-func (this *XormDatastore) GetSize(key datastore.Key) (size int, err error) {
+func (this *XormDatastore) GetSize(ctx context.Context, key datastore.Key) (size int, err error) {
 	req, err := handler.NewKeyRequest(key)
 	if err != nil {
 		return 0, err
@@ -570,7 +571,7 @@ func (this *XormDatastore) GetSize(key datastore.Key) (size int, err error) {
 }
 
 // Delete implements Datastore.Delete
-func (this *XormDatastore) Delete(key datastore.Key) (err error) {
+func (this *XormDatastore) Delete(ctx context.Context, key datastore.Key) (err error) {
 	req, err := handler.NewKeyRequest(key)
 	if err != nil {
 		return err
@@ -596,12 +597,12 @@ func (this *XormDatastore) Delete(key datastore.Key) (err error) {
 }
 
 // Query implements Datastore.Query
-func (this *XormDatastore) Query(q dsq.Query) (dsq.Results, error) {
+func (this *XormDatastore) Query(ctx context.Context, q dsq.Query) (dsq.Results, error) {
 	logger.Sugar.Warnf("query trigger:%v:%v", q.Prefix, q.String())
 	return nil, nil
 }
 
-func (this *XormDatastore) Batch() (datastore.Batch, error) {
+func (this *XormDatastore) Batch(ctx context.Context) (datastore.Batch, error) {
 	return datastore.NewBasicBatch(this), nil
 }
 

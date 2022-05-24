@@ -34,11 +34,11 @@ turn验证
 func authHandler(username string, realm string, srcAddr net.Addr) ([]byte, bool) {
 	key := ns.GetPeerClientKey(username)
 	if dht.PeerEndpointDHT.DHT != nil {
-		recvdVals, err := dht.PeerEndpointDHT.GetValues(key, config.Libp2pParams.Nvals)
+		recvdVals, err := dht.PeerEndpointDHT.GetValues(key)
 		if err == nil {
 			for _, recvdVal := range recvdVals {
 				pcs := make([]*entity.PeerClient, 0)
-				err = message.TextUnmarshal(string(recvdVal.Val), &pcs)
+				err = message.TextUnmarshal(string(recvdVal), &pcs)
 				if err == nil {
 					for _, pc := range pcs {
 						credential := turn.GenerateAuthKey(pc.PeerId, realm, pc.PeerPublicKey)

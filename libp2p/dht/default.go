@@ -68,7 +68,7 @@ func (this *PeerEntityDHT) GetPublicKey(p peer.ID) (crypto.PubKey, error) {
 }
 
 func (this *PeerEntityDHT) GetClosestPeers(key string) ([]peer.ID, error) {
-	ctx, cancel := context.WithTimeout(global.Global.Context, time.Duration(time.Second * 1))
+	ctx, cancel := context.WithTimeout(global.Global.Context, time.Duration(time.Second*1))
 	start := time.Now()
 	pArray, err := this.DHT.GetClosestPeers(ctx, key)
 	end := time.Now()
@@ -119,7 +119,7 @@ func (this *PeerEntityDHT) PutLocal(key string, value []byte, opts ...routing.Op
 
 	//return dht.datastore.Put(mkDsKey(key), data)
 	dsKey := ds.NewKey(base32.RawStdEncoding.EncodeToString([]byte(key)))
-	return handler.NewDispatchDatastore().Put(dsKey, data)
+	return handler.NewDispatchDatastore().Put(global.Global.Context, dsKey, data)
 }
 
 func (this *PeerEntityDHT) PutValue(key string, value []byte, opts ...routing.Option) (err error) {
@@ -150,7 +150,7 @@ func (this *PeerEntityDHT) GetLocal(key string) (*recpb.Record, error) {
 
 	dsKey := ds.NewKey(base32.RawStdEncoding.EncodeToString([]byte(key)))
 	//buf, err := dht.datastore.Get(dskey)
-	buf, err := handler.NewDispatchDatastore().Get(dsKey)
+	buf, err := handler.NewDispatchDatastore().Get(global.Global.Context, dsKey)
 	if err == ds.ErrNotFound {
 		return nil, nil
 	}
@@ -219,9 +219,9 @@ func (this *PeerEntityDHT) SearchValue(key string, opts ...routing.Option) (<-ch
 	}
 }
 
-func (this *PeerEntityDHT) GetValues(key string, nvals int) (_ []dht.RecvdVal, err error) {
+func (this *PeerEntityDHT) GetValues(key string, opts ...routing.Option) ([]byte, error) {
 	start := time.Now()
-	recvdVals, error := this.DHT.GetValues(global.Global.Context, key, nvals)
+	recvdVals, error := this.DHT.GetValue(global.Global.Context, key, opts...)
 	end := time.Now()
 	logger.Sugar.Infof("GetValues time:%v, %v", key, end.Sub(start))
 	if (strings.HasPrefix(key, "/"+ns.PeerClient_Prefix) == true ||

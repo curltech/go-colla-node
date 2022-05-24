@@ -5,8 +5,7 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
-	discovery2 "github.com/libp2p/go-libp2p/p2p/discovery"
-	"time"
+	"github.com/libp2p/go-libp2p/p2p/discovery/mdns"
 )
 
 type discoveryNotifee struct {
@@ -30,19 +29,15 @@ peerChan := mdns(ctx, host, group)
 peer := <-peerChan // will block untill we discover a peer
 fmt.Println("Found peer:", peer, ", connecting")
 */
-func mdns() chan peer.AddrInfo {
-	// An hour might be a long long period in practical applications. But this is fine for us
-	ser, err := discovery2.NewMdnsService(global.Global.Context, global.Global.Host, time.Hour, global.Global.Rendezvous)
-	if err != nil {
-		logger.Sugar.Errorf("%v", err)
-	}
-
+func initMdns() chan peer.AddrInfo {
 	//register with service so that we get notified about peer discovery
 	n := &discoveryNotifee{}
 	n.PeerChan = make(chan peer.AddrInfo)
-
-	ser.RegisterNotifee(n)
-
+	// An hour might be a long long period in practical applications. But this is fine for us
+	ser := mdns.NewMdnsService(global.Global.Host, global.Global.Rendezvous, n)
+	if err := ser.Start(); err != nil {
+		panic(err)
+	}
 	return n.PeerChan
 }
 

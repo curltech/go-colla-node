@@ -10,11 +10,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	badger "github.com/ipfs/go-ds-badger2"
-	"github.com/ipfs/go-ds-flatfs"
 	"github.com/ipfs/go-ds-leveldb"
-	"github.com/ipfs/go-ds-redis"
-	sqlds "github.com/ipfs/go-ds-sql"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
@@ -61,29 +57,29 @@ func dhtOptions() []kaddht.Option {
 		datastore := kaddht.Datastore(xorm.NewXormDatastore())
 		options = append(options, datastore)
 	case "redis":
-		ds, _ := redis.NewDatastore(nil)
-		datastore := kaddht.Datastore(ds)
-		options = append(options, datastore)
+		//ds, _ := redis.NewDatastore(nil)
+		//datastore := kaddht.Datastore(ds)
+		//options = append(options, datastore)
 	//case "bolt":
 	//	ds, _ := bolt.NewDatastore("", "", true)
 	//	datastore := kaddht.Datastore(ds)
 	//	options = append(options, datastore)
 	case "file":
-		ds, _ := flatfs.CreateOrOpen("", nil, true)
-		datastore := kaddht.Datastore(ds)
-		options = append(options, datastore)
+		//ds, _ := flatfs.CreateOrOpen("", nil, true)
+		//datastore := kaddht.Datastore(ds)
+		//options = append(options, datastore)
 	case "leveldb":
 		ds, _ := leveldb.NewDatastore("", nil)
 		datastore := kaddht.Datastore(ds)
 		options = append(options, datastore)
 	case "badger":
-		ds, _ := badger.NewDatastore("", nil)
-		datastore := kaddht.Datastore(ds)
-		options = append(options, datastore)
+		//ds, _ := badger.NewDatastore("", nil)
+		//datastore := kaddht.Datastore(ds)
+		//options = append(options, datastore)
 	case "sqlds":
-		ds := sqlds.NewDatastore(nil, nil)
-		datastore := kaddht.Datastore(ds)
-		options = append(options, datastore)
+		//ds := sqlds.NewDatastore(nil, nil)
+		//datastore := kaddht.Datastore(ds)
+		//options = append(options, datastore)
 	}
 	//else if dsname == "crdt" {
 	//	ds,_:=crdt.New(nil)

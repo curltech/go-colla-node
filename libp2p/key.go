@@ -22,7 +22,7 @@ func (this *OpenPGPPrivateKey) Bytes() ([]byte, error) {
 // Equals checks whether two PubKeys are the same
 func (this *OpenPGPPrivateKey) Equals(key crypto.Key) bool {
 	bs1, _ := this.Bytes()
-	bs2, err := key.Bytes()
+	bs2, err := key.Raw()
 	if err != nil {
 		panic(err)
 	}
@@ -71,7 +71,7 @@ func (this *OpenPGPPublicKey) Bytes() ([]byte, error) {
 // Equals checks whether two PubKeys are the same
 func (this *OpenPGPPublicKey) Equals(key crypto.Key) bool {
 	bs1, _ := this.Bytes()
-	bs2, _ := key.Bytes()
+	bs2, _ := key.Raw()
 
 	return bytes.Equal(bs1, bs2)
 }

@@ -20,7 +20,7 @@ type PeerLocation struct {
 	/**
 	openpgp的公私钥
 	*/
-	PublicKey      string     `xorm:"varchar(512)" json:"publicKey,omitempty"`
+	PublicKey      string     `xorm:"varchar(1024)" json:"publicKey,omitempty"`
 	Address        string     `xorm:"varchar(255) notnull" json:"address,omitempty"`
 	LastUpdateTime *time.Time `json:"lastUpdateTime,omitempty"`
 }
