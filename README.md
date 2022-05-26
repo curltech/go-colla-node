@@ -20,10 +20,10 @@ Learn more at https://curltech.io/#/collachat/.
 It's recommended to optimize following settings before building your own executable file:
 No  | Package | File | Default Setting | Recommended Setting
  ---- | ----- | ------ | ----- | ------  
- 1  | go-mplex@v0.3.0 | multiplex.go | var MaxMessageSize = 1 << 20 | var MaxMessageSize = 1 << 30
- 2  | go-libp2p-kad-dht@v0.12.2 | internal\net\massage_manager.go | var dhtReadMessageTimeout = 10 * time.Second | var dhtReadMessageTimeout = 300 * time.Second
- 3  | go-libp2p-core@v0.8.5 | network\network.go | const MessageSizeMax = 1 << 22 | const MessageSizeMax = 1 << 30
- 4  | go-msgio@v0.0.6 | msgio.go | defaultMaxSize = 8 * 1024 * 1024 | defaultMaxSize = 1024 * 1024 * 1024
+ 1  | go-mplex@v0.7.0 | multiplex.go | var MaxMessageSize = 1 << 20 | var MaxMessageSize = 1 << 30
+ 2  | go-libp2p-kad-dht@v0.15.0 | internal\net\massage_manager.go | var dhtReadMessageTimeout = 10 * time.Second | var dhtReadMessageTimeout = 300 * time.Second
+ 3  | go-libp2p-core@v0.15.1 | network\network.go | const MessageSizeMax = 1 << 22 | const MessageSizeMax = 1 << 30
+ 4  | go-msgio@v0.2.0 | msgio.go | defaultMaxSize = 8 * 1024 * 1024 | defaultMaxSize = 1024 * 1024 * 1024
 
 # Installation
 Get ready your server, domain and certificate first. You may rent a cloud server from CSP (or try on from a free instance), buy a domain or get a free one, use [ACME](https://github.com/acmesh-official/acme.sh) to automatically issue & renew the free certificates from Let's Encrypt.
