@@ -280,7 +280,7 @@ func p2pOptions() []libp2p.Option {
 			}
 			tlsConfig = &tls.Config{Certificates: []tls.Certificate{cert}}
 		}
-		wssOption := libp2p.Transport(ws.WithTLSConfig(tlsConfig))
+		wssOption := libp2p.Transport(ws.New, ws.WithTLSConfig(tlsConfig))
 		options = append(options, wssOption)
 		logger.Sugar.Debugf("start EnableWss option")
 	}
@@ -346,6 +346,9 @@ func getMyselfPeer() (libp2pcrypto.PrivKey, *entity.MyselfPeer) {
 	if found {
 		privateKey := std.DecodeBase64(myself.PeerPrivateKey)
 		priv, err := libp2pcrypto.UnmarshalEd25519PrivateKey(privateKey)
+		if err != nil { // to keep compatibility with existing old key
+			priv, err = libp2pcrypto.UnmarshalPrivateKey(privateKey)
+		}
 		if err != nil {
 			panic(err)
 		}

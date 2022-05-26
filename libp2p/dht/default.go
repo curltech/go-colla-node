@@ -219,9 +219,17 @@ func (this *PeerEntityDHT) SearchValue(key string, opts ...routing.Option) (<-ch
 	}
 }
 
-func (this *PeerEntityDHT) GetValues(key string, opts ...routing.Option) ([]byte, error) {
+func (this *PeerEntityDHT) GetValues(key string, opts ...routing.Option) ([][]byte, error) {
 	start := time.Now()
-	recvdVals, error := this.DHT.GetValue(global.Global.Context, key, opts...)
+	//recvdVals, error := this.DHT.GetValues(global.Global.Context, key, opts...)
+	valChs, error := this.DHT.SearchValue(global.Global.Context, key, opts...)
+	if error != nil {
+		return nil, error
+	}
+	var recvdVals [][]byte
+	for r := range valChs {
+		recvdVals = append(recvdVals, r)
+	}
 	end := time.Now()
 	logger.Sugar.Infof("GetValues time:%v, %v", key, end.Sub(start))
 	if (strings.HasPrefix(key, "/"+ns.PeerClient_Prefix) == true ||
