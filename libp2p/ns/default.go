@@ -157,8 +157,13 @@ func (v PeerEndpointValidator) Select(key string, vals [][]byte) (int, error) {
 	currentEntity := entity.PeerEndpoint{}
 	err := message.Unmarshal(currentVal, &currentEntity)
 	if err != nil {
-		logger.Sugar.Errorf("failed to unmarshal current record from value", "key", key, "error", err)
-		return 1, err
+		currentEntities := make([]*entity.PeerEndpoint, 0)
+		err := message.Unmarshal(currentVal, &currentEntities)
+		if err != nil {
+			logger.Sugar.Errorf("failed to unmarshal current record from value", "key", key, "error", err)
+			return 1, err
+		}
+		currentEntity = *currentEntities[0]
 	}
 	existingEntities := make([]*entity.PeerEndpoint, 0)
 	err = message.Unmarshal(existingVal, &existingEntities)

@@ -223,9 +223,6 @@ func (this *PeerEntityDHT) GetValues(key string, opts ...routing.Option) ([][]by
 	start := time.Now()
 	//recvdVals, error := this.DHT.GetValues(global.Global.Context, key, opts...)
 	valChs, error := this.DHT.SearchValue(global.Global.Context, key, opts...)
-	if error != nil {
-		return nil, error
-	}
 	var recvdVals [][]byte
 	for r := range valChs {
 		recvdVals = append(recvdVals, r)
