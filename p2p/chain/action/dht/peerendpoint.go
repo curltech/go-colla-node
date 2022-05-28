@@ -1,7 +1,6 @@
 package dht
 
 import (
-	"errors"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/dht"
@@ -32,12 +31,11 @@ func (this *peerEndPointAction) PeerEndPoint(targetPeerId string) (interface{}, 
 	if err != nil {
 		return nil, err
 	}
-
-	if response.Payload == msgtype.OK {
+	if response != nil {
 		return response.Payload, nil
-	} else {
-		return response.Payload, errors.New(response.Tip)
 	}
+
+	return nil, nil
 }
 
 func (this *peerEndPointAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {

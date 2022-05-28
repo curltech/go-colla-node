@@ -9,7 +9,6 @@ import (
 	"github.com/curltech/go-colla-node/p2p/chain/action/dht"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
-	"github.com/curltech/go-colla-node/p2p/msgtype"
 	"github.com/ipfs/go-ds-leveldb"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -298,10 +297,8 @@ func PeerAdded(id peer.ID) {
 	peerId := id.Pretty()
 	logger.Sugar.Debugf("PeerEndpointDHT.RoutingTable add peer: %v", peerId)
 	// PeerEndPointAction
-	response, err := dht.PeerEndPointAction.PeerEndPoint(peerId)
-	if response == msgtype.OK {
-		logger.Sugar.Infof("successfully PeerEndPoint: %v", peerId)
-	} else {
+	_, err := dht.PeerEndPointAction.PeerEndPoint(peerId)
+	if err != nil {
 		logger.Sugar.Errorf("failed to PeerEndPoint: %v, err: %v", peerId, err)
 	}
 	// 更改状态
