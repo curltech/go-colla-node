@@ -20,7 +20,7 @@ Learn more at https://curltech.io/#/collachat/.
 It's recommended to optimize following settings before building your own executable file:
 No  | Package | File | Default Setting | Recommended Setting
  ---- | ----- | ------ | ----- | ------  
- 1  | go-mplex@v0.7.0 | multiplex.go | MaxMessageSize = 1 << 20 | MaxMessageSize = 1 << 30
+ 1  | go-mplex@v0.7.0 | multiplex.go | MaxMessageSize = 1 << 20, BufferSize     = 4096 | MaxMessageSize = 1 << 30, BufferSize     = 1 << 20
  2  | go-libp2p-kad-dht@v0.15.0 | internal\net\massage_manager.go | var dhtReadMessageTimeout = 10 * time.Second | var dhtReadMessageTimeout = 300 * time.Second
  3  | go-libp2p-core@v0.15.1 | network\network.go | const MessageSizeMax = 1 << 22 | const MessageSizeMax = 1 << 30
  4  | go-msgio@v0.2.0 | msgio.go | defaultMaxSize = 8 * 1024 * 1024 | defaultMaxSize = 1024 * 1024 * 1024
