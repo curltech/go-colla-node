@@ -47,22 +47,53 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 		return response, nil
 	}
 	peerClient.ConnectSessionId = chainMessage.ConnectSessionId
+	currentTime := time.Now()
+	peerClient.LastAccessTime = &currentTime
+	peerClient.ActiveStatus = entity.ActiveStatus_Up
+	peerClient.Mobile = std.EncodeBase64(std.Hash(peerClient.Mobile, "sha3_256"))
+	err = service.GetPeerClientService().PutValues(peerClient)
+	if err != nil {
+		response = handler.Error(chainMessage.MessageType, err)
+		return response, nil
+	}
+	//go service.GetPeerClientService().PutValues(peerClient)
+	go this.returnPeers(chainMessage, peerClient, currentTime)
 
+	response = handler.Ok(chainMessage.MessageType)
+	end := time.Now()
+	logger.Sugar.Infof("==============================connect time: %v", end.Sub(start))
+	return response, nil
+}
+
+func (this *connectAction) returnPeers(chainMessage *msg.ChainMessage, peerClient *entity.PeerClient, currentTime time.Time) {
+	response, err := this.getPeers(chainMessage, peerClient, currentTime)
+	if err == nil {
+		response.TargetPeerId = peerClient.PeerId
+		response.ConnectPeerId = peerClient.PeerId
+		response.MessageDirect = msgtype.MsgDirect_Request
+		response.NeedCompress = true
+		this.Send(response)
+	}
+}
+
+func (this *connectAction) getPeers(chainMessage *msg.ChainMessage, peerClient *entity.PeerClient, currentTime time.Time) (*msg.ChainMessage, error) {
+	var response *msg.ChainMessage = nil
 	peerId := peerClient.PeerId
 	clientId := peerClient.ClientId
 	//clientDevice := peerClient.ClientDevice
-	connectAddress := peerClient.ConnectAddress
+	/*connectAddress := peerClient.ConnectAddress
 	connectPeerId := peerClient.ConnectPeerId
 	connectPublicKey := peerClient.ConnectPublicKey
 	connectSessionId := peerClient.ConnectSessionId
 	previousPublicKeySignature := peerClient.PreviousPublicKeySignature
 	signature := peerClient.Signature
 	signatureData := peerClient.SignatureData
-	expireDate := peerClient.ExpireDate
+	expireDate := peerClient.ExpireDate*/
 
 	// 返回peerClient信息
 	key := ns.GetPeerClientKey(peerId)
 	var pcs []*entity.PeerClient
+	start1 := time.Now()
 	if config.Libp2pParams.FaultTolerantLevel == 0 {
 		pcs = make([]*entity.PeerClient, 0)
 		recvdVals, err := dht.PeerEndpointDHT.GetValues(key)
@@ -129,8 +160,10 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 			return response, nil
 		}
 	}
+	end1 := time.Now()
+	logger.Sugar.Infof("==============================Get time: %v", end1.Sub(start1))
 
-	currentTime := time.Now()
+	/*currentTime := time.Now()
 	var isNew bool = true
 	if len(pcs) > 0 {
 		for _, pc := range pcs {
@@ -152,11 +185,11 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 				pc.LastUpdateTime = peerClient.LastUpdateTime
 				pc.DeviceToken = peerClient.DeviceToken
 				pc.Language = peerClient.Language
-				/*err := service.GetPeerClientService().PutValues(pc)
-				if err != nil {
-					response = handler.Error(chainMessage.MessageType, err)
-					return response, nil
-				}*/
+				//err := service.GetPeerClientService().PutValues(pc)
+				//if err != nil {
+				//	response = handler.Error(chainMessage.MessageType, err)
+				//	return response, nil
+				//}
 				go service.GetPeerClientService().PutValues(pc)
 				break
 			}
@@ -167,17 +200,17 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 		peerClient.LastAccessTime = &currentTime
 		peerClient.ActiveStatus = entity.ActiveStatus_Up
 		peerClient.Mobile = std.EncodeBase64(std.Hash(peerClient.Mobile, "sha3_256"))
-		/*err := service.GetPeerClientService().PutValues(peerClient)
-		if err != nil {
-			response = handler.Error(chainMessage.MessageType, err)
-			return response, nil
-		}*/
+		//err := service.GetPeerClientService().PutValues(peerClient)
+		//if err != nil {
+		//	response = handler.Error(chainMessage.MessageType, err)
+		//	return response, nil
+		//}
 		go service.GetPeerClientService().PutValues(peerClient)
 		if pcs == nil {
 			pcs = make([]*entity.PeerClient, 0)
 		}
 		pcs = append(pcs, peerClient)
-	}
+	}*/
 	if len(pcs) > 1 {
 		for _, pc := range pcs {
 			// 同种设备实例踢下线
@@ -259,8 +292,6 @@ func (this *connectAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMe
 	}
 
 	response = handler.Response(chainMessage.MessageType, []interface{}{peers, pcs})
-	end := time.Now()
-	logger.Sugar.Infof("==============================connect time: %v", end.Sub(start))
 	return response, nil
 }
 
