@@ -5,9 +5,9 @@ import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/libp2p/go-libp2p-core/host"
-	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	gostream "github.com/libp2p/go-libp2p-gostream"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"io"
 	"net"
 	nethttp "net/http"
@@ -91,7 +91,7 @@ func (rt *RoundTripper) RoundTrip(r *nethttp.Request) (*nethttp.Response, error)
 		addr = r.URL.Host
 	}
 
-	pid, err := peer.IDB58Decode(addr)
+	pid, err := peer.Decode(addr)
 	if err != nil {
 		return nil, err
 	}
