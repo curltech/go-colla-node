@@ -24,8 +24,8 @@ func Connect() {
 }
 
 // DefaultP2PProtocol is used to tag and identify streams
-// handled by go-libp2p-http
-var DefaultP2PProtocol protocol.ID = "/libp2p-http"
+// handled by go-libp2p-stdhttp
+var DefaultP2PProtocol protocol.ID = "/libp2p-stdhttp"
 
 // options holds configuration options for the transport.
 type options struct {
@@ -42,21 +42,21 @@ func ProtocolOption(p protocol.ID) Option {
 	}
 }
 
-// RoundTripper implemenets http.RoundTrip and can be used as
-// custom transport with Go http.Client.
+// RoundTripper implemenets stdhttp.RoundTrip and can be used as
+// custom transport with Go stdhttp.Client.
 type RoundTripper struct {
 	h    host.Host
 	opts options
 }
 
 // NewTransport returns a new RoundTripper which uses the provided
-// libP2P host to perform an http request and obtain the response.
+// libP2P host to perform an stdhttp request and obtain the response.
 //
 // The typical use case for NewTransport is to register the "libp2p"
 // protocol with a Transport, as in:
-//     t := &http.Transport{}
+//     t := &stdhttp.Transport{}
 //     t.RegisterProtocol("libp2p", p2phttp.NewTransport(host, ProtocolOption(DefaultP2PProtocol)))
-//     c := &http.Client{Transport: t}
+//     c := &stdhttp.Client{Transport: t}
 //     res, err := c.Get("libp2p://Qmaoi4isbcTbFfohQyn28EiYM5CDWQx9QRCjDh3CTeiY7P/index.html")
 //     ...
 func NewTransport(h host.Host, opts ...Option) *RoundTripper {

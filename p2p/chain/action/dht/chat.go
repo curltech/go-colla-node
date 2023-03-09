@@ -15,8 +15,8 @@ var ChatAction chatAction
 /**
 在chain目录下的采用自定义protocol "/chain"的方式自己实现的功能
 */
-func (this *chatAction) Chat(peerId string, data interface{}, targetPeerId string, targetConnectSessionId string) (interface{}, error) {
-	chainMessage := this.PrepareSend(peerId, data, targetPeerId)
+func (this *chatAction) Chat(connectPeerId string, data interface{}, targetPeerId string, targetConnectSessionId string) (interface{}, error) {
+	chainMessage := this.PrepareSend(connectPeerId, data, targetPeerId)
 	chainMessage.TargetConnectSessionId = targetConnectSessionId
 
 	response, err := this.Send(chainMessage)

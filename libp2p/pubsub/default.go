@@ -3,10 +3,15 @@ package pubsub
 import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/global"
-	"github.com/curltech/go-colla-node/p2p/chain/handler/receiver"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 )
+
+var messageHandler func(data []byte, remotePeerId string, clientId string, connectSessionId string, remoteAddr string) ([]byte, error)
+
+func RegistMessageHandler(receiveHandler func(data []byte, remotePeerId string, clientId string, connectSessionId string, remoteAddr string) ([]byte, error)) {
+	messageHandler = receiveHandler
+}
 
 /**
 订阅主题和订阅者
@@ -80,7 +85,7 @@ func subLoop(sub *pubsub.Subscription) error {
 			logger.Sugar.Errorf("%v", err)
 			continue
 		}
-		receiver.HandleChainMessage(topicMsg.Data, nil)
+		messageHandler(topicMsg.Data, "", "", "", "")
 	}
 
 	return nil

@@ -15,33 +15,22 @@ import (
 	"github.com/libp2p/go-libp2p-core/protocol"
 	ma "github.com/multiformats/go-multiaddr"
 	"strings"
-	"sync"
 	"time"
 )
 
-type PipePool struct {
-	connectionPool map[string]network.Conn
-	requestPool    map[string]*pipe.Pipe
-	responsePool   map[string]*pipe.Pipe
-	lock           sync.Mutex
-}
+// PipePool libp2p的连接池
+var NetworkConnectionPool = make(map[string]network.Conn)
 
-var pipePool = &PipePool{connectionPool: make(map[string]network.Conn), requestPool: make(map[string]*pipe.Pipe), responsePool: make(map[string]*pipe.Pipe)}
+var RequestPipePool = make(map[string]*pipe.Pipe)
 
-func GetPipePool() *PipePool {
-	return pipePool
-}
+var ResponsePipePool = make(map[string]*pipe.Pipe)
 
-func (this *PipePool) GetResponsePipe(peerId string, connectSessionId string) *pipe.Pipe {
-	this.lock.Lock()
-	defer this.lock.Unlock()
-	key := peerId + ":" + connectSessionId
-	logger.Sugar.Debugf("GetResponsePipe-key: %v", key)
-	p, ok := this.responsePool[key]
+func GetResponsePipe(connectSessionId string) *pipe.Pipe {
+	p, ok := ResponsePipePool[connectSessionId]
 	if ok {
 		return p
 	} else {
-		conn, ok := this.connectionPool[key]
+		conn, ok := NetworkConnectionPool[connectSessionId]
 		if ok {
 			stream, err := conn.NewStream(context.Background())
 			if err != nil {
@@ -55,7 +44,7 @@ func (this *PipePool) GetResponsePipe(peerId string, connectSessionId string) *p
 				return nil
 			}
 			if p != nil {
-				this.responsePool[key] = p
+				ResponsePipePool[connectSessionId] = p
 				return p
 			}
 		}
@@ -63,18 +52,8 @@ func (this *PipePool) GetResponsePipe(peerId string, connectSessionId string) *p
 	return nil
 }
 
-/**
-主动发送消息获取管道，如果流不存在，创建一个
-*/
-func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pipe {
-	/*this.lock.Lock()
-	defer this.lock.Unlock()
-	reqKey := GetPeerId(peerId) + ":" + protocolId
-	logger.Sugar.Infof("GetRequestPipe-reqKey: %v", reqKey)
-	p, ok := this.requestPool[reqKey]
-	if ok {
-		return p
-	} else {*/
+// GetRequestPipe 主动发送消息获取管道，如果流不存在，创建一个
+func GetRequestPipe(peerId string, protocolId string) *pipe.Pipe {
 	var id peer.ID
 	if strings.HasPrefix(peerId, "/") {
 		addr, err := ma.NewMultiaddr(peerId)
@@ -119,31 +98,14 @@ func (this *PipePool) GetRequestPipe(peerId string, protocolId string) *pipe.Pip
 			if conn != nil {
 				peerId := conn.RemotePeer().Pretty()
 				logger.Sugar.Debugf("GetRequestPipe-remote peer: %v %v, steamId: %v", peerId, conn.ID(), stream.ID())
-				/*key := peerId + ":" + conn.ID()
-				logger.Sugar.Infof("GetRequestPipe-key: %v", key)
-				oldConn, ok := this.connectionPool[key]
-				if ok {
-					if conn != oldConn {
-						logger.Sugar.Infof("----------GetRequestPipe-resetConn: v%", key)
-						oldConn.Close()
-						this.connectionPool[key] = conn
-					}
-				} else {
-					logger.Sugar.Infof("----------GetRequestPipe-newConn: %v", key)
-					this.connectionPool[key] = conn
-				}*/
 			}
-			/*this.requestPool[reqKey] = p*/
 			return p
 		}
 	}
-	/*}*/
 	return nil
 }
 
-func (this *PipePool) CreatePipe(stream network.Stream, direct string) *pipe.Pipe {
-	this.lock.Lock()
-	defer this.lock.Unlock()
+func CreatePipe(stream network.Stream, direct string) *pipe.Pipe {
 	p, err := pipe.CreatePipe(stream, HandleRaw, direct)
 	if err != nil {
 		logger.Sugar.Errorf(err.Error())
@@ -154,70 +116,48 @@ func (this *PipePool) CreatePipe(stream network.Stream, direct string) *pipe.Pip
 		if conn != nil {
 			peerId := conn.RemotePeer().Pretty()
 			logger.Sugar.Debugf("CreatePipe-remote peer: %v %v, steamId: %v", peerId, conn.ID(), stream.ID())
-			key := peerId + ":" + conn.ID()
-			logger.Sugar.Debugf("CreatePipe-key: %v", key)
-			oldConn, ok := this.connectionPool[key]
+			connectSessionId := conn.ID()
+			logger.Sugar.Debugf("CreatePipe-connectSessionId: %v", connectSessionId)
+			oldConn, ok := NetworkConnectionPool[connectSessionId]
 			if ok {
 				if conn != oldConn {
-					logger.Sugar.Debugf("----------CreatePipe-resetConn: v%", key)
+					logger.Sugar.Debugf("----------CreatePipe-resetConn: v%", connectSessionId)
 					oldConn.Close()
-					this.connectionPool[key] = conn
+					NetworkConnectionPool[connectSessionId] = conn
 				}
 			} else {
-				logger.Sugar.Debugf("----------CreatePipe-newConn: %v", key)
-				this.connectionPool[key] = conn
+				logger.Sugar.Debugf("----------CreatePipe-newConn: %v", connectSessionId)
+				NetworkConnectionPool[connectSessionId] = conn
 			}
-			_, ok = this.responsePool[key]
+			_, ok = ResponsePipePool[connectSessionId]
 			if !ok {
-				this.responsePool[key] = p
+				ResponsePipePool[connectSessionId] = p
 			}
-
-			/*reqKey := peerId + ":" + string(p.GetStream().Protocol())
-			logger.Sugar.Infof("CreatePipe-reqKey: %v", reqKey)
-			_, ok = this.requestPool[reqKey]
-			if !ok {
-				this.requestPool[reqKey] = p
-			}*/
 		}
 		return p
 	}
 	return nil
 }
 
-func (this *PipePool) Close(peerId string, protocolId string, connectSessionId string, streamId string) {
-	this.lock.Lock()
-	defer this.lock.Unlock()
-	key := peerId + ":" + connectSessionId
-	logger.Sugar.Debugf("Close-key: %v", key)
-	p, ok := this.responsePool[key]
+func Close(peerId string, protocolId string, connectSessionId string, streamId string) {
+	logger.Sugar.Debugf("Close-connectSessionId: %v", connectSessionId)
+	p, ok := ResponsePipePool[connectSessionId]
 	if ok {
 		if p.GetStream().ID() == streamId {
-			delete(this.responsePool, key)
+			delete(ResponsePipePool, connectSessionId)
 		}
 	}
-
-	/*reqKey := peerId + ":" + protocolId
-	logger.Sugar.Infof("Close-reqKey: %v", reqKey)
-	p, ok = this.requestPool[reqKey]
-	if ok {
-		if p.GetStream().ID() == streamId {
-			delete(this.requestPool, reqKey)
-		}
-	}*/
 }
 
-func (this *PipePool) Disconnect(peerId string, connectSessionId string) {
-	this.lock.Lock()
-	defer this.lock.Unlock()
-	key := peerId + ":" + connectSessionId
-	logger.Sugar.Debugf("Disconnect-key: %v", key)
-	_, ok := this.connectionPool[key]
+func Disconnect(peerId string, clientId string, connectSessionId string) {
+	logger.Sugar.Debugf("Disconnect-connectSessionId: %v", connectSessionId)
+	_, ok := NetworkConnectionPool[connectSessionId]
 	if ok {
-		logger.Sugar.Debugf("----------deleteConn: %v", key)
-		delete(this.connectionPool, key)
+		logger.Sugar.Debugf("----------deleteConn: %v", connectSessionId)
+		delete(NetworkConnectionPool, connectSessionId)
 		// 更新信息
 		k := ns.GetPeerClientKey(peerId)
-		peerClients, err := service.GetPeerClientService().GetLocals(k, "")
+		peerClients, err := service.GetPeerClientService().GetLocals(k, clientId)
 		if err != nil {
 			logger.Sugar.Errorf("failed to GetLocalPCs by peerId: %v, err: %v", peerId, err)
 		} else {

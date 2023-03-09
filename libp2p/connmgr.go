@@ -3,8 +3,8 @@ package libp2p
 import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/pipe/handler"
-	connmgr "github.com/libp2p/go-libp2p-connmgr"
-	"github.com/libp2p/go-libp2p-core/network"
+	"github.com/libp2p/go-libp2p/core/network"
+	connmgr "github.com/libp2p/go-libp2p/p2p/net/connmgr"
 	ma "github.com/multiformats/go-multiaddr"
 )
 
@@ -45,7 +45,7 @@ func (nn *cmNotifee) Disconnected(n network.Network, c network.Conn) {
 	peerId := c.RemotePeer().Pretty()
 	addr := c.RemoteMultiaddr().String()
 	logger.Sugar.Debugf("New Disconnected! %v %v, addr:%v", peerId, c.ID(), addr)
-	handler.GetPipePool().Disconnect(peerId, c.ID())
+	handler.Disconnect(peerId, "", c.ID())
 }
 
 // Listen is no-op in this implementation.
@@ -62,7 +62,7 @@ func (nn *cmNotifee) ListenClose(n network.Network, addr ma.Multiaddr) {
 
 // OpenedStream is no-op in this implementation.
 func (nn *cmNotifee) OpenedStream(n network.Network, s network.Stream) {
-	nn.BasicConnMgr.Notifee().OpenedStream(n, s)
+	//nn.BasicConnMgr.Notifee().OpenedStream(n, s)
 	logger.Sugar.Debugf("New OpenedStream! %v %v", s.ID(), s.Protocol())
 }
 
@@ -70,6 +70,6 @@ func (nn *cmNotifee) OpenedStream(n network.Network, s network.Stream) {
 func (nn *cmNotifee) ClosedStream(n network.Network, s network.Stream) {
 	peerId := s.Conn().RemotePeer().Pretty()
 	logger.Sugar.Debugf("New ClosedStream! %v %v %v", s.ID(), s.Protocol(), peerId)
-	nn.BasicConnMgr.Notifee().ClosedStream(n, s)
-	handler.GetPipePool().Close(peerId, string(s.Protocol()), s.Conn().ID(), s.ID())
+	//nn.BasicConnMgr.Notifee().ClosedStream(n, s)
+	handler.Close(peerId, string(s.Protocol()), s.Conn().ID(), s.ID())
 }

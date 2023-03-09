@@ -11,7 +11,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	service2 "github.com/curltech/go-colla-node/p2p/chain/service"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
-	"github.com/curltech/go-colla-node/p2p/msg"
+	entity3 "github.com/curltech/go-colla-node/p2p/msg/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 	"strings"
 )
@@ -35,7 +35,7 @@ func GetRaftConsensus() *RaftConsensus {
  * @param chainMessage
  * @return
  */
-func (this *RaftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *RaftConsensus) ReceiveConsensus(chainMessage *entity3.ChainMessage) (*entity3.ChainMessage, error) {
 	logger.Sugar.Infof("ReceiveConsensus")
 	dataBlock, err := this.GetDataBlock(chainMessage)
 	if err != nil {
@@ -97,7 +97,7 @@ func (this *RaftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*ms
 /**
 follow收到Preprepared消息，准备完成后向leader发送prepared消息
 */
-func (this *RaftConsensus) ReceivePreprepared(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *RaftConsensus) ReceivePreprepared(chainMessage *entity3.ChainMessage) (*entity3.ChainMessage, error) {
 	logger.Sugar.Infof("receive ReceivePreprepared")
 	dataBlock, err := this.GetDataBlock(chainMessage)
 	if err != nil {
@@ -177,7 +177,7 @@ func (this *RaftConsensus) ReceivePreprepared(chainMessage *msg.ChainMessage) (*
 leader收到prepared消息，计算是否到达提交标准，向follow发送commited消息
 与pbft的差异是只有leader能收到这种消息
 */
-func (this *RaftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *RaftConsensus) ReceivePrepared(chainMessage *entity3.ChainMessage) (*entity3.ChainMessage, error) {
 	// 本节点是主副节点都会收到
 	logger.Sugar.Infof("receive ReceivePrepared")
 	messageLog, err := this.GetConsensusLog(chainMessage)
@@ -287,7 +287,7 @@ func (this *RaftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg
  * follow收到commited消息，完成后，向leader发送reply消息，
  * 这里与pbft的差异是不用判断，完成后reply消息发送给leader，而不是发给客户端
  */
-func (this *RaftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *RaftConsensus) ReceiveCommited(chainMessage *entity3.ChainMessage) (*entity3.ChainMessage, error) {
 	// 本节点是主副节点都会收到
 	logger.Sugar.Infof("receive ReceiveCommited")
 	messageLog, err := this.GetConsensusLog(chainMessage)
@@ -377,7 +377,7 @@ func (this *RaftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg
 leader收到reply消息，判断完成后向客户就返回reply消息
 与pbft的差异是pbft在上一步就完成了向客户端发送reply
 */
-func (this *RaftConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *RaftConsensus) ReceiveReply(chainMessage *entity3.ChainMessage) (*entity3.ChainMessage, error) {
 	// 本节点是主副节点都会收到
 	logger.Sugar.Infof("receive ReceivePrepared")
 	messageLog, err := this.GetConsensusLog(chainMessage)

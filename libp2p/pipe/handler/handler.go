@@ -1,17 +1,13 @@
 package handler
 
 import (
-	"fmt"
 	"github.com/curltech/go-colla-core/logger"
-	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/pipe"
 	"github.com/curltech/go-colla-node/p2p/handler"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 	"github.com/libp2p/go-libp2p-core/network"
-	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
-	"strings"
 )
 
 /**
@@ -26,7 +22,11 @@ func HandleRaw(data []byte, p *pipe.Pipe) ([]byte, error) {
 		logger.Sugar.Errorf(err.Error())
 	}
 	//调用Receive函数或者Response函数处理
-	data, err = protocolMessageHandler.ReceiveHandler(data, p)
+	sessId := p.GetStream().Conn().ID()
+	remotePeerId := p.GetStream().Conn().RemotePeer().Pretty()
+	remoteAddr := p.GetStream().Conn().RemoteMultiaddr().String()
+	ResponsePipePool[sessId] = p
+	data, err = protocolMessageHandler.MessageHandler(data, remotePeerId, "", sessId, remoteAddr)
 	//如果处理器返回了Response，则写回到原来的管道，并关闭管道
 	if data != nil {
 		logger.Sugar.Debugf("read data:%v", string(data))
@@ -42,38 +42,10 @@ func HandleRaw(data []byte, p *pipe.Pipe) ([]byte, error) {
 }
 
 /**
-如果输入peerId没有地址信息，通过路由表获取完整的地址信息
-如果不在路由表中则原样返回，这地方有个问题，定位器有地址信息，客户端没有地址信息
-*/
-func GetAddrInfo(peerId string) string {
-	ps := strings.Split(peerId, "/")
-	if len(ps) == 1 {
-		id, err := peer.Decode(peerId)
-		if err == nil {
-			addrInfo, err := dht.PeerEndpointDHT.FindPeer(id)
-			if err == nil && len(addrInfo.Addrs) > 0 {
-				peerId = fmt.Sprintf(global.GeneralP2pAddrFormat, addrInfo.Addrs[0], addrInfo.ID)
-			}
-		}
-	}
-
-	return peerId
-}
-
-func GetPeerId(peerId string) string {
-	ps := strings.Split(peerId, "/")
-	if len(ps) > 1 {
-		return ps[len(ps)-1]
-	}
-
-	return peerId
-}
-
-/**
 根据配置的协议编号自定义流协议，其他peer连接自己的时候，用于在节点间接收和发送数据
 */
 func ProtocolStream(protocolID protocol.ID) {
 	global.Global.Host.SetStreamHandler(protocolID, func(stream network.Stream) {
-		GetPipePool().CreatePipe(stream, msgtype.MsgDirect_Response)
+		CreatePipe(stream, msgtype.MsgDirect_Response)
 	})
 }

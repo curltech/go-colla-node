@@ -5,7 +5,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/chain/entity"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/chain/handler/sender"
-	"github.com/curltech/go-colla-node/p2p/msg"
+	entity2 "github.com/curltech/go-colla-node/p2p/msg/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 )
 
@@ -19,12 +19,12 @@ func (this *consensusAction) ConsensusDataBlock(peerId string, msgType string, d
 	if targetPeerId == "" {
 		targetPeerId = peerId
 	}
-	chainMessage := msg.ChainMessage{}
+	chainMessage := entity2.ChainMessage{}
 	chainMessage.TargetPeerId = targetPeerId
 	chainMessage.Payload = dataBlock
 	chainMessage.ConnectPeerId = peerId
 	chainMessage.PayloadType = handler.PayloadType_DataBlock
-	chainMessage.MessageType = msgtype.MsgType(msgType)
+	chainMessage.MessageType = msgType
 	chainMessage.MessageDirect = msgtype.MsgDirect_Request
 	chainMessage.NeedCompress = true
 
@@ -43,16 +43,16 @@ func (this *consensusAction) ConsensusLog(peerId string, msgType string, consens
 	if targetPeerId == "" {
 		targetPeerId = peerId
 	}
-	chainMessage := msg.ChainMessage{}
+	chainMessage := entity2.ChainMessage{}
 	chainMessage.TargetPeerId = targetPeerId
 	chainMessage.Payload = consensusLog
 	chainMessage.ConnectPeerId = peerId
 	chainMessage.PayloadType = handler.PayloadType_ConsensusLog
-	chainMessage.MessageType = msgtype.MsgType(msgType)
+	chainMessage.MessageType = msgType
 	chainMessage.MessageDirect = msgtype.MsgDirect_Request
 	chainMessage.NeedCompress = true
 
-	var response *msg.ChainMessage
+	var response *entity2.ChainMessage
 	var err error
 	if peerId == consensusLog.PrimaryPeerId { // 定位器之间
 		response, err = sender.DirectSend(&chainMessage)

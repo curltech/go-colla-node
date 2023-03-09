@@ -12,8 +12,9 @@ import (
 	entity2 "github.com/curltech/go-colla-node/p2p/chain/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
-	msg1 "github.com/curltech/go-colla-node/p2p/msg"
+	msg1 "github.com/curltech/go-colla-node/p2p/msg/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
+	"net/http"
 )
 
 /**
@@ -88,7 +89,7 @@ func GetPublicKey(targetPeerId string) (*crypto.Key, error) {
 	if targetPeerId == "" {
 		return nil, errors.New("NoTargetPeerId")
 	}
-	peerClients, err := service.GetPeerClientService().GetValues(targetPeerId, "", "")
+	peerClients, err := service.GetPeerClientService().GetValues(targetPeerId, "", "", "")
 	if err == nil && len(peerClients) > 0 {
 		latestPeerClient := &entity.PeerClient{}
 		for _, peerClient := range peerClients {
@@ -147,18 +148,6 @@ const (
 )
 
 func Decrypt(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
-	/*targetPeerId := msg.TargetPeerId
-	if targetPeerId == "" {
-		targetPeerId = msg.ConnectPeerId
-	}
-	messageType := msg.MessageType
-	connectPeerId := msg.ConnectPeerId
-	myselfPeerId := string(global.Global.PeerId)
-	if (messageType == msgtype.P2PCHAT && !strings.Contains(connectPeerId, myselfPeerId)) ||
-		(messageType != msgtype.P2PCHAT && !global.IsMyself(targetPeerId)) {
-		return msg, nil
-	}*/
-
 	if msg.TransportPayload == "" {
 		return msg, errors.New("NoTransportPayload")
 	}
@@ -205,45 +194,48 @@ func Decrypt(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 	return msg, err
 }
 
-func Error(msgType msgtype.MsgType, err error) *msg1.ChainMessage {
+func Error(msgType string, err error) *msg1.ChainMessage {
 	errMessage := msg1.ChainMessage{}
 	errMessage.Payload = msgtype.ERROR
 	errMessage.PayloadType = PayloadType_String
 	errMessage.Tip = err.Error()
+	errMessage.StatusCode = http.StatusInternalServerError
 	errMessage.MessageType = msgType
 	errMessage.MessageDirect = msgtype.MsgDirect_Response
 
 	return &errMessage
 }
 
-func Response(msgType msgtype.MsgType, payload interface{}) *msg1.ChainMessage {
+func Response(msgType string, payload interface{}) *msg1.ChainMessage {
 	responseMessage := msg1.ChainMessage{}
 	responseMessage.Payload = payload
 	responseMessage.MessageType = msgType
 	responseMessage.MessageDirect = msgtype.MsgDirect_Response
+	responseMessage.StatusCode = http.StatusOK
 
 	return &responseMessage
 }
 
-func Ok(msgType msgtype.MsgType) *msg1.ChainMessage {
+func Ok(msgType string) *msg1.ChainMessage {
 	okMessage := msg1.ChainMessage{}
 	okMessage.Payload = msgtype.OK
 	okMessage.PayloadType = PayloadType_String
 	okMessage.Tip = "OK"
 	okMessage.MessageType = msgType
 	okMessage.MessageDirect = msgtype.MsgDirect_Response
+	okMessage.StatusCode = http.StatusOK
 
 	return &okMessage
 }
 
 func SetResponse(request *msg1.ChainMessage, response *msg1.ChainMessage) {
 	response.UUID = request.UUID
-	response.LocalConnectPeerId = ""
-	response.LocalConnectAddress = ""
-	response.SrcAddress = request.SrcAddress
+	response.SrcConnectAddress = request.SrcConnectAddress
 	response.SrcPeerId = request.SrcPeerId
-	response.ConnectAddress = request.LocalConnectAddress
-	response.ConnectPeerId = request.LocalConnectPeerId
+	response.ConnectAddress = request.ConnectAddress
+	response.ConnectPeerId = request.ConnectPeerId
 	response.ConnectSessionId = request.ConnectSessionId
 	response.Topic = request.Topic
+	response.MessageDirect = msgtype.MsgDirect_Response
+	response.StatusCode = http.StatusOK
 }

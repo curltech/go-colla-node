@@ -39,7 +39,7 @@ func HttpServeTLS(listener net.Listener, handler http.Handler, cert string, key 
 	logger.Sugar.Infof("Proxying calls from https://%s to %s started!", listener.Addr().String())
 	err := http.ServeTLS(listener, handler, cert, key)
 	if err != nil {
-		logger.Sugar.Errorf("failed to http.ListenAndServeTLS: %v", err.Error())
+		logger.Sugar.Errorf("failed to stdhttp.ListenAndServeTLS: %v", err.Error())
 	}
 	return err
 }
@@ -63,7 +63,7 @@ func HttpListenAndServeTLS(addr string, cert string, key string, handler http.Ha
 	logger.Sugar.Infof("Proxying calls from https://%s to %s started!", addr)
 	err := http.ListenAndServeTLS(addr, cert, key, handler)
 	if err != nil {
-		logger.Sugar.Errorf("failed to http.ListenAndServeTLS: %v", err.Error())
+		logger.Sugar.Errorf("failed to stdhttp.ListenAndServeTLS: %v", err.Error())
 	}
 	return err
 }
@@ -83,7 +83,7 @@ func FastHttpLetsEncrypt(addr string, domain string, handler fasthttp.RequestHan
 	cfg := &tls.Config{
 		GetCertificate: m.GetCertificate,
 		NextProtos: []string{
-			"http/1.1", acme.ALPNProto,
+			"stdhttp/1.1", acme.ALPNProto,
 		},
 	}
 
@@ -146,7 +146,7 @@ func FastHttpLetsEncryptServe(listener net.Listener, domain string, handler fast
 	cfg := &tls.Config{
 		GetCertificate: m.GetCertificate,
 		NextProtos: []string{
-			"http/1.1", acme.ALPNProto,
+			"stdhttp/1.1", acme.ALPNProto,
 		},
 	}
 

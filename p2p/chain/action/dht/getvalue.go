@@ -6,7 +6,7 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
-	"github.com/curltech/go-colla-node/p2p/msg"
+	"github.com/curltech/go-colla-node/p2p/msg/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 )
 
@@ -19,7 +19,7 @@ var GetValueAction getValueAction
 /**
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
-func (this *getValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *getValueAction) Receive(chainMessage *entity.ChainMessage) (*entity.ChainMessage, error) {
 	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	v := chainMessage.Payload
 	key, ok := v.(string)

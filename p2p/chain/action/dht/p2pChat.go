@@ -2,19 +2,18 @@ package dht
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/consensus/std"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/ns"
-	handler1 "github.com/curltech/go-colla-node/libp2p/pipe/handler"
+	"github.com/curltech/go-colla-node/libp2p/util"
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/chain/handler/sender"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
-	"github.com/curltech/go-colla-node/p2p/msg"
+	entity2 "github.com/curltech/go-colla-node/p2p/msg/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 	"github.com/curltech/go-push-sdk/push/huawei_channel"
 	"github.com/curltech/go-push-sdk/push/oppo_channel"
@@ -33,73 +32,42 @@ var P2pChatAction p2pChatAction
 /**
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
-func (this *p2pChatAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *p2pChatAction) Receive(chainMessage *entity2.ChainMessage) (*entity2.ChainMessage, error) {
+	// 查找最终目标会话
+	peerClient, _, _ := sender.Lookup(chainMessage.TargetPeerId, chainMessage.TargetClientId)
 	logger.Sugar.Infof("Receive %v message", this.MsgType)
-	var response *msg.ChainMessage = nil
+	var response *entity2.ChainMessage = nil
 
-	targetPeerId := handler1.GetPeerId(chainMessage.TargetPeerId)
-	key := ns.GetPeerClientKey(targetPeerId)
-	peerClients, err := service.GetPeerClientService().GetLocals(key, "")
-	if err != nil || len(peerClients) == 0 {
-		peerClients, err = service.GetPeerClientService().GetValues(targetPeerId, "", "")
-	}
-	if err != nil {
-		response = handler.Error(chainMessage.MessageType, err)
-		return response, nil
-	}
-	if len(peerClients) == 0 {
-		response = handler.Error(chainMessage.MessageType, errors.New("NUllPeerClients"))
-		return response, nil
-	}
-	sent := false
-	for _, peerClient := range peerClients {
-		if peerClient.ActiveStatus == entity.ActiveStatus_Up {
-			// 如果PeerClient的连接节点是自己，下一步就是最终目标，将目标会话放入消息中
-			sent = true
-			if global.IsMyself(peerClient.ConnectPeerId) {
-				chainMessage.TargetConnectSessionId = peerClient.ConnectSessionId
-				chainMessage.TargetConnectPeerId = peerClient.ConnectPeerId
-				chainMessage.ConnectPeerId = chainMessage.TargetPeerId
-			} else { // 否则下一步就是连接节点
-				chainMessage.TargetConnectSessionId = peerClient.ConnectSessionId
-				chainMessage.TargetConnectPeerId = peerClient.ConnectPeerId
-				chainMessage.ConnectPeerId = peerClient.ConnectPeerId
-			}
-			go sender.SendCM(chainMessage)
-		}
-	}
-	if sent == false {
+	if peerClient != nil {
 		handler.Decrypt(chainMessage)
 		response, _ = std.GetStdConsensus().ReceiveConsensus(chainMessage)
 		// push notification
 		var srcPeerClientName string = ""
-		srcPeerId := handler1.GetPeerId(chainMessage.SrcPeerId)
+		srcPeerId := util.GetPeerId(chainMessage.SrcPeerId)
 		srcKey := ns.GetPeerClientKey(srcPeerId)
 		srcPeerClients, err := service.GetPeerClientService().GetLocals(srcKey, "")
 		if err == nil && srcPeerClients != nil && len(srcPeerClients) > 0 {
 			srcPeerClientName = srcPeerClients[0].Name
-			for _, peerClient := range peerClients {
-				content := getContent(peerClient.Language, srcPeerClientName)
-				prefixArr := strings.Split(peerClient.ClientType, "(")
-				switch prefixArr[0] {
-				case "PC":
-					// do nothing
-				case "Apple":
-					pushApple(peerClient, content)
-				case "HUAWEI":
-					pushHuawei(peerClient, content)
-				case "Xiaomi":
-					pushXiaomi(peerClient, content)
-				case "OPPO":
-					pushOppo(peerClient, content)
-				case "VIVO":
-					pushVivo(peerClient, content)
-				case "Meizu":
-					pushMeizu(peerClient, content)
-				default:
-					// GCM
-					// URORA
-				}
+			content := getContent(peerClient.Language, srcPeerClientName)
+			prefixArr := strings.Split(peerClient.ClientType, "(")
+			switch prefixArr[0] {
+			case "PC":
+				// do nothing
+			case "Apple":
+				pushApple(peerClient, content)
+			case "HUAWEI":
+				pushHuawei(peerClient, content)
+			case "Xiaomi":
+				pushXiaomi(peerClient, content)
+			case "OPPO":
+				pushOppo(peerClient, content)
+			case "VIVO":
+				pushVivo(peerClient, content)
+			case "Meizu":
+				pushMeizu(peerClient, content)
+			default:
+				// GCM
+				// URORA
 			}
 		}
 
@@ -170,10 +138,10 @@ func pushHuaweiSub(peerClient *entity.PeerClient, huaweiClient setting.PushClien
 		DeviceTokens: deviceTokens,
 		AccessToken:  global.Global.HuaweiAccessToken,
 		Message: &setting.Message{
-			BusinessId: uuid.New().String(),
-			Title:      getTitle(peerClient.Language),
-			SubTitle:   "",
-			Content:    content,
+			BusinessId:    uuid.New().String(),
+			Title:         getTitle(peerClient.Language),
+			SubTitle:      "",
+			Content:       content,
 			CallBack:      "",
 			CallbackParam: "",
 		},
@@ -245,10 +213,10 @@ func pushOppoSub(peerClient *entity.PeerClient, oppoClient setting.PushClientInt
 		DeviceTokens: deviceTokens,
 		AccessToken:  global.Global.OppoAccessToken,
 		Message: &setting.Message{
-			BusinessId: uuid.New().String(),
-			Title:      getTitle(peerClient.Language),
-			SubTitle:   "",
-			Content:    content,
+			BusinessId:    uuid.New().String(),
+			Title:         getTitle(peerClient.Language),
+			SubTitle:      "",
+			Content:       content,
 			CallBack:      "",
 			CallbackParam: "",
 		},
@@ -291,10 +259,10 @@ func pushVivoSub(peerClient *entity.PeerClient, vivoClient setting.PushClientInt
 		DeviceTokens: deviceTokens,
 		AccessToken:  global.Global.VivoAccessToken,
 		Message: &setting.Message{
-			BusinessId: uuid.New().String(),
-			Title:      getTitle(peerClient.Language),
-			SubTitle:   "",
-			Content:    content,
+			BusinessId:    uuid.New().String(),
+			Title:         getTitle(peerClient.Language),
+			SubTitle:      "",
+			Content:       content,
 			CallBack:      "",
 			CallbackParam: "",
 		},

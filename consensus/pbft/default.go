@@ -11,7 +11,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	service2 "github.com/curltech/go-colla-node/p2p/chain/service"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
-	"github.com/curltech/go-colla-node/p2p/msg"
+	entity3 "github.com/curltech/go-colla-node/p2p/msg/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 	"strings"
 )
@@ -56,7 +56,7 @@ func GetPbftConsensus() *PbftConsensus {
  * @param chainMessage
  * @return
  */
-func (this *PbftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *PbftConsensus) ReceiveConsensus(chainMessage *entity3.ChainMessage) (*entity3.ChainMessage, error) {
 	logger.Sugar.Infof("ReceiveConsensus")
 	dataBlock, err := this.GetDataBlock(chainMessage)
 	if err != nil {
@@ -112,7 +112,7 @@ func (this *PbftConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*ms
 	return nil, nil
 }
 
-func (this *PbftConsensus) ReceivePreprepared(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *PbftConsensus) ReceivePreprepared(chainMessage *entity3.ChainMessage) (*entity3.ChainMessage, error) {
 	logger.Sugar.Infof("receive ReceivePreprepared")
 	dataBlock, err := this.GetDataBlock(chainMessage)
 	if err != nil {
@@ -226,7 +226,7 @@ func (this *PbftConsensus) ReceivePreprepared(chainMessage *msg.ChainMessage) (*
  * n, d, i与上述PREPARE消息内容相同。<COMMIT, v, n, d, i>进行副本节点i的签名。记录COMMIT消息到日志中，用于View
  * Change过程中恢复未完成的请求操作。记录其他副本节点发送的PREPARE消息到log中。
  */
-func (this *PbftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *PbftConsensus) ReceivePrepared(chainMessage *entity3.ChainMessage) (*entity3.ChainMessage, error) {
 	// 本节点是主副节点都会收到
 	logger.Sugar.Infof("receive ReceivePrepared")
 	messageLog, err := this.GetConsensusLog(chainMessage)
@@ -364,7 +364,7 @@ func (this *PbftConsensus) ReceivePrepared(chainMessage *msg.ChainMessage) (*msg
  * v, t, c, i,
  * r>给客户端，r：是请求操作结果，客户端如果收到f+1个相同的REPLY消息，说明客户端发起的请求已经达成全网共识，否则客户端需要判断是否重新发送请求给主节点。记录其他副本节点发送的COMMIT消息到log中。
  */
-func (this *PbftConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *PbftConsensus) ReceiveCommited(chainMessage *entity3.ChainMessage) (*entity3.ChainMessage, error) {
 	// 本节点是主副节点都会收到
 	logger.Sugar.Infof("receive ReceiveCommited")
 	messageLog, err := this.GetConsensusLog(chainMessage)

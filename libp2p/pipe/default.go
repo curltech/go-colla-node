@@ -125,12 +125,6 @@ func (pipe *Pipe) Write(data []byte, sync bool) (*Pipe, <-chan []byte, error) {
 
 		return pipe, nil, err
 	}
-	//err = pipe.rw.WriteByte('\n')
-	//if err != nil {
-	//	logger.Sugar.Errorf("Error writing \n to buffer")
-	//
-	//	return pipe, nil, err
-	//}
 	err = pipe.rw.Flush()
 	if err != nil {
 		logger.Sugar.Errorf("Error Flush to buffer")

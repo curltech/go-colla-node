@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/curltech/go-colla-core/content"
-	"github.com/curltech/go-colla-core/crypto/openpgp"
 	"github.com/curltech/go-colla-core/crypto/std"
 	baseentity "github.com/curltech/go-colla-core/entity"
 	"github.com/curltech/go-colla-core/logger"
@@ -25,7 +24,6 @@ import (
 	record "github.com/libp2p/go-libp2p-record"
 	recpb "github.com/libp2p/go-libp2p-record/pb"
 	"github.com/multiformats/go-base32"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -79,7 +77,7 @@ func (this *XormDatastore) Put(ctx context.Context, key datastore.Key, value []b
 		}
 		old, _ := req.Service.NewEntity(nil)
 		//reflect.SetValue(old, req.Keyname, keyvalue)
-		if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix || namespace == ns.PeerClient_Name_Prefix {
+		if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix || namespace == ns.PeerClient_Email_Prefix || namespace == ns.PeerClient_Name_Prefix {
 			peerId, err := reflect.GetValue(entity, "PeerId")
 			if err != nil || peerId == nil {
 				logger.Sugar.Errorf("NoPeerId")
@@ -143,27 +141,8 @@ func (this *XormDatastore) Put(ctx context.Context, key datastore.Key, value []b
 				id = uint64(0)
 			}
 			reflect.SetValue(entity, baseentity.FieldName_Id, id)
-			if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix || namespace == ns.PeerClient_Name_Prefix {
-				oldp := old.(*dhtentity.PeerClient)
-				p := entity.(*dhtentity.PeerClient)
-				// 校验Signature
-				if p.ExpireDate > 0 {
-					var signature []byte
-					if oldp.PublicKey == p.PublicKey {
-						signature = std.DecodeBase64(p.Signature)
-					} else {
-						signature = std.DecodeBase64(p.PreviousPublicKeySignature)
-					}
-					publicKey, err := openpgp.LoadPublicKey(std.DecodeBase64(oldp.PublicKey))
-					if err != nil {
-						return errors.New(fmt.Sprintf("LoadPublicKeyFailure, peerId: %v, publicKey: %v", p.PeerId, oldp.PublicKey))
-					}
-					signatureData := strconv.FormatInt(p.ExpireDate, 10) + p.PeerId
-					pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
-					if pass != true {
-						return errors.New(fmt.Sprintf("PeerClientSignatureVerifyFailure, peerId: %v, publicKey: %v", p.PeerId, oldp.PublicKey))
-					}
-				}
+			if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix || namespace == ns.PeerClient_Email_Prefix || namespace == ns.PeerClient_Name_Prefix {
+
 			} else if namespace == ns.DataBlock_Prefix || namespace == ns.DataBlock_Owner_Prefix {
 				oldp := old.(*chainentity.DataBlock)
 				p := entity.(*chainentity.DataBlock)
@@ -175,25 +154,6 @@ func (this *XormDatastore) Put(ctx context.Context, key datastore.Key, value []b
 				} else {
 					if oldp.PeerId != p.PeerId {
 						return errors.New(fmt.Sprintf("InconsistentDataBlockPeerId, blockId: %v, peerId: %v, oldPeerId: %v", p.BlockId, p.PeerId, oldp.PeerId))
-					}
-				}
-				// 校验Signature
-				publicKey, err := handler2.GetPublicKey(p.PeerId)
-				if err != nil {
-					return errors.New(fmt.Sprintf("GetPublicKey failure, blockId: %v, peerId: %v", p.BlockId, p.PeerId))
-				} else {
-					var signatureData string
-					if len(p.TransportPayload) > 0 {
-						signatureData = p.TransportPayload
-					} else if p.ExpireDate > 0 {
-						signatureData = strconv.FormatInt(p.ExpireDate, 10) + p.PeerId
-					}
-					if len(signatureData) > 0 {
-						signature := std.DecodeBase64(p.Signature)
-						pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
-						if pass != true {
-							return errors.New(fmt.Sprintf("SignatureVerifyFailure, blockId: %v, peerId: %v", p.BlockId, p.PeerId))
-						}
 					}
 				}
 				// 负载为空表示删除
@@ -242,21 +202,8 @@ func (this *XormDatastore) Put(ctx context.Context, key datastore.Key, value []b
 			}
 		} else {
 			reflect.SetValue(entity, baseentity.FieldName_Id, uint64(0))
-			if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix || namespace == ns.PeerClient_Name_Prefix {
-				p := entity.(*dhtentity.PeerClient)
-				// 校验Signature
-				if p.ExpireDate > 0 {
-					publicKey, err := openpgp.LoadPublicKey(std.DecodeBase64(p.PublicKey))
-					if err != nil {
-						return errors.New(fmt.Sprintf("LoadPublicKeyFailure, peerId: %v, publicKey: %v", p.PeerId, p.PublicKey))
-					}
-					signatureData := strconv.FormatInt(p.ExpireDate, 10) + p.PeerId
-					signature := std.DecodeBase64(p.Signature)
-					pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
-					if pass != true {
-						return errors.New(fmt.Sprintf("PeerClientSignatureVerifyFailure, peerId: %v, publicKey: %v", p.PeerId, p.PublicKey))
-					}
-				}
+			if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix || namespace == ns.PeerClient_Email_Prefix || namespace == ns.PeerClient_Name_Prefix {
+
 			} else if namespace == ns.DataBlock_Prefix || namespace == ns.DataBlock_Owner_Prefix {
 				p := entity.(*chainentity.DataBlock)
 				// 负载为空表示删除
@@ -343,32 +290,7 @@ func (this *XormDatastore) Put(ctx context.Context, key datastore.Key, value []b
 						}
 					}
 				}
-				// 更新交易金额
-				// MyselfPeer
-				/*global.Global.MyselfPeer.BlockId = p.BlockId
-				global.Global.MyselfPeer.LastTransactionTime = &currentTime
-				global.Global.MyselfPeer.Balance = global.Global.MyselfPeer.Balance + p.TransactionAmount
-				affected := service.GetMyselfPeerService().Update([]interface{}{global.Global.MyselfPeer}, nil, "")
-				if affected == 0 {
-					return errors.New("NoUpdateOfMyselfPeer")
-				}
-				// PeerEndpoint
-				dht.PeerEndpointDHT.PutMyself()
-				// PeerClient
-				pcs, err := service1.GetLocalPCs(ns.PeerClient_KeyKind, p.PeerId, "", "") // 可能查不到或查到的为旧版本
-				if err != nil {
-					return err
-				}
-				for _, pc := range pcs {
-					pc.LastAccessTime = &currentTime
-					pc.BlockId = p.BlockId
-					pc.LastTransactionTime = &currentTime
-					pc.Balance = pc.Balance - p.TransactionAmount
-					err := service1.PutPCs(pc)
-					if err != nil {
-						return err
-					}
-				}*/
+
 				// PeerTransaction（BlockType_ChatAttach不需要保存PeerTransaction）
 				if p.BlockType != chainentity.BlockType_ChatAttach {
 					peerTransaction := chainentity.PeerTransaction{}
@@ -435,7 +357,7 @@ func (this *XormDatastore) Get(ctx context.Context, key datastore.Key) (value []
 
 	entities := this.get(req)
 
-	if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix || namespace == ns.PeerClient_Name_Prefix {
+	if namespace == ns.PeerClient_Prefix || namespace == ns.PeerClient_Mobile_Prefix || namespace == ns.PeerClient_Email_Prefix || namespace == ns.PeerClient_Name_Prefix {
 		if len(*entities.(*[]*dhtentity.PeerClient)) == 0 {
 			return nil, datastore.ErrNotFound
 		}
@@ -482,6 +404,9 @@ func (this *XormDatastore) get(req *handler.DispatchRequest) interface{} {
 	for k, v := range req.Keyvalue {
 		if req.Name == ns.PeerClient_Mobile_Prefix {
 			reflect.SetValue(entity, ns.PeerClient_Mobile_KeyKind, v)
+			break
+		} else if req.Name == ns.PeerClient_Email_Prefix {
+			reflect.SetValue(entity, ns.PeerClient_Email_KeyKind, v)
 			break
 		} else if req.Name == ns.PeerClient_Name_Prefix {
 			reflect.SetValue(entity, ns.PeerClient_Name_KeyKind, v)
@@ -619,6 +544,9 @@ func init() {
 
 	handler.RegistDatastore(ns.PeerClient_Mobile_Prefix, NewXormDatastore())
 	handler.RegistKeyname(ns.PeerClient_Mobile_Prefix, ns.PeerClient_Mobile_KeyKind)
+
+	handler.RegistDatastore(ns.PeerClient_Email_Prefix, NewXormDatastore())
+	handler.RegistKeyname(ns.PeerClient_Email_Prefix, ns.PeerClient_Email_KeyKind)
 
 	handler.RegistDatastore(ns.PeerClient_Name_Prefix, NewXormDatastore())
 	handler.RegistKeyname(ns.PeerClient_Name_Prefix, ns.PeerClient_Name_KeyKind)

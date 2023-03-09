@@ -9,7 +9,7 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/dht"
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"math/rand"
 	"sync"
 )
@@ -95,6 +95,9 @@ func (this *PeerEndpointService) GetFromCache(peerId string) *entity.PeerEndpoin
 	return ptr.(*entity.PeerEndpoint)
 }
 
+/**
+根据peerId分布式查找PeerEndpoint
+*/
 func (this *PeerEndpointService) FindPeer(peerId string) (string, error) {
 	id, err := peer.Decode(peerId)
 	if err != nil {

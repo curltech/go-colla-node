@@ -4,22 +4,23 @@ import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/security"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
+	_ "github.com/curltech/go-colla-node/p2p/chain/handler/receiver"
 	"github.com/curltech/go-colla-node/p2p/chain/handler/sender"
-	"github.com/curltech/go-colla-node/p2p/msg"
+	"github.com/curltech/go-colla-node/p2p/msg/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 	"time"
 )
 
 type BaseAction struct {
-	MsgType msgtype.MsgType
+	MsgType string
 }
 
-func (this *BaseAction) PrepareSend(peerId string, data interface{}, targetPeerId string) *msg.ChainMessage {
-	chainMessage := msg.ChainMessage{}
-	if peerId == "" {
-		peerId = targetPeerId
+func (this *BaseAction) PrepareSend(connectPeerId string, data interface{}, targetPeerId string) *entity.ChainMessage {
+	chainMessage := entity.ChainMessage{}
+	if connectPeerId == "" {
+		connectPeerId = targetPeerId
 	}
-	chainMessage.ConnectPeerId = peerId
+	chainMessage.ConnectPeerId = connectPeerId
 	chainMessage.Payload = data
 	chainMessage.TargetPeerId = targetPeerId
 	chainMessage.PayloadType = handler.PayloadType_Map
@@ -35,7 +36,7 @@ func (this *BaseAction) PrepareSend(peerId string, data interface{}, targetPeerI
 /**
 主动发送消息
 */
-func (this *BaseAction) Send(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *BaseAction) Send(chainMessage *entity.ChainMessage) (*entity.ChainMessage, error) {
 	logger.Sugar.Infof("Send %v message", this.MsgType)
 	response, err := sender.Send(chainMessage)
 
@@ -45,7 +46,7 @@ func (this *BaseAction) Send(chainMessage *msg.ChainMessage) (*msg.ChainMessage,
 /**
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
-func (this *BaseAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *BaseAction) Receive(chainMessage *entity.ChainMessage) (*entity.ChainMessage, error) {
 	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	go sender.RelaySend(chainMessage)
 	response := handler.Response(chainMessage.MessageType, time.Now())
@@ -56,7 +57,7 @@ func (this *BaseAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessa
 /**
 处理返回消息
 */
-func (this *BaseAction) Response(chainMessage *msg.ChainMessage) error {
+func (this *BaseAction) Response(chainMessage *entity.ChainMessage) error {
 	logger.Sugar.Infof("Response %v message:%v", this.MsgType, chainMessage)
 
 	return nil

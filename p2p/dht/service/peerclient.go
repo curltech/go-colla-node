@@ -65,7 +65,12 @@ func init() {
 	peerClientService.OrmBaseService.FactNewEntities = peerClientService.NewEntities
 	container.RegistService(ns.PeerClient_Prefix, peerClientService)
 	container.RegistService(ns.PeerClient_Mobile_Prefix, peerClientService)
+	container.RegistService(ns.PeerClient_Email_Prefix, peerClientService)
 	container.RegistService(ns.PeerClient_Name_Prefix, peerClientService)
+	//把所有客户端的活动状态更新成未连接
+	peerClient := new(entity.PeerClient)
+	peerClient.ActiveStatus = entity.ActiveStatus_Down
+	peerClientService.Update(peerClient, nil, "")
 }
 
 func (this *PeerClientService) getCacheKey(key string) string {
@@ -98,13 +103,14 @@ func (this *PeerClientService) GetFromCache(peerId string) *entity.PeerClient {
 }
 
 func (this *PeerClientService) Validate(peerClient *entity.PeerClient) error {
-	expireDate := peerClient.ExpireDate
-	if expireDate == 0 {
-		return errors.New("Invalid expireDate")
-	}
+	//expireDate := peerClient.ExpireDate
+	//if expireDate == 0 {
+	//	return errors.New("Invalid expireDate")
+	//}
 	return nil
 }
 
+// GetLocals 根据peerclient的peerid和clientid查找匹配的本地peerclient
 func (this *PeerClientService) GetLocals(key string, clientId string) ([]*entity.PeerClient, error) {
 	rec, err := dht.PeerEndpointDHT.GetLocal(key)
 	if err != nil {
@@ -150,7 +156,10 @@ func (this *PeerClientService) PutLocals(peerClients []*entity.PeerClient) error
 	return nil
 }
 
-func (this *PeerClientService) GetValues(peerId string, mobile string, name string) ([]*entity.PeerClient, error) {
+/**
+根据peerId，mobile，email，name分布式查询PeerClient
+*/
+func (this *PeerClientService) GetValues(peerId string, mobile string, email string, name string) ([]*entity.PeerClient, error) {
 	if len(peerId) == 0 && len(mobile) == 0 && len(name) == 0 {
 		logger.Sugar.Errorf("InvalidPeerClientKey")
 		return nil, errors.New("InvalidPeerClientKey")
@@ -168,7 +177,17 @@ func (this *PeerClientService) GetValues(peerId string, mobile string, name stri
 		}
 	}
 	if len(mobile) > 0 {
-		key = ns.GetPeerClientMobileKey(mobile, false)
+		key = ns.GetPeerClientMobileKey(mobile, true)
+		pcs, err := this.GetKeyValues(key)
+		if err != nil {
+			return nil, err
+		}
+		for _, pc := range pcs {
+			peerClients = append(peerClients, pc)
+		}
+	}
+	if len(email) > 0 {
+		key = ns.GetPeerClientEmailKey(email, true)
 		pcs, err := this.GetKeyValues(key)
 		if err != nil {
 			return nil, err
@@ -178,7 +197,7 @@ func (this *PeerClientService) GetValues(peerId string, mobile string, name stri
 		}
 	}
 	if len(name) > 0 {
-		key = ns.GetPeerClientNameKey(name)
+		key = ns.GetPeerClientNameKey(name, true)
 		pcs, err := this.GetKeyValues(key)
 		if err != nil {
 			return nil, err
@@ -261,11 +280,19 @@ func (this *PeerClientService) PutValues(peerClient *entity.PeerClient) error {
 	if err != nil {
 		return err
 	}
-	err = this.PutValue(peerClient, ns.PeerClient_Mobile_KeyKind)
-	if err != nil {
-		return err
-	}
-	return this.PutValue(peerClient, ns.PeerClient_Name_KeyKind)
+	//err = this.PutValue(peerClient, ns.PeerClient_Mobile_KeyKind)
+	//if err != nil {
+	//	return err
+	//}
+	//err = this.PutValue(peerClient, ns.PeerClient_Email_KeyKind)
+	//if err != nil {
+	//	return err
+	//}
+	//err = this.PutValue(peerClient, ns.PeerClient_Name_KeyKind)
+	//if err != nil {
+	//	return err
+	//}
+	return nil
 }
 
 func (this *PeerClientService) PutValue(peerClient *entity.PeerClient, keyKind string) error {
@@ -278,8 +305,10 @@ func (this *PeerClientService) PutValue(peerClient *entity.PeerClient, keyKind s
 		key = ns.GetPeerClientKey(peerClient.PeerId)
 	} else if keyKind == ns.PeerClient_Mobile_KeyKind {
 		key = ns.GetPeerClientMobileKey(peerClient.Mobile, true)
+	} else if keyKind == ns.PeerClient_Email_KeyKind {
+		key = ns.GetPeerClientEmailKey(peerClient.Email, true)
 	} else if keyKind == ns.PeerClient_Name_KeyKind {
-		key = ns.GetPeerClientNameKey(peerClient.Name)
+		key = ns.GetPeerClientNameKey(peerClient.Name, true)
 	} else {
 		logger.Sugar.Errorf("InvalidPeerClientKeyKind: %v", keyKind)
 		return errors.New("InvalidPeerClientKeyKind")

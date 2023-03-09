@@ -14,6 +14,7 @@ import (
 const PeerEndpoint_Prefix = "peerEndpoint"
 const PeerClient_Prefix = "peerClient"
 const PeerClient_Mobile_Prefix = "peerClientMobile"
+const PeerClient_Email_Prefix = "peerClientEmail"
 const PeerClient_Name_Prefix = "peerClientName"
 const ChainApp_Prefix = "chainApp"
 const DataBlock_Prefix = "dataBlock"
@@ -28,6 +29,7 @@ const TransactionKey_Prefix = "transactionKey"
 
 const PeerClient_KeyKind = "PeerId"
 const PeerClient_Mobile_KeyKind = "Mobile"
+const PeerClient_Email_KeyKind = "Email"
 const PeerClient_Name_KeyKind = "Name"
 
 const DataBlock_KeyKind = "BlockId"
@@ -68,8 +70,22 @@ func GetPeerClientMobileKey(mobile string, hashed bool) string {
 	return key
 }
 
-func GetPeerClientNameKey(name string) string {
-	key := fmt.Sprintf("/%v/%v", PeerClient_Name_Prefix, name)
+func GetPeerClientEmailKey(email string, hashed bool) string {
+	emailHash := email
+	if hashed == false {
+		emailHash = std.EncodeBase64(std.Hash(email, "sha3_256"))
+	}
+	key := fmt.Sprintf("/%v/%v", PeerClient_Email_Prefix, emailHash)
+
+	return key
+}
+
+func GetPeerClientNameKey(name string, hashed bool) string {
+	nameHash := name
+	if hashed == false {
+		nameHash = std.EncodeBase64(std.Hash(name, "sha3_256"))
+	}
+	key := fmt.Sprintf("/%v/%v", PeerClient_Name_Prefix, nameHash)
 
 	return key
 }
@@ -193,7 +209,7 @@ func (v PeerClientValidator) Validate(key string, value []byte) error {
 	if err != nil {
 		return err
 	}
-	if ns != PeerClient_Prefix && ns != PeerClient_Mobile_Prefix && ns != PeerClient_Name_Prefix {
+	if ns != PeerClient_Prefix && ns != PeerClient_Mobile_Prefix && ns != PeerClient_Email_Prefix && ns != PeerClient_Name_Prefix {
 		return errors.New("invalid namespace:" + ns)
 	}
 

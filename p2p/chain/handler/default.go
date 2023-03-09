@@ -3,7 +3,7 @@ package handler
 import (
 	"errors"
 	"github.com/curltech/go-colla-core/logger"
-	"github.com/curltech/go-colla-node/p2p/msg"
+	"github.com/curltech/go-colla-node/p2p/msg/entity"
 )
 
 type ChainMessageHandler struct {
@@ -11,9 +11,9 @@ type ChainMessageHandler struct {
 	/**
 	接收函数，返回的整数：0，不关闭流；1，发送完处理结果后关闭写流，不能再写；2，发送完处理结果后重置流，不能读写，完全关闭
 	*/
-	ReceiveHandler  func(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error)
-	SendHandler     func(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error)
-	ResponseHandler func(chainMessage *msg.ChainMessage) error
+	ReceiveHandler  func(chainMessage *entity.ChainMessage) (*entity.ChainMessage, error)
+	SendHandler     func(chainMessage *entity.ChainMessage) (*entity.ChainMessage, error)
+	ResponseHandler func(chainMessage *entity.ChainMessage) error
 }
 
 /**
@@ -46,11 +46,11 @@ func GetChainMessageHandler(msgType string) (*ChainMessageHandler, error) {
 */
 func RegistChainMessageHandler(msgType string,
 	/**
-	发送函数，
+	  发送函数，
 	*/
-	sendHandler func(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error),
-	receiveHandler func(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error),
-	responseHandler func(chainMessage *msg.ChainMessage) error) {
+	sendHandler func(chainMessage *entity.ChainMessage) (*entity.ChainMessage, error),
+	receiveHandler func(chainMessage *entity.ChainMessage) (*entity.ChainMessage, error),
+	responseHandler func(chainMessage *entity.ChainMessage) error) {
 	_, found := chainMessageHandlers[msgType]
 	if !found {
 		chainMessageHandler := ChainMessageHandler{}

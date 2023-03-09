@@ -40,7 +40,7 @@ func FindPeers(routingDiscovery *discovery.RoutingDiscovery) {
 		}
 		logger.Sugar.Infof("Found peer:%v", peer)
 		logger.Sugar.Infof("Connecting to:%v", peer)
-		p := handler.GetPipePool().GetRequestPipe(string(peer.ID), string(global.Global.ChainProtocolID))
+		p := handler.GetRequestPipe(string(peer.ID), string(global.Global.ChainProtocolID))
 		if p == nil {
 			logger.Sugar.Infof("NoPipe, failed to connect to:%v", peer)
 			continue

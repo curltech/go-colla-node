@@ -1,56 +1,86 @@
 package receiver
 
 import (
+	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/global"
-	"github.com/curltech/go-colla-node/libp2p/pipe"
+	"github.com/curltech/go-colla-node/libp2p/pubsub"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
-	"github.com/curltech/go-colla-node/p2p/chain/service"
-	msg1 "github.com/curltech/go-colla-node/p2p/msg"
+	p2phandler "github.com/curltech/go-colla-node/p2p/handler"
+	msg1 "github.com/curltech/go-colla-node/p2p/msg/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
+	"github.com/curltech/go-colla-node/transport/websocket/stdhttp"
+	"net/http"
 )
 
-/**
-p2p的chain协议处理handler，将原始数据还原成ChainMessage，然后根据消息类型进行分支处理
-*/
-func HandleChainMessage(data []byte, p *pipe.Pipe) ([]byte, error) {
+// HandleChainMessage libp2p,wss,https的处理handler，将原始数据还原成ChainMessage，
+// 然后根据消息类型进行分支处理
+// 对于libp2p，可以提前获取远程peerId，remotePeerId不为空，已经建立了remotePeerId和sessId的连接池
+// 用于信息返回
+// 对于wss，remotePeerId为空，必须从ChainMessage中获取，再建立连接池
+// 对于https，remotePeerId为空，必须从ChainMessage中获取，无须连接池，不能异步返回信息
+func ReceiveRaw(data []byte, remotePeerId string, clientId string, connectSessionId string, remoteAddr string) ([]byte, error) {
+	//defer func() {
+	//	if p := recover(); p != nil {
+	//		logger.Sugar.Errorf("recover receiveRaw:%s\r\n", p)
+	//	}
+	//}()
 	var response *msg1.ChainMessage
-	remotePeerId := p.GetStream().Conn().RemotePeer().Pretty()
-	remoteAddr := p.GetStream().Conn().RemoteMultiaddr().String()
 	chainMessage := &msg1.ChainMessage{}
 	err := message.Unmarshal(data, chainMessage)
 	if err != nil {
 		response = handler.Error(msgtype.ERROR, err)
 		goto responseProcess
 	}
-	chainMessage.LocalConnectPeerId = remotePeerId
-	chainMessage.LocalConnectAddress = remoteAddr
+	clientId = chainMessage.SrcClientId
+	if remotePeerId == "" {
+		remotePeerId = chainMessage.SrcPeerId
+	}
 	if chainMessage.SrcPeerId == "" {
 		chainMessage.SrcPeerId = remotePeerId
 	}
-	if chainMessage.SrcAddress == "" {
-		chainMessage.SrcAddress = remoteAddr
-	}
 	if chainMessage.SrcConnectPeerId == "" {
-		chainMessage.SrcConnectPeerId = global.Global.PeerId.Pretty()
+		chainMessage.SrcConnectPeerId = string(global.Global.PeerId)
 	}
 	if chainMessage.SrcConnectSessionId == "" {
-		chainMessage.SrcConnectSessionId = p.GetStream().Conn().ID()
+		chainMessage.SrcConnectSessionId = connectSessionId
 	}
-	chainMessage.ConnectSessionId = p.GetStream().Conn().ID()
-	response, err = service.Receive(chainMessage)
+	chainMessage.ConnectSessionId = connectSessionId
+	PutPeeClientId(connectSessionId, remotePeerId, clientId)
+	response, err = Dispatch(chainMessage)
 
 responseProcess:
-	if response != nil {
-		_, err = handler.Encrypt(response)
-		if err != nil {
+	if err != nil {
+		if response != nil {
+			response.StatusCode = http.StatusInternalServerError
+		} else {
 			response = handler.Error(chainMessage.MessageType, err)
 		}
-		handler.SetResponse(chainMessage, response)
-		data, _ := message.Marshal(response)
-
-		return data, nil
+	} else {
+		if response != nil {
+			_, err = handler.Encrypt(response)
+			if err != nil {
+				response = handler.Error(chainMessage.MessageType, err)
+			} else {
+				response.StatusCode = http.StatusOK
+			}
+		} else {
+			response = handler.Ok(chainMessage.MessageType)
+		}
 	}
 
-	return nil, nil
+	handler.SetResponse(chainMessage, response)
+	data, _ = message.Marshal(response)
+
+	return data, nil
+}
+
+func init() {
+	//注册websocket的消息处理
+	stdhttp.RegistMessageHandler(ReceiveRaw)
+	stdhttp.RegistDisconnectedHandler(HandleDisconnected)
+	//注册libp2p协议的消息处理
+	p2phandler.RegistProtocolMessageHandler(config.P2pParams.ChainProtocolID, ReceiveRaw)
+	//注册libp2p订阅的消息处理
+	pubsub.RegistMessageHandler(ReceiveRaw)
 }

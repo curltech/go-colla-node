@@ -12,7 +12,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	service2 "github.com/curltech/go-colla-node/p2p/chain/service"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
-	"github.com/curltech/go-colla-node/p2p/msg"
+	entity3 "github.com/curltech/go-colla-node/p2p/msg/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 	"strings"
 	"time"
@@ -40,9 +40,9 @@ func GetStdConsensus() *StdConsensus {
  * @param chainMessage
  * @return
  */
-func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *StdConsensus) ReceiveConsensus(chainMessage *entity3.ChainMessage) (*entity3.ChainMessage, error) {
 	logger.Sugar.Infof("ReceiveConsensus")
-	var response *msg.ChainMessage
+	var response *entity3.ChainMessage
 	dataBlock, err := this.GetDataBlock(chainMessage)
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (this *StdConsensus) ReceiveConsensus(chainMessage *msg.ChainMessage) (*msg
 /**
  * vice收到commited消息，完成后，向primary发送reply消息
  */
-func (this *StdConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *StdConsensus) ReceiveCommited(chainMessage *entity3.ChainMessage) (*entity3.ChainMessage, error) {
 	// 本节点是副节点会收到
 	logger.Sugar.Infof("receive ReceiveCommited")
 	dataBlock, err := this.GetDataBlock(chainMessage)
@@ -161,7 +161,7 @@ func (this *StdConsensus) ReceiveCommited(chainMessage *msg.ChainMessage) (*msg.
 leader收到reply消息，判断完成后向客户就返回reply消息
 与pbft的差异是pbft在上一步就完成了向客户端发送reply
 */
-func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *StdConsensus) ReceiveReply(chainMessage *entity3.ChainMessage) (*entity3.ChainMessage, error) {
 	messageLog, err := this.GetConsensusLog(chainMessage)
 	if err != nil {
 		return nil, err
@@ -241,7 +241,7 @@ func (this *StdConsensus) ReceiveReply(chainMessage *msg.ChainMessage) (*msg.Cha
 		}
 		logger.Sugar.Infof("findCountBy current status:%v;count:%v", msgtype.CONSENSUS_REPLY, count)
 		// 收到足够的数目
-		if count >= config.ConsensusParams.StdMinPeerNum + 1 {
+		if count >= config.ConsensusParams.StdMinPeerNum+1 {
 			MemCache.Delete(dbKey)
 			// 保存dataBlock
 			dataBlock.Status = entity2.EntityStatus_Effective

@@ -8,7 +8,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/chain/handler/sender"
-	"github.com/curltech/go-colla-node/p2p/msg"
+	"github.com/curltech/go-colla-node/p2p/msg/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 )
 
@@ -46,10 +46,10 @@ func (this *ionSignalAction) Signal(peerId string, data interface{}, targetPeerI
 	return nil, nil
 }
 
-func (this *ionSignalAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *ionSignalAction) Receive(chainMessage *entity.ChainMessage) (*entity.ChainMessage, error) {
 	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	var err error
-	var response *msg.ChainMessage
+	var response *entity.ChainMessage
 	if chainMessage.TargetPeerId != "" && global.IsMyself(chainMessage.TargetPeerId) {
 		signal := chainMessage.Payload.(map[string]interface{})
 		if this.receiver == nil {

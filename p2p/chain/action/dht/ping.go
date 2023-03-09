@@ -17,8 +17,8 @@ var PingAction pingAction
 Ping只是一个演示，适合点对点的通信，这种方式灵活度高，但是需要自己实现全网遍历的功能
 chat就可以采用这种方式
 */
-func (this *pingAction) Ping(peerId string, data interface{}, targetPeerId string) (interface{}, error) {
-	chainMessage := this.PrepareSend(peerId, data, targetPeerId)
+func (this *pingAction) Ping(connectPeerId string, data interface{}, targetPeerId string) (interface{}, error) {
+	chainMessage := this.PrepareSend(connectPeerId, data, targetPeerId)
 
 	response, err := this.Send(chainMessage)
 	if err != nil {

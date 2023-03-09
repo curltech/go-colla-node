@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
+	"github.com/curltech/go-colla-node/libp2p/dht"
+	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
+	"strings"
 )
 
 func GetStringAddr(addr string, peerId string) string {
@@ -106,4 +109,32 @@ func Merge(addrInfos []*peer.AddrInfo) *peer.AddrInfo {
 	addrInfo.ID = peer.ID(id)
 
 	return &addrInfo
+}
+
+func GetPeerId(peerId string) string {
+	ps := strings.Split(peerId, "/")
+	if len(ps) > 1 {
+		return ps[len(ps)-1]
+	}
+
+	return peerId
+}
+
+/**
+如果输入peerId没有地址信息，通过路由表获取完整的地址信息
+如果不在路由表中则原样返回，这地方有个问题，定位器有地址信息，客户端没有地址信息
+*/
+func GetAddrInfo(peerId string) string {
+	ps := strings.Split(peerId, "/")
+	if len(ps) == 1 {
+		id, err := peer.Decode(peerId)
+		if err == nil {
+			addrInfo, err := dht.PeerEndpointDHT.FindPeer(id)
+			if err == nil && len(addrInfo.Addrs) > 0 {
+				peerId = fmt.Sprintf(global.GeneralP2pAddrFormat, addrInfo.Addrs[0], addrInfo.ID)
+			}
+		}
+	}
+
+	return peerId
 }

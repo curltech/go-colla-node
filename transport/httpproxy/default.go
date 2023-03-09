@@ -13,7 +13,7 @@ import (
 )
 
 /**
-使用fasthttp实现的http反向代理，支持http,ws,https,wss的代理映射
+使用fasthttp实现的http反向代理，支持http,ws,stdhttp,wss的代理映射
 */
 type ProxyServer struct {
 	mode           string
@@ -52,7 +52,7 @@ func parseMapping() error {
 		*/
 		mode, success := maps["mode"].(string)
 		if !success {
-			mode = "http"
+			mode = "stdhttp"
 		}
 		/**
 		表现给访问者的外部地址
@@ -102,7 +102,7 @@ func parseMapping() error {
 			ps.weights[addr] = proxy.Weight(w)
 		}
 		//创建被代理的http服务器或者websocket服务器（只支持一个地址）
-		if mode == "http" || mode == "https" {
+		if mode == "stdhttp" || mode == "stdhttp" {
 			reverseProxy := proxy.NewReverseProxy("", proxy.WithBalancer(ps.weights), proxy.WithTimeout(5*time.Second))
 			ps.ReverseProxy = reverseProxy
 		} else if mode == "ws" || mode == "wss" {
@@ -124,8 +124,8 @@ func parseMapping() error {
 
 func (proxyServer *ProxyServer) ProxyHandler(ctx *fasthttp.RequestCtx) {
 	//ctx.Request.Header.Set("User-Agent", "")
-	//ctx.Request.Header.Set(http.CanonicalHeaderKey("X-Forwarded-Proto"), "https")
-	//ctx.Request.Header.Set(http.CanonicalHeaderKey("X-Forwarded-Port"), "443")
+	//ctx.Request.Header.Set(stdhttp.CanonicalHeaderKey("X-Forwarded-Proto"), "stdhttp")
+	//ctx.Request.Header.Set(stdhttp.CanonicalHeaderKey("X-Forwarded-Port"), "443")
 	// Redirect 表示目标如果http，重定向到https
 	if proxyServer.redirect {
 		// Redirect to fromURL by default, unless a domain is specified--in that case, redirect using the public facing
@@ -138,7 +138,7 @@ func (proxyServer *ProxyServer) ProxyHandler(ctx *fasthttp.RequestCtx) {
 			ctx.Redirect("https://"+redirectURL+string(ctx.RequestURI()), http.StatusMovedPermanently)
 		}
 		go func() {
-			logger.Sugar.Infof("Also redirecting https requests on port 80 to https requests on %s", redirectURL)
+			logger.Sugar.Infof("Also redirecting stdhttp requests on port 80 to stdhttp requests on %s", redirectURL)
 			err := fasthttp.ListenAndServe(":80", redirectTLS)
 			if err != nil {
 				logger.Sugar.Infof("HTTP redirection server failure")
@@ -178,12 +178,12 @@ func Start() error {
 	}
 	//启动代理
 	for addr, proxyServer := range ProxyPool {
-		if proxyServer.mode == "http" || proxyServer.mode == "ws" {
+		if proxyServer.mode == "stdhttp" || proxyServer.mode == "ws" {
 			if err := fasthttp.ListenAndServe(addr, proxyServer.ProxyHandler); err != nil {
 				logger.Sugar.Errorf("%v", err.Error())
 				return err
 			}
-		} else if proxyServer.mode == "https" || proxyServer.mode == "wss" {
+		} else if proxyServer.mode == "stdhttp" || proxyServer.mode == "wss" {
 			if config.TlsParams.Domain != "" {
 				util.FastHttpLetsEncrypt(addr, config.TlsParams.Domain, proxyServer.ProxyHandler)
 			} else {

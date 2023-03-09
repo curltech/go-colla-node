@@ -19,7 +19,7 @@ type PeerClient struct {
 	StatusReason string     `xorm:"varchar(255)" json:"statusReason,omitempty"`
 	StatusDate   *time.Time `json:"statusDate,omitempty"`
 
-	PeerId     string `xorm:"varchar(255)" json:"peerId,omitempty"`
+	PeerId string `xorm:"varchar(255)" json:"peerId,omitempty"`
 	/**
 	 * 客户连接到节点的位置
 	 */
@@ -41,9 +41,9 @@ type PeerClient struct {
 	ConnectSessionId string `xorm:"varchar(255)" json:"connectSessionId,omitempty"`
 	ClientId         string `xorm:"varchar(255)" json:"clientId,omitempty"`
 	ClientDevice     string `xorm:"varchar(255)" json:"clientDevice,omitempty"`
-	ClientType 		 string `xorm:"varchar(255)" json:"clientType,omitempty"`
-	DeviceToken 	 string `xorm:"varchar(255)" json:"deviceToken,omitempty"`
-	Language		 string `xorm:"varchar(255)" json:"language,omitempty"`
+	ClientType       string `xorm:"varchar(255)" json:"clientType,omitempty"`
+	DeviceToken      string `xorm:"varchar(255)" json:"deviceToken,omitempty"`
+	Language         string `xorm:"varchar(255)" json:"language,omitempty"`
 	MobileVerified   string `xorm:"varchar(255)" json:"mobileVerified,omitempty"`
 	// 可见性YYYYY (peerId、mobileNumber、groupChat、qrCode、contactCard）
 	VisibilitySetting string `xorm:"varchar(255)" json:"visibilitySetting,omitempty"`
@@ -53,6 +53,7 @@ type PeerClient struct {
 	StartDate                  *time.Time `json:"startDate,omitempty"`
 	EndDate                    *time.Time `json:"endDate,omitempty"`
 	Mobile                     string     `xorm:"varchar(255)" json:"mobile,omitempty"`
+	Email                      string     `xorm:"varchar(255)" json:"email,omitempty"`
 	Address                    string     `xorm:"varchar(255)" json:"address,omitempty"`
 	PeerPublicKey              string     `xorm:"varchar(255)" json:"peerPublicKey,omitempty"`
 	PublicKey                  string     `xorm:"varchar(1024)" json:"publicKey,omitempty"`

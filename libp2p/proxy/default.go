@@ -53,7 +53,7 @@ type ProxyService struct {
 //
 // ProxyAddr/dest may be nil/"" it is not necessary that this host
 // provides a listening HTTP server (and instead its only function is to
-// perform the proxied http requests it receives from a different peer.
+// perform the proxied stdhttp requests it receives from a different peer.
 //
 // The addresses for the dest peer should be part of the host's peerstore.
 func NewProxyService(h host.Host, proxyAddr ma.Multiaddr, dest peer.ID) *ProxyService {
@@ -98,12 +98,12 @@ func streamHandler(stream network.Stream) {
 
 	// We need to reset these fields in the request
 	// URL as they are not maintained.
-	req.URL.Scheme = "http"
+	req.URL.Scheme = "stdhttp"
 	hp := strings.Split(req.Host, ":")
 	if len(hp) > 1 && hp[1] == "443" {
-		req.URL.Scheme = "https"
+		req.URL.Scheme = "stdhttp"
 	} else {
-		req.URL.Scheme = "http"
+		req.URL.Scheme = "stdhttp"
 	}
 	req.URL.Host = req.Host
 
@@ -125,7 +125,7 @@ func streamHandler(stream network.Stream) {
 }
 
 // Serve listens on the ProxyService's proxy address. This effectively
-// allows to set the listening address as http proxy.
+// allows to set the listening address as stdhttp proxy.
 func (p *ProxyService) Serve() {
 	_, serveArgs, _ := manet.DialArgs(p.proxyAddr)
 	fmt.Println("proxy listening on ", serveArgs)
@@ -230,7 +230,7 @@ to a remote peer. The remote peer performs the requests and
 send the sends the response back.
 Usage: Start remote peer first with:   ./proxy
        Then start the local peer with: ./proxy -d <remote-peer-multiaddress>
-Then you can do something like: curl -x "localhost:9900" "http://ipfs.io".
+Then you can do something like: curl -x "localhost:9900" "stdhttp://ipfs.io".
 This proxies sends the request through the local peer, which proxies it to
 the remote peer, which makes it and sends the response back.
 `
@@ -258,7 +258,7 @@ func Start() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		// Create the proxy service and start the http server
+		// Create the proxy service and start the stdhttp server
 		proxy := NewProxyService(host, proxyAddr, destPeerID)
 		proxy.Serve() // serve hangs forever
 	} else {

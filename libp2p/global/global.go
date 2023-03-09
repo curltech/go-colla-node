@@ -6,12 +6,12 @@ import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-push-sdk/push"
-	"github.com/libp2p/go-libp2p-core/connmgr"
-	libp2pcrypto "github.com/libp2p/go-libp2p-core/crypto"
-	"github.com/libp2p/go-libp2p-core/host"
-	peer "github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/protocol"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	"github.com/libp2p/go-libp2p/core/connmgr"
+	libp2pcrypto "github.com/libp2p/go-libp2p/core/crypto"
+	"github.com/libp2p/go-libp2p/core/host"
+	peer "github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/core/protocol"
 	"github.com/multiformats/go-multiaddr"
 	"strings"
 )
@@ -34,9 +34,9 @@ type global struct {
 	WebrtcstarHost host.Host
 
 	PushRegisterClient *push.RegisterClient
-	HuaweiAccessToken string
-	OppoAccessToken string
-	VivoAccessToken string
+	HuaweiAccessToken  string
+	OppoAccessToken    string
+	VivoAccessToken    string
 }
 
 var Global = global{}

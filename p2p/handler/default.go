@@ -2,15 +2,12 @@ package handler
 
 import (
 	"errors"
-	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/logger"
-	"github.com/curltech/go-colla-node/libp2p/pipe"
-	"github.com/curltech/go-colla-node/p2p/chain/handler/receiver"
 )
 
 type ProtocolMessageHandler struct {
 	ProtocolID     string
-	ReceiveHandler func(data []byte, p *pipe.Pipe) ([]byte, error)
+	MessageHandler func(data []byte, remotePeerId string, clientId string, connectSessionId string, remoteAddr string) ([]byte, error)
 }
 
 /**
@@ -30,18 +27,14 @@ func GetProtocolMessageHandler(protocolID string) (*ProtocolMessageHandler, erro
 }
 
 func RegistProtocolMessageHandler(protocolID string,
-	receiveHandler func(data []byte, p *pipe.Pipe) ([]byte, error)) {
+	receiveHandler func(data []byte, remotePeerId string, clientId string, connectSessionId string, remoteAddr string) ([]byte, error)) {
 	_, found := protocolMessageHandlers[protocolID]
 	if !found {
 		protocolMessageHandler := ProtocolMessageHandler{}
 		protocolMessageHandler.ProtocolID = protocolID
-		protocolMessageHandler.ReceiveHandler = receiveHandler
+		protocolMessageHandler.MessageHandler = receiveHandler
 		protocolMessageHandlers[protocolID] = &protocolMessageHandler
 	} else {
 		logger.Sugar.Errorf("ReceiveHandler:%v exist", protocolID)
 	}
-}
-
-func init() {
-	RegistProtocolMessageHandler(config.P2pParams.ChainProtocolID, receiver.HandleChainMessage)
 }

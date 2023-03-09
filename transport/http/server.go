@@ -86,7 +86,7 @@ func main() {
 	var port int
 	var multicore bool
 
-	// Example command: go run http.go --port 8080 --multicore=true
+	// Example command: go run stdhttp.go --port 8080 --multicore=true
 	flag.IntVar(&port, "port", 8080, "server port")
 	flag.BoolVar(&multicore, "multicore", true, "multicore")
 	flag.Parse()
@@ -106,7 +106,7 @@ func appendHandle(b []byte, res string) []byte {
 	return appendResp(b, "200 OK", "", res)
 }
 
-// appendResp will append a valid http response to the provide bytes.
+// appendResp will append a valid stdhttp response to the provide bytes.
 // The status param should be the code plus text such as "200 OK".
 // The head parameter should be a series of lines ending with "\r\n" or empty.
 func appendResp(b []byte, status, head, body string) []byte {
@@ -135,7 +135,7 @@ func b2s(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
 
-// parseReq is a very simple http request parser. This operation
+// parseReq is a very simple stdhttp request parser. This operation
 // waits for the entire payload to be buffered before returning a
 // valid request.
 func parseReq(data []byte, req *request) (leftover []byte, err error) {

@@ -10,7 +10,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/chain/handler/sender"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
-	"github.com/curltech/go-colla-node/p2p/msg"
+	entity2 "github.com/curltech/go-colla-node/p2p/msg/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 )
 
@@ -38,9 +38,9 @@ func (this *peerEndPointAction) PeerEndPoint(targetPeerId string) (interface{}, 
 	return nil, nil
 }
 
-func (this *peerEndPointAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *peerEndPointAction) Receive(chainMessage *entity2.ChainMessage) (*entity2.ChainMessage, error) {
 	logger.Sugar.Debugf("Receive %v message", this.MsgType)
-	var response *msg.ChainMessage = nil
+	var response *entity2.ChainMessage = nil
 	if chainMessage.Payload != nil {
 		srcPeerEndpoint := chainMessage.Payload.(*entity.PeerEndpoint)
 		srcPeerEndpoint.ActiveStatus = entity.ActiveStatus_Up

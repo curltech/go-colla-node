@@ -11,7 +11,7 @@ import (
 	service2 "github.com/curltech/go-colla-node/p2p/chain/service"
 	entity1 "github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
-	"github.com/curltech/go-colla-node/p2p/msg"
+	entity2 "github.com/curltech/go-colla-node/p2p/msg/entity"
 	kb "github.com/libp2p/go-libp2p-kbucket"
 	"github.com/patrickmn/go-cache"
 	"math/rand"
@@ -50,7 +50,7 @@ func randomSlice(origin []string, count int, seed int64) []string {
 
 	result := make([]string, 0, count)
 	for index, value := range tmpOrigin {
-		if index == count{
+		if index == count {
 			break
 		}
 		result = append(result, value)
@@ -102,7 +102,7 @@ func (this *Consensus) ChooseConsensusPeer(dataBlock *entity.DataBlock) []string
 /**
 创建新的ConsensusLog，存入数据库中
 */
-func (this *Consensus) CreateConsensusLog(chainMessage *msg.ChainMessage, dataBlock *entity.DataBlock, myselfPeer *entity1.MyselfPeer, status string) *entity.ConsensusLog {
+func (this *Consensus) CreateConsensusLog(chainMessage *entity2.ChainMessage, dataBlock *entity.DataBlock, myselfPeer *entity1.MyselfPeer, status string) *entity.ConsensusLog {
 	log := &entity.ConsensusLog{}
 	log.BlockId = dataBlock.BlockId
 	log.BlockType = dataBlock.BlockType
@@ -110,7 +110,7 @@ func (this *Consensus) CreateConsensusLog(chainMessage *msg.ChainMessage, dataBl
 	log.PrimarySequenceId = dataBlock.PrimarySequenceId
 	log.PayloadHash = dataBlock.PayloadHash
 	log.ClientPeerId = chainMessage.SrcPeerId
-	log.ClientAddress = chainMessage.SrcAddress
+	log.ClientAddress = chainMessage.SrcConnectAddress
 	log.PeerId = myselfPeer.PeerId
 	log.Address = myselfPeer.Address
 	log.PublicKey = myselfPeer.PublicKey
@@ -129,7 +129,7 @@ func (this *Consensus) CreateConsensusLog(chainMessage *msg.ChainMessage, dataBl
 /**
 从消息中提取datablock
 */
-func (this *Consensus) GetDataBlock(chainMessage *msg.ChainMessage) (*entity.DataBlock, error) {
+func (this *Consensus) GetDataBlock(chainMessage *entity2.ChainMessage) (*entity.DataBlock, error) {
 	var dataBlock *entity.DataBlock
 	if chainMessage.Payload != nil {
 		var ok bool
@@ -163,7 +163,7 @@ func (this *Consensus) GetDataBlock(chainMessage *msg.ChainMessage) (*entity.Dat
 /**
 从消息中提取ConsensusLog
 */
-func (this *Consensus) GetConsensusLog(chainMessage *msg.ChainMessage) (*entity.ConsensusLog, error) {
+func (this *Consensus) GetConsensusLog(chainMessage *entity2.ChainMessage) (*entity.ConsensusLog, error) {
 	var messageLog *entity.ConsensusLog
 	if chainMessage.Payload != nil {
 		var ok bool

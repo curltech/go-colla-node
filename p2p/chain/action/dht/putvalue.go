@@ -12,7 +12,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
-	"github.com/curltech/go-colla-node/p2p/msg"
+	entity2 "github.com/curltech/go-colla-node/p2p/msg/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 	"time"
 )
@@ -26,9 +26,9 @@ var PutValueAction putValueAction
 /**
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
-func (this *putValueAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *putValueAction) Receive(chainMessage *entity2.ChainMessage) (*entity2.ChainMessage, error) {
 	logger.Sugar.Infof("Receive %v message", this.MsgType)
-	var response *msg.ChainMessage = nil
+	var response *entity2.ChainMessage = nil
 	v := chainMessage.Payload
 	peerClient, ok := v.(*entity.PeerClient)
 	if ok {

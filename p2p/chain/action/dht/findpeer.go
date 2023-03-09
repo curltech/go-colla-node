@@ -3,10 +3,10 @@ package dht
 import (
 	"errors"
 	"github.com/curltech/go-colla-core/logger"
-	"github.com/curltech/go-colla-node/p2p/dht/service"
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
-	"github.com/curltech/go-colla-node/p2p/msg"
+	"github.com/curltech/go-colla-node/p2p/dht/service"
+	"github.com/curltech/go-colla-node/p2p/msg/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 )
 
@@ -19,9 +19,9 @@ var FindPeerAction findPeerAction
 /**
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
-func (this *findPeerAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+func (this *findPeerAction) Receive(chainMessage *entity.ChainMessage) (*entity.ChainMessage, error) {
 	logger.Sugar.Infof("Receive %v message", this.MsgType)
-	var response *msg.ChainMessage = nil
+	var response *entity.ChainMessage = nil
 	conditionBean, ok := chainMessage.Payload.(map[string]interface{})
 	if !ok {
 		response = handler.Error(chainMessage.MessageType, errors.New("ErrorCondition"))

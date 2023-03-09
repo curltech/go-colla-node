@@ -6,7 +6,7 @@ import (
 	"github.com/curltech/go-colla-node/p2p/chain/action"
 	"github.com/curltech/go-colla-node/p2p/chain/handler"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
-	"github.com/curltech/go-colla-node/p2p/msg"
+	"github.com/curltech/go-colla-node/p2p/msg/entity"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
 )
 
@@ -16,31 +16,33 @@ type findClientAction struct {
 
 var FindClientAction findClientAction
 
-/**
-接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
-*/
-func (this *findClientAction) Receive(chainMessage *msg.ChainMessage) (*msg.ChainMessage, error) {
+// Receive 根据peerid，mobile，name进行peerclient的查询，返回查询的结果
+func (this *findClientAction) Receive(chainMessage *entity.ChainMessage) (*entity.ChainMessage, error) {
 	logger.Sugar.Infof("Receive %v message", this.MsgType)
-	var response *msg.ChainMessage = nil
+	var response *entity.ChainMessage = nil
 	conditionBean, ok := chainMessage.Payload.(map[string]interface{})
 	if !ok {
 		response = handler.Error(chainMessage.MessageType, errors.New("ErrorCondition"))
 		return response, nil
 	}
 	var peerId string = ""
-	var mobileNumber string = ""
+	var mobile string = ""
+	var email string = ""
 	var name string = ""
 	if conditionBean["peerId"] != nil {
 		peerId = conditionBean["peerId"].(string)
 	}
-	if conditionBean["mobileNumber"] != nil {
-		mobileNumber = conditionBean["mobileNumber"].(string)
+	if conditionBean["mobile"] != nil {
+		mobile = conditionBean["mobile"].(string)
+	}
+	if conditionBean["email"] != nil {
+		email = conditionBean["email"].(string)
 	}
 	if conditionBean["name"] != nil {
 		name = conditionBean["name"].(string)
 	}
 
-	peerClients, err := service.GetPeerClientService().GetValues(peerId, mobileNumber, name)
+	peerClients, err := service.GetPeerClientService().GetValues(peerId, mobile, email, name)
 	if err != nil {
 		response = handler.Error(chainMessage.MessageType, err)
 		return response, nil

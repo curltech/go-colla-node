@@ -7,25 +7,27 @@ server:
   name: peer1
   email: user@mailbox
   password: password
+  websocket:
+    heartbeatInteval: 30
 log:
   level: info
   encoder: console
   filePath: /home/azureuser/colla/logs/peer1.log
 http:
   port: 8081
-  externalAddr: peer1.domain
+  externalAddr: peer1.curltech.io
   externalPort: 9091
   tls:
     mode: cert
     port: 9091
-    url: peer1.domain
+    url: peer1.curltech.io
     email: user@mailbox
     cert: conf/camsi-server-ec.crt
     key: conf/camsi-server-ec.key
   proxy:
     mode: none
     address: :5720
-    target: http://peer1.domain:4720
+    target: stdhttp://peer1.curltech.io:4720
     redirect: true
 database:
   drivername: postgres
@@ -54,7 +56,7 @@ libp2p:
   dht:
     bootstraps: /dns4/peer0.domain/tcp/3720/p2p/peerId0,/dns4/peer2.domain/tcp/3720/p2p/peerId2
   enableAddressFactory: true
-  externalAddr: peer1.domain
+  externalAddr: peer1.curltech.io
   externalPort: 3720
   externalWsPort: 4720
   externalWssPort: 5720
@@ -66,9 +68,9 @@ ipfs:
   repoPath: /home/azureuser/colla/content/peer1
 turn:
   enable: true
-  realm: peer1.domain
-  host: hostname
-  ip: 10.1.1.4
+  realm: peer1.curltech.io
+  host: localhost
+  ip: 127.0.0.1
   tcpPort: 3478
   udpPort: 3478
   credentials: user=password
@@ -86,7 +88,7 @@ sfu:
   maxport: 5200
   sdpsemantics: unified-plan
   level: trace
-  urls: stun:peer1.domain:3478;turn:peer1.domain:3478
+  urls: stun:peer1.curltech.io:3478;turn:peer1.curltech.io:3478
   username: ;user
   credential: ;password
 consensus:

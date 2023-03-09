@@ -113,6 +113,8 @@ func dhtOptions() []kaddht.Option {
 	options = append(options, validator)
 	validator = kaddht.NamespacedValidator(ns.PeerClient_Mobile_Prefix, ns.PeerClientValidator{})
 	options = append(options, validator)
+	validator = kaddht.NamespacedValidator(ns.PeerClient_Email_Prefix, ns.PeerClientValidator{})
+	options = append(options, validator)
 	validator = kaddht.NamespacedValidator(ns.PeerClient_Name_Prefix, ns.PeerClientValidator{})
 	options = append(options, validator)
 	validator = kaddht.NamespacedValidator(ns.ChainApp_Prefix, ns.PeerClientValidator{})
