@@ -49,7 +49,7 @@ require (
 	github.com/pion/webrtc/v3 v3.1.7
 	github.com/robfig/cron v1.2.0
 	github.com/valyala/fasthttp v1.40.0
-	github.com/yeqown/fasthttp-reverse-proxy/v2 v2.2.2
+	github.com/yeqown/fasthttp-reverse-proxy/v2 v2.2.0
 	github.com/yeqown/log v1.1.1 // indirect
 	golang.org/x/crypto v0.0.0-20221012134737-56aed061732a
 )
