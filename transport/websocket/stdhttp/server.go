@@ -398,6 +398,12 @@ func (conn *WebsocketConnection) loopHeartbeat() {
 		logger.Sugar.Errorf("websocket connection:%v is closed!", conn.Session.SessionID())
 		return
 	}
+	var sessionId = conn.Session.SessionID()
+	err := conn.Write(websocket.BinaryMessage, []byte("heartbeat:"+sessionId))
+	if err != nil {
+		logger.Sugar.Errorf("heartbeat fail:%v", err.Error())
+		conn.Close()
+	}
 	for {
 		time.Sleep(time.Duration(heartbeatInterval) * time.Second)
 		var sessionId = conn.Session.SessionID()
