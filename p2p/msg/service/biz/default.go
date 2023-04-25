@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// RelaySend 发送保存的转发消息，并把转发的消息删除
 func RelaySend(peerClient *entity.PeerClient) error {
 	targetPeerId := peerClient.PeerId
 	chainMessages := make([]*entity3.ChainMessage, 0)

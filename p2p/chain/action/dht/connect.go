@@ -51,6 +51,7 @@ func (this *connectAction) Receive(chainMessage *entity2.ChainMessage) (*entity2
 	go this.returnPeerEndpoint(chainMessage)
 	peerId := peerClient.PeerId
 	activeStatus := peerClient.ActiveStatus
+	//对连接的客户端，发回保存的转发消息
 	if activeStatus == entity.ActiveStatus_Up {
 		go biz.RelaySend(peerClient)
 	}
