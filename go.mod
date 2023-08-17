@@ -46,7 +46,7 @@ require (
 	github.com/pion/sdp/v3 v3.0.6 // indirect
 	github.com/pion/transport v0.14.1 // indirect
 	github.com/pion/turn/v2 v2.1.2
-	github.com/pion/webrtc/v3 v3.2.14
+	github.com/pion/webrtc/v3 v3.1.25
 	github.com/robfig/cron v1.2.0
 	github.com/valyala/fasthttp v1.40.0
 	github.com/yeqown/fasthttp-reverse-proxy/v2 v2.2.0
@@ -61,7 +61,7 @@ require (
 	github.com/ipfs/go-ds-leveldb v0.5.0
 	github.com/ipfs/go-ipfs-util v0.0.2
 	github.com/phachon/fasthttpsession v0.0.0-20201116052147-eb400f0616cb
-	github.com/pion/ion-sfu v1.10.10
+	github.com/pion/ion-sfu v1.11.0
 	github.com/pion/sdp/v2 v2.4.0
 	github.com/pion/stun v0.6.1
 	github.com/pkg/errors v0.9.1
