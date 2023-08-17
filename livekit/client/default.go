@@ -16,9 +16,11 @@ func NewRoomServiceClient(host string, connectInfo lksdk.ConnectInfo) *lksdk.Roo
 }
 
 //创建新的房间，
-func CreateRoom(roomClient *lksdk.RoomServiceClient, roomId string) (*livekit.Room, error) {
+func CreateRoom(roomClient *lksdk.RoomServiceClient, roomId string, maxParticipants uint32) (*livekit.Room, error) {
 	return roomClient.CreateRoom(context.Background(), &livekit.CreateRoomRequest{
-		Name: roomId,
+		Name:            roomId,
+		MaxParticipants: maxParticipants,
+		EmptyTimeout:    240 * 60, // 240 minutes
 	})
 }
 
@@ -76,7 +78,7 @@ func NewLocalReaderTrack(in io.ReadCloser, mime string) (*lksdk.LocalSampleTrack
 	)
 }
 
-//把轨道发布到房间
+//把文件或者流轨道发布到房间
 func PublishTrack(room *lksdk.Room, name string, track *lksdk.LocalSampleTrack, videoWidth int, videoHeight int) (*lksdk.LocalTrackPublication, error) {
 	return room.LocalParticipant.PublishTrack(track, &lksdk.TrackPublicationOptions{
 		Name:        name,
