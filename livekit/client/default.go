@@ -43,6 +43,14 @@ func ListParticipants(roomClient *lksdk.RoomServiceClient, roomId string) (*live
 	})
 }
 
+//列出房间的参与人的详细信息
+func GetParticipant(roomClient *lksdk.RoomServiceClient, roomId string, identity string) (*livekit.ParticipantInfo, error) {
+	return roomClient.GetParticipant(context.Background(), &livekit.RoomParticipantIdentity{
+		Room:     roomId,
+		Identity: identity,
+	})
+}
+
 //参与人从房间离开
 func RemoveParticipant(roomClient *lksdk.RoomServiceClient, roomId string, identity string) (*livekit.RemoveParticipantResponse, error) {
 	return roomClient.RemoveParticipant(context.Background(), &livekit.RoomParticipantIdentity{
