@@ -15,8 +15,8 @@ import (
 	entity2 "github.com/curltech/go-colla-node/p2p/msg/entity"
 	"github.com/curltech/go-colla-node/p2p/msg/service/biz"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/routing"
+	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/core/routing"
 	"sync"
 	"time"
 )
@@ -70,7 +70,7 @@ func (this *connectAction) Receive(chainMessage *entity2.ChainMessage) (*entity2
 	return response, nil
 }
 
-//返回节点以及附近节点的列表
+// 返回节点以及附近节点的列表
 func (this *connectAction) returnPeerEndpoint(chainMessage *entity2.ChainMessage) {
 	var response *entity2.ChainMessage = nil
 	// 返回peerEndPoint信息

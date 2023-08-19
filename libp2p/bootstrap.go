@@ -9,11 +9,12 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/util"
 	dhtentity "github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-colla-node/p2p/dht/service"
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"strings"
 )
 
-/**
+/*
+*
 获取启动节点清单，从配置文件读取
 */
 func getPeerInfosFromConf() []*peer.AddrInfo {
@@ -84,7 +85,8 @@ func GetPeerInfos() []*peer.AddrInfo {
 	return peerinfos
 }
 
-/**
+/*
+*
 后台线程，检查在数据库中是否存在，如果不存在，连接，寻找节点，加入dht
 如果连接不上，调度连接根据配置的启动节点进行刷新
 */

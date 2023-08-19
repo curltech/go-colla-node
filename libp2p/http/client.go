@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/global"
-	"github.com/libp2p/go-libp2p-core/host"
-	"github.com/libp2p/go-libp2p-core/protocol"
 	gostream "github.com/libp2p/go-libp2p-gostream"
+	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/core/protocol"
 	"io"
 	"net"
 	nethttp "net/http"
@@ -54,11 +54,12 @@ type RoundTripper struct {
 //
 // The typical use case for NewTransport is to register the "libp2p"
 // protocol with a Transport, as in:
-//     t := &stdhttp.Transport{}
-//     t.RegisterProtocol("libp2p", p2phttp.NewTransport(host, ProtocolOption(DefaultP2PProtocol)))
-//     c := &stdhttp.Client{Transport: t}
-//     res, err := c.Get("libp2p://Qmaoi4isbcTbFfohQyn28EiYM5CDWQx9QRCjDh3CTeiY7P/index.html")
-//     ...
+//
+//	t := &stdhttp.Transport{}
+//	t.RegisterProtocol("libp2p", p2phttp.NewTransport(host, ProtocolOption(DefaultP2PProtocol)))
+//	c := &stdhttp.Client{Transport: t}
+//	res, err := c.Get("libp2p://Qmaoi4isbcTbFfohQyn28EiYM5CDWQx9QRCjDh3CTeiY7P/index.html")
+//	...
 func NewTransport(h host.Host, opts ...Option) *RoundTripper {
 	defOpts := options{
 		Protocol: DefaultP2PProtocol,

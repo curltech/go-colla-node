@@ -3,8 +3,8 @@ package libp2p
 import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/global"
-	"github.com/libp2p/go-libp2p-core/network"
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p/core/network"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/p2p/discovery/mdns"
 )
 
@@ -12,7 +12,8 @@ type discoveryNotifee struct {
 	PeerChan chan peer.AddrInfo
 }
 
-/**
+/*
+*
 新peer发现的时候被调用
 */
 func (notifee *discoveryNotifee) HandlePeerFound(peer peer.AddrInfo) {
@@ -23,7 +24,8 @@ func (notifee *discoveryNotifee) HandlePeerFound(peer peer.AddrInfo) {
 	}
 }
 
-/**
+/*
+*
 通过mdns协议发现新节点
 peerChan := mdns(ctx, host, group)
 peer := <-peerChan // will block untill we discover a peer

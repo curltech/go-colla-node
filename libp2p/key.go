@@ -4,8 +4,8 @@ import (
 	"bytes"
 	openpgpcrypto "github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/curltech/go-colla-core/crypto/openpgp"
-	"github.com/libp2p/go-libp2p-core/crypto"
-	pb "github.com/libp2p/go-libp2p-core/crypto/pb"
+	"github.com/libp2p/go-libp2p/core/crypto"
+	pb "github.com/libp2p/go-libp2p/core/crypto/pb"
 )
 
 type OpenPGPPrivateKey struct {

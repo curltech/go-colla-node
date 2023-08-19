@@ -14,22 +14,22 @@ import (
 	"github.com/ipfs/go-cid"
 	ds "github.com/ipfs/go-datastore"
 	u "github.com/ipfs/go-ipfs-util"
-	"github.com/jbenet/goprocess"
-	"github.com/libp2p/go-libp2p-core/crypto"
-	"github.com/libp2p/go-libp2p-core/host"
-	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/routing"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	kb "github.com/libp2p/go-libp2p-kbucket"
 	"github.com/libp2p/go-libp2p-kbucket/peerdiversity"
 	record "github.com/libp2p/go-libp2p-record"
 	recpb "github.com/libp2p/go-libp2p-record/pb"
+	"github.com/libp2p/go-libp2p/core/crypto"
+	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/core/routing"
 	"github.com/multiformats/go-base32"
 	"strings"
 	"time"
 )
 
-/**
+/*
+*
 提供了dht的服务的封装供外部调用，但是p2p的节点之间的消息不通过这里
 */
 type PeerEntityDHT struct {
@@ -55,8 +55,8 @@ func (this *PeerEntityDHT) Host() host.Host {
 	return this.DHT.Host()
 }
 
-func (this *PeerEntityDHT) FindLocal(id peer.ID) peer.AddrInfo {
-	return this.DHT.FindLocal(id)
+func (this *PeerEntityDHT) FindLocal(ctx context.Context, id peer.ID) peer.AddrInfo {
+	return this.DHT.FindLocal(ctx, id)
 }
 
 func (this *PeerEntityDHT) Ping(p peer.ID) error {
@@ -277,10 +277,6 @@ func (this *PeerEntityDHT) Mode() dht.ModeOpt {
 
 func (this *PeerEntityDHT) Context() context.Context {
 	return this.DHT.Context()
-}
-
-func (this *PeerEntityDHT) Process() goprocess.Process {
-	return this.DHT.Process()
 }
 
 func (this *PeerEntityDHT) Provide(key cid.Cid, brdcst bool) (err error) {

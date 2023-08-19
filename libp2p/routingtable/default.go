@@ -1,13 +1,14 @@
 package routingtable
 
 import (
-	"github.com/libp2p/go-libp2p-core/peer"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	"github.com/libp2p/go-libp2p-kbucket/peerdiversity"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"time"
 )
 
-/**
+/*
+*
 提供了routingTable的服务的封装供外部调用
 */
 type PeerEntityRoutingTable struct {

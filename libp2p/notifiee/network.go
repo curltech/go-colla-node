@@ -3,7 +3,7 @@ package notifiee
 import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/global"
-	"github.com/libp2p/go-libp2p-core/network"
+	"github.com/libp2p/go-libp2p/core/network"
 	ma "github.com/multiformats/go-multiaddr"
 )
 

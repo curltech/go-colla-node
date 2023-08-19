@@ -24,19 +24,19 @@ import (
 	"github.com/curltech/go-push-sdk/push"
 	"github.com/libp2p/go-libp2p"
 	dht2 "github.com/libp2p/go-libp2p-kad-dht"
-	mplex "github.com/libp2p/go-libp2p-mplex"
-	noise "github.com/libp2p/go-libp2p-noise"
-	libp2pquic "github.com/libp2p/go-libp2p-quic-transport"
-	libp2ptls "github.com/libp2p/go-libp2p-tls"
 	libp2pcrypto "github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/protocol"
 	"github.com/libp2p/go-libp2p/core/routing"
+	yamux "github.com/libp2p/go-libp2p/p2p/muxer/yamux"
 	connmgr "github.com/libp2p/go-libp2p/p2p/net/connmgr"
 	"github.com/libp2p/go-libp2p/p2p/protocol/ping"
-	"github.com/libp2p/go-tcp-transport"
-	ws "github.com/libp2p/go-ws-transport"
+	noise "github.com/libp2p/go-libp2p/p2p/security/noise"
+	libp2ptls "github.com/libp2p/go-libp2p/p2p/security/tls"
+	libp2pquic "github.com/libp2p/go-libp2p/p2p/transport/quic"
+	"github.com/libp2p/go-libp2p/p2p/transport/tcp"
+	ws "github.com/libp2p/go-libp2p/p2p/transport/websocket"
 	ma "github.com/multiformats/go-multiaddr"
 	"golang.org/x/crypto/acme/autocert"
 	"time"
@@ -46,7 +46,8 @@ import (
 golang.org/x/crypto的库需要替换成libp2p的定制版本
 */
 
-/**
+/*
+*
 根据配置的协议编号自定义流协议，其他peer连接自己的时候，用于在节点间接收和发送数据
 */
 func chainProtocolStream() protocol.ID {
@@ -290,7 +291,7 @@ func p2pOptions() []libp2p.Option {
 	//options = append(options, defaultTransport)
 	//libp2p.Transport(tcp.NewTCPTransport)
 	//options = append(options, libp2p.Muxer("/yamux/1.0.0", yamux.DefaultConfig()))
-	options = append(options, libp2p.Muxer("/mplex/6.7.0", mplex.DefaultTransport))
+	options = append(options, libp2p.Muxer("/mplex/6.7.0", yamux.DefaultTransport))
 
 	// 嵌入webrtc2.0的支持，和js端可以兼容，但只能单独使用
 	// mplex "github.com/whyrusleeping/go-smux-multiplex"需要make deps
@@ -332,7 +333,8 @@ func generateTLSConfig() *tls.Config {
 //	}
 //}
 
-/**
+/*
+*
 获取自己节点的记录，如果没有就创建一个，返回私钥用于启动节点
 */
 func getMyselfPeer() (libp2pcrypto.PrivKey, *entity.MyselfPeer) {
@@ -426,7 +428,8 @@ func getMyselfPeer() (libp2pcrypto.PrivKey, *entity.MyselfPeer) {
 	}
 }
 
-/**
+/*
+*
 启动本机作为一个p2p节点主机
 */
 func Start() {
@@ -615,7 +618,8 @@ func upsertMyselfPeer(priv libp2pcrypto.PrivKey, myself *entity.MyselfPeer) (nee
 	return needUpdate
 }
 
-/**
+/*
+*
 为了节点发现启动DHT
 */
 func NewPeerEndpointDHT(options []dht2.Option) *dht.PeerEntityDHT {

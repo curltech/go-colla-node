@@ -5,10 +5,11 @@ import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/pipe/handler"
-	discovery "github.com/libp2p/go-libp2p-discovery"
+	discovery "github.com/libp2p/go-libp2p/p2p/discovery/routing"
 )
 
-/**
+/*
+*
 路由发现，设置约会地点
 */
 func routingDiscovery() *discovery.RoutingDiscovery {
@@ -20,8 +21,8 @@ func routingDiscovery() *discovery.RoutingDiscovery {
 		logger.Sugar.Errorf("%v", err)
 	}
 	//广播约会地
-	discovery.Advertise(global.Global.Context, routingDiscovery, global.Global.Rendezvous)
-	logger.Sugar.Infof("Successfully announced:%v", global.Global.Rendezvous)
+	//discovery.Advertise(global.Global.Context, routingDiscovery, global.Global.Rendezvous)
+	//logger.Sugar.Infof("Successfully announced:%v", global.Global.Rendezvous)
 
 	return routingDiscovery
 }

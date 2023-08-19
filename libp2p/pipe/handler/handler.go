@@ -6,11 +6,12 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/pipe"
 	"github.com/curltech/go-colla-node/p2p/handler"
 	"github.com/curltech/go-colla-node/p2p/msgtype"
-	"github.com/libp2p/go-libp2p-core/network"
-	"github.com/libp2p/go-libp2p-core/protocol"
+	"github.com/libp2p/go-libp2p/core/network"
+	"github.com/libp2p/go-libp2p/core/protocol"
 )
 
-/**
+/*
+*
 libp2p的流处理模块把接收的数据分发到这里，通用的消息处理分发器根据stream的protocolID作下一步处理分发
 比如，chain协议的将进一步分发到p2p的chain协议处理handler
 */
@@ -41,7 +42,8 @@ func HandleRaw(data []byte, p *pipe.Pipe) ([]byte, error) {
 	return data, nil
 }
 
-/**
+/*
+*
 根据配置的协议编号自定义流协议，其他peer连接自己的时候，用于在节点间接收和发送数据
 */
 func ProtocolStream(protocolID protocol.ID) {

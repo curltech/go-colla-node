@@ -3,8 +3,8 @@ package pubsub
 import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/libp2p/global"
-	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
+	"github.com/libp2p/go-libp2p/core/peer"
 )
 
 var messageHandler func(data []byte, remotePeerId string, clientId string, connectSessionId string, remoteAddr string) ([]byte, error)
@@ -13,7 +13,8 @@ func RegistMessageHandler(receiveHandler func(data []byte, remotePeerId string, 
 	messageHandler = receiveHandler
 }
 
-/**
+/*
+*
 订阅主题和订阅者
 */
 type PubsubTopic struct {
@@ -25,7 +26,8 @@ var Pubsub *pubsub.PubSub
 
 var PubsubTopicPool = make(map[string]*PubsubTopic, 0)
 
-/**
+/*
+*
 加入主题，可以向这个主题发消息
 如果主题不存在，创建新的
 */
@@ -54,7 +56,8 @@ func joinTopic(topicname string) (*PubsubTopic, error) {
 	return pubsubTopic, nil
 }
 
-/**
+/*
+*
 订阅主题，可以接收发给这个主题的消息
 */
 func Subscribe(topicname string) (*PubsubTopic, error) {
@@ -75,7 +78,8 @@ func Subscribe(topicname string) (*PubsubTopic, error) {
 	return pubsubTopic, nil
 }
 
-/**
+/*
+*
 无限循环读取
 */
 func subLoop(sub *pubsub.Subscription) error {
@@ -98,7 +102,8 @@ func SendRaw(topicname string, data []byte) {
 	}
 }
 
-/**
+/*
+*
 在发送消息之前循环调用
 */
 func pubHandle(pub *pubsub.PublishOptions) error {

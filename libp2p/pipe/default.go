@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/logger"
-	"github.com/libp2p/go-libp2p-core/network"
+	"github.com/libp2p/go-libp2p/core/network"
 	"net"
 	"sync"
 	"time"
@@ -25,7 +25,8 @@ type Pipe struct {
 	mutex   sync.Mutex
 }
 
-/**
+/*
+*
 handler是读到数据时的处理器
 */
 func CreatePipe(stream network.Stream, handler func(data []byte, pipe *Pipe) ([]byte, error), direct string) (*Pipe, error) {

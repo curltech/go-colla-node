@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/logger"
-	"github.com/libp2p/go-libp2p-core/network"
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p/core/network"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"net"
 	"sync"
 	"time"
@@ -31,7 +31,8 @@ type Channel struct {
 	handler func(data string)
 }
 
-/**
+/*
+*
 存放所有流，键值是两个节点的id
 */
 var channelPool sync.Map
