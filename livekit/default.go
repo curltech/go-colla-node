@@ -11,26 +11,33 @@ import (
 	"time"
 )
 
-//创建房间服务的客户端
-func NewRoomServiceClient(host string, connectInfo lksdk.ConnectInfo) *lksdk.RoomServiceClient {
-	return lksdk.NewRoomServiceClient(host, connectInfo.APIKey, connectInfo.APISecret)
+type RoomServiceClient struct {
+	roomClient *lksdk.RoomServiceClient
 }
 
-//创建新的房间，
-func CreateRoom(roomClient *lksdk.RoomServiceClient, roomId string, maxParticipants uint32) (*livekit.Room, error) {
-	return roomClient.CreateRoom(context.Background(), &livekit.CreateRoomRequest{
+// NewRoomServiceClient 创建房间服务的客户端，这个客户端连接到livekit sfu服务器
+// 有权限创建房间，因此需要相应的APIKey和APISecret
+func NewRoomServiceClient(host string, connectInfo lksdk.ConnectInfo) *RoomServiceClient {
+	roomClient := lksdk.NewRoomServiceClient(host, connectInfo.APIKey, connectInfo.APISecret)
+
+	return &RoomServiceClient{roomClient}
+}
+
+// CreateRoom 创建新的房间，
+func (this *RoomServiceClient) CreateRoom(roomId string, maxParticipants uint32) (*livekit.Room, error) {
+	return this.roomClient.CreateRoom(context.Background(), &livekit.CreateRoomRequest{
 		Name:            roomId,
 		MaxParticipants: maxParticipants,
 		EmptyTimeout:    240 * 60, // 240 minutes
 	})
 }
 
-//创建新的token
-func CreateToken(roomClient *lksdk.RoomServiceClient, room, identity string) (string, error) {
-	at := roomClient.CreateToken()
+// CreateToken 创建新的token
+func (this *RoomServiceClient) CreateToken(roomId, identity string) (string, error) {
+	at := this.roomClient.CreateToken()
 	grant := &auth.VideoGrant{
 		RoomJoin: true,
-		Room:     room,
+		Room:     roomId,
 	}
 	at.AddGrant(grant).
 		SetIdentity(identity).
@@ -39,44 +46,44 @@ func CreateToken(roomClient *lksdk.RoomServiceClient, room, identity string) (st
 	return at.ToJWT()
 }
 
-//列出房间
-func ListRooms(roomClient *lksdk.RoomServiceClient) (*livekit.ListRoomsResponse, error) {
-	return roomClient.ListRooms(context.Background(), &livekit.ListRoomsRequest{})
+// ListRooms 列出房间
+func (this *RoomServiceClient) ListRooms() (*livekit.ListRoomsResponse, error) {
+	return this.roomClient.ListRooms(context.Background(), &livekit.ListRoomsRequest{})
 }
 
-//删除房间，所以参与人离开
-func DeleteRoom(roomClient *lksdk.RoomServiceClient, roomId string) (*livekit.DeleteRoomResponse, error) {
-	return roomClient.DeleteRoom(context.Background(), &livekit.DeleteRoomRequest{
+// DeleteRoom 删除房间，所以参与人离开
+func (this *RoomServiceClient) DeleteRoom(roomId string) (*livekit.DeleteRoomResponse, error) {
+	return this.roomClient.DeleteRoom(context.Background(), &livekit.DeleteRoomRequest{
 		Room: roomId,
 	})
 }
 
-//列出房间的参与人
-func ListParticipants(roomClient *lksdk.RoomServiceClient, roomId string) (*livekit.ListParticipantsResponse, error) {
-	return roomClient.ListParticipants(context.Background(), &livekit.ListParticipantsRequest{
+// ListParticipants 列出房间的参与人
+func (this *RoomServiceClient) ListParticipants(roomId string) (*livekit.ListParticipantsResponse, error) {
+	return this.roomClient.ListParticipants(context.Background(), &livekit.ListParticipantsRequest{
 		Room: roomId,
 	})
 }
 
-//列出房间的参与人的详细信息
-func GetParticipant(roomClient *lksdk.RoomServiceClient, roomId string, identity string) (*livekit.ParticipantInfo, error) {
-	return roomClient.GetParticipant(context.Background(), &livekit.RoomParticipantIdentity{
+// GetParticipant 列出房间的参与人的详细信息
+func (this *RoomServiceClient) GetParticipant(roomId string, identity string) (*livekit.ParticipantInfo, error) {
+	return this.roomClient.GetParticipant(context.Background(), &livekit.RoomParticipantIdentity{
 		Room:     roomId,
 		Identity: identity,
 	})
 }
 
-//参与人从房间离开
-func RemoveParticipant(roomClient *lksdk.RoomServiceClient, roomId string, identity string) (*livekit.RemoveParticipantResponse, error) {
-	return roomClient.RemoveParticipant(context.Background(), &livekit.RoomParticipantIdentity{
+// RemoveParticipant 参与人从房间离开
+func (this *RoomServiceClient) RemoveParticipant(roomId string, identity string) (*livekit.RemoveParticipantResponse, error) {
+	return this.roomClient.RemoveParticipant(context.Background(), &livekit.RoomParticipantIdentity{
 		Room:     roomId,
 		Identity: identity,
 	})
 }
 
-//关闭打开轨道的声音
-func MutePublishedTrack(roomClient *lksdk.RoomServiceClient, roomId string, identity string, trackSid string, muted bool) (*livekit.MuteRoomTrackResponse, error) {
-	return roomClient.MutePublishedTrack(context.Background(), &livekit.MuteRoomTrackRequest{
+// MutePublishedTrack 关闭打开轨道的声音
+func (this *RoomServiceClient) MutePublishedTrack(roomId string, identity string, trackSid string, muted bool) (*livekit.MuteRoomTrackResponse, error) {
+	return this.roomClient.MutePublishedTrack(context.Background(), &livekit.MuteRoomTrackRequest{
 		Room:     roomId,
 		Identity: identity,
 		TrackSid: trackSid,
@@ -84,7 +91,7 @@ func MutePublishedTrack(roomClient *lksdk.RoomServiceClient, roomId string, iden
 	})
 }
 
-//视频文件变成轨道
+// NewLocalFileTrack 视频文件变成轨道
 func NewLocalFileTrack(file string) (*lksdk.LocalSampleTrack, error) {
 	return lksdk.NewLocalFileTrack(file,
 		// control FPS to ensure synchronization
@@ -93,7 +100,7 @@ func NewLocalFileTrack(file string) (*lksdk.LocalSampleTrack, error) {
 	)
 }
 
-//视频流变成轨道
+// NewLocalReaderTrack 视频流变成轨道
 func NewLocalReaderTrack(in io.ReadCloser, mime string) (*lksdk.LocalSampleTrack, error) {
 	return lksdk.NewLocalReaderTrack(in, mime,
 		lksdk.ReaderTrackWithFrameDuration(33*time.Millisecond),
@@ -101,7 +108,7 @@ func NewLocalReaderTrack(in io.ReadCloser, mime string) (*lksdk.LocalSampleTrack
 	)
 }
 
-//把文件或者流轨道发布到房间
+// PublishTrack 把文件或者流轨道发布到房间
 func PublishTrack(room *lksdk.Room, name string, track *lksdk.LocalSampleTrack, videoWidth int, videoHeight int) (*lksdk.LocalTrackPublication, error) {
 	return room.LocalParticipant.PublishTrack(track, &lksdk.TrackPublicationOptions{
 		Name:        name,
@@ -110,7 +117,7 @@ func PublishTrack(room *lksdk.Room, name string, track *lksdk.LocalSampleTrack, 
 	})
 }
 
-//连接房间，设置回调函数，可以跟踪房间
+// ConnectToRoom 连接房间，设置回调函数，可以跟踪房间
 func ConnectToRoom(host string, connectInfo *lksdk.ConnectInfo) (*lksdk.Room, error) {
 	if host == "" || connectInfo.APIKey == "" || connectInfo.APISecret == "" || connectInfo.RoomName == "" || connectInfo.ParticipantIdentity == "" {
 		fmt.Println("invalid arguments.")
@@ -125,7 +132,7 @@ func ConnectToRoom(host string, connectInfo *lksdk.ConnectInfo) (*lksdk.Room, er
 	return room, err
 }
 
-//断开房间的连接
+// Disconnect 断开房间的连接
 func Disconnect(room *lksdk.Room) {
 	room.Disconnect()
 }
