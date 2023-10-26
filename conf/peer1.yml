@@ -76,6 +76,10 @@ turn:
   credentials: user=password
   # cert: path/to/cert.pem
   # key: path/to/key.pem
+livekit:
+  host:
+  apiKey:
+  apiSecret:
 sfu:
   enable: true
   ballast: 0
