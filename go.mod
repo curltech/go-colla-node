@@ -246,5 +246,3 @@ require (
 	xorm.io/builder v0.3.12 // indirect
 	xorm.io/xorm v1.3.2 // indirect
 )
-
-replace github.com/gammazero/deque => github.com/gammazero/deque v0.1.0 // indirect

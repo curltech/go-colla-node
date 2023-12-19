@@ -12,7 +12,7 @@ server:
 log:
   level: info
   encoder: console
-  filePath: /home/azureuser/colla/logs/peer1.log
+  filePath: /Users/jingsonghu/colla/logs/peer1.log
 http:
   port: 8081
   externalAddr: peer1.curltech.io
@@ -77,9 +77,9 @@ turn:
   # cert: path/to/cert.pem
   # key: path/to/key.pem
 livekit:
-  host:
-  apiKey:
-  apiSecret:
+  host: 127.0.0.1:7880
+  apiKey: devkey
+  apiSecret: secret
 sfu:
   enable: true
   ballast: 0
