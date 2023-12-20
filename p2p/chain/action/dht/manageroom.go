@@ -34,26 +34,32 @@ type LiveKitManageRoom struct {
 func (this *manageRoomAction) Receive(chainMessage *entity.ChainMessage) (*entity.ChainMessage, error) {
 	logger.Sugar.Infof("Receive %v message", this.MsgType)
 	var response *entity.ChainMessage = nil
-	conditionBean, ok := chainMessage.Payload.(map[string]interface{})
-	if !ok {
-		response = handler.Error(chainMessage.MessageType, errors.New("ErrorCondition"))
-		return response, nil
-	}
-	data, err := message.Marshal(conditionBean)
-	if err != nil {
-		response = handler.Error(chainMessage.MessageType, errors.New("ErrorCondition"))
-		return response, nil
-	}
 	liveKitManageRoom := &LiveKitManageRoom{}
-	err = message.Unmarshal(data, liveKitManageRoom)
-	if err != nil {
-		response = handler.Error(chainMessage.MessageType, errors.New("ErrorCondition"))
-		return response, nil
-	}
+	if chainMessage.Payload != nil {
+		conditionBean, ok := chainMessage.Payload.(map[string]interface{})
+		if !ok {
+			response = handler.Error(chainMessage.MessageType, errors.New("ErrorCondition"))
+			return response, nil
+		}
+		data, err := message.Marshal(conditionBean)
+		if err != nil {
+			response = handler.Error(chainMessage.MessageType, errors.New("ErrorCondition"))
+			return response, nil
+		}
 
+		err = message.Unmarshal(data, liveKitManageRoom)
+		if err != nil {
+			response = handler.Error(chainMessage.MessageType, errors.New("ErrorCondition"))
+			return response, nil
+		}
+	}
 	roomServiceClient := livekit.GetRoomServiceClient()
 	liveKitManageRoom.Host = livekit.LivekitParams.Host
 	if liveKitManageRoom.ManageType == "create" {
+		if liveKitManageRoom.RoomName == "" {
+			response = handler.Error(chainMessage.MessageType, errors.New("ErrorRoomName"))
+			return response, nil
+		}
 		room, _ := roomServiceClient.CreateRoom(liveKitManageRoom.RoomName, liveKitManageRoom.EmptyTimeout, 0, "")
 		if room != nil {
 			rooms := make([]*lksdk.Room, 0)
@@ -66,7 +72,14 @@ func (this *manageRoomAction) Receive(chainMessage *entity.ChainMessage) (*entit
 		}
 	}
 	if liveKitManageRoom.ManageType == "delete" {
-		roomServiceClient.DeleteRoom(liveKitManageRoom.RoomName)
+		if liveKitManageRoom.RoomName == "" {
+			response = handler.Error(chainMessage.MessageType, errors.New("ErrorRoomName"))
+			return response, nil
+		}
+		deleteResponse, _ := roomServiceClient.DeleteRoom(liveKitManageRoom.RoomName)
+		if deleteResponse == nil {
+			liveKitManageRoom.RoomName = ""
+		}
 	}
 	if liveKitManageRoom.ManageType == "list" {
 		roomNames := make([]string, 0)
@@ -76,6 +89,10 @@ func (this *manageRoomAction) Receive(chainMessage *entity.ChainMessage) (*entit
 		}
 	}
 	if liveKitManageRoom.ManageType == "listParticipants" {
+		if liveKitManageRoom.RoomName == "" {
+			response = handler.Error(chainMessage.MessageType, errors.New("ErrorRoomName"))
+			return response, nil
+		}
 		participants, _ := roomServiceClient.ListParticipants(liveKitManageRoom.RoomName)
 		if participants != nil {
 			liveKitManageRoom.Participants = participants
