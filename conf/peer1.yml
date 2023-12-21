@@ -77,7 +77,7 @@ turn:
   # cert: path/to/cert.pem
   # key: path/to/key.pem
 livekit:
-  host: 127.0.0.1:7880
+  host: 192.168.1.50:7880
   apiKey: devkey
   apiSecret: secret
 sfu:

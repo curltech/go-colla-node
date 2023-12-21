@@ -21,7 +21,7 @@ var ManageRoomAction manageRoomAction
 
 type LiveKitManageRoom struct {
 	ManageType   string                   `json:"manageType,omitempty"`
-	EmptyTimeout uint32                   `json:"emptyTimeout,omitempty"`
+	EmptyTimeout int64                    `json:"emptyTimeout,omitempty"`
 	Host         string                   `json:"host,omitempty"`
 	RoomName     string                   `json:"roomName,omitempty"`
 	Identities   []string                 `json:"identities,omitempty"`
@@ -60,12 +60,16 @@ func (this *manageRoomAction) Receive(chainMessage *entity.ChainMessage) (*entit
 			response = handler.Error(chainMessage.MessageType, errors.New("ErrorRoomName"))
 			return response, nil
 		}
-		room, _ := roomServiceClient.CreateRoom(liveKitManageRoom.RoomName, liveKitManageRoom.EmptyTimeout, 0, "")
+		if liveKitManageRoom.EmptyTimeout <= 0 {
+			response = handler.Error(chainMessage.MessageType, errors.New("ErrorEmptyTimeout"))
+			return response, nil
+		}
+		room, _ := roomServiceClient.CreateRoom(liveKitManageRoom.RoomName, uint32(liveKitManageRoom.EmptyTimeout), 0, "")
 		if room != nil {
 			rooms := make([]*lksdk.Room, 0)
 			rooms = append(rooms, room)
 			liveKitManageRoom.Rooms = rooms
-			tokens, _ := roomServiceClient.CreateTokens(liveKitManageRoom.RoomName, liveKitManageRoom.Identities, liveKitManageRoom.Names, time.Duration(liveKitManageRoom.EmptyTimeout), "")
+			tokens, _ := roomServiceClient.CreateTokens(liveKitManageRoom.RoomName, liveKitManageRoom.Identities, liveKitManageRoom.Names, time.Duration(liveKitManageRoom.EmptyTimeout*1000*1000*1000), "")
 			if tokens != nil {
 				liveKitManageRoom.Tokens = tokens
 			}

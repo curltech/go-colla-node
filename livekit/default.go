@@ -82,7 +82,7 @@ func (svc *RoomServiceClient) CreateToken(roomName, identity string, name string
 		Room:     roomName,
 	}
 	at.AddGrant(grant).
-		SetIdentity(identity).SetName(name).
+		SetIdentity(identity).
 		SetValidFor(duration).SetName(name).SetMetadata(md)
 
 	return at.ToJWT()
