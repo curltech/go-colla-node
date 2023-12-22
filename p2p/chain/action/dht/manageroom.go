@@ -64,7 +64,10 @@ func (this *manageRoomAction) Receive(chainMessage *entity.ChainMessage) (*entit
 			response = handler.Error(chainMessage.MessageType, errors.New("ErrorEmptyTimeout"))
 			return response, nil
 		}
-		room, _ := roomServiceClient.CreateRoom(liveKitManageRoom.RoomName, uint32(liveKitManageRoom.EmptyTimeout), 0, "")
+		room, err := roomServiceClient.CreateRoom(liveKitManageRoom.RoomName, uint32(liveKitManageRoom.EmptyTimeout), 0, "")
+		if err != nil {
+			logger.Sugar.Error(err)
+		}
 		if room != nil {
 			rooms := make([]*lksdk.Room, 0)
 			rooms = append(rooms, room)
