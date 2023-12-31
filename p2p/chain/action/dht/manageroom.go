@@ -20,15 +20,16 @@ type manageRoomAction struct {
 var ManageRoomAction manageRoomAction
 
 type LiveKitManageRoom struct {
-	ManageType   string                   `json:"manageType,omitempty"`
-	EmptyTimeout int64                    `json:"emptyTimeout,omitempty"`
-	Host         string                   `json:"host,omitempty"`
-	RoomName     string                   `json:"roomName,omitempty"`
-	Identities   []string                 `json:"identities,omitempty"`
-	Names        []string                 `json:"names,omitempty"`
-	Tokens       []string                 `json:"tokens,omitempty"`
-	Participants []*lksdk.ParticipantInfo `json:"participants,omitempty"`
-	Rooms        []*lksdk.Room            `json:"rooms,omitempty"`
+	ManageType      string                   `json:"manageType,omitempty"`
+	EmptyTimeout    int64                    `json:"emptyTimeout,omitempty"`
+	Host            string                   `json:"host,omitempty"`
+	RoomName        string                   `json:"roomName,omitempty"`
+	Identities      []string                 `json:"identities,omitempty"`
+	Names           []string                 `json:"names,omitempty"`
+	Tokens          []string                 `json:"tokens,omitempty"`
+	MaxParticipants uint32                   `json:"maxParticipants,omitempty"`
+	Participants    []*lksdk.ParticipantInfo `json:"participants,omitempty"`
+	Rooms           []*lksdk.Room            `json:"rooms,omitempty"`
 }
 
 func (this *manageRoomAction) Receive(chainMessage *entity.ChainMessage) (*entity.ChainMessage, error) {
@@ -64,7 +65,7 @@ func (this *manageRoomAction) Receive(chainMessage *entity.ChainMessage) (*entit
 			response = handler.Error(chainMessage.MessageType, errors.New("ErrorEmptyTimeout"))
 			return response, nil
 		}
-		room, err := roomServiceClient.CreateRoom(liveKitManageRoom.RoomName, uint32(liveKitManageRoom.EmptyTimeout), 0, "")
+		room, err := roomServiceClient.CreateRoom(liveKitManageRoom.RoomName, uint32(liveKitManageRoom.EmptyTimeout), liveKitManageRoom.MaxParticipants, "")
 		if err != nil {
 			logger.Sugar.Error(err)
 		}
