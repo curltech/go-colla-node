@@ -20,15 +20,16 @@ type manageRoomAction struct {
 var ManageRoomAction manageRoomAction
 
 type LiveKitManageRoom struct {
-	ManageType   string                   `json:"manageType,omitempty"`
-	EmptyTimeout uint32                   `json:"emptyTimeout,omitempty"`
-	Host         string                   `json:"host,omitempty"`
-	RoomName     string                   `json:"roomName,omitempty"`
-	Identities   []string                 `json:"identities,omitempty"`
-	Names        []string                 `json:"names,omitempty"`
-	Tokens       []string                 `json:"tokens,omitempty"`
-	Participants []*lksdk.ParticipantInfo `json:"participants,omitempty"`
-	Rooms        []*lksdk.Room            `json:"rooms,omitempty"`
+	ManageType      string                   `json:"manageType,omitempty"`
+	EmptyTimeout    int64                    `json:"emptyTimeout,omitempty"`
+	Host            string                   `json:"host,omitempty"`
+	RoomName        string                   `json:"roomName,omitempty"`
+	Identities      []string                 `json:"identities,omitempty"`
+	Names           []string                 `json:"names,omitempty"`
+	Tokens          []string                 `json:"tokens,omitempty"`
+	MaxParticipants uint32                   `json:"maxParticipants,omitempty"`
+	Participants    []*lksdk.ParticipantInfo `json:"participants,omitempty"`
+	Rooms           []*lksdk.Room            `json:"rooms,omitempty"`
 }
 
 func (this *manageRoomAction) Receive(chainMessage *entity.ChainMessage) (*entity.ChainMessage, error) {
@@ -60,12 +61,19 @@ func (this *manageRoomAction) Receive(chainMessage *entity.ChainMessage) (*entit
 			response = handler.Error(chainMessage.MessageType, errors.New("ErrorRoomName"))
 			return response, nil
 		}
-		room, _ := roomServiceClient.CreateRoom(liveKitManageRoom.RoomName, liveKitManageRoom.EmptyTimeout, 0, "")
+		if liveKitManageRoom.EmptyTimeout <= 0 {
+			response = handler.Error(chainMessage.MessageType, errors.New("ErrorEmptyTimeout"))
+			return response, nil
+		}
+		room, err := roomServiceClient.CreateRoom(liveKitManageRoom.RoomName, uint32(liveKitManageRoom.EmptyTimeout), liveKitManageRoom.MaxParticipants, "")
+		if err != nil {
+			logger.Sugar.Error(err)
+		}
 		if room != nil {
 			rooms := make([]*lksdk.Room, 0)
 			rooms = append(rooms, room)
 			liveKitManageRoom.Rooms = rooms
-			tokens, _ := roomServiceClient.CreateTokens(liveKitManageRoom.RoomName, liveKitManageRoom.Identities, liveKitManageRoom.Names, time.Duration(liveKitManageRoom.EmptyTimeout), "")
+			tokens, _ := roomServiceClient.CreateTokens(liveKitManageRoom.RoomName, liveKitManageRoom.Identities, liveKitManageRoom.Names, time.Duration(liveKitManageRoom.EmptyTimeout*1000*1000*1000), "")
 			if tokens != nil {
 				liveKitManageRoom.Tokens = tokens
 			}
