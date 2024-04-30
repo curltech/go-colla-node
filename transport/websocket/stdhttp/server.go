@@ -1,11 +1,14 @@
 package stdhttp
 
 import (
+	"errors"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/logger"
 	session2 "github.com/curltech/go-colla-core/session"
 	"github.com/curltech/go-colla-core/util/security"
 	"github.com/curltech/go-colla-node/transport/util"
+	"github.com/gorilla/websocket"
+	"io"
 	"io/ioutil"
 	"mime"
 	"net"
@@ -16,14 +19,9 @@ import (
 	"time"
 )
 
-/**
-  自己实现的基于gorilla websocket的独立服务端，能够处理超大连接数
+/*
+自己实现的基于gorilla websocket的独立服务端，能够处理超大连接数
 */
-import (
-	"errors"
-	"github.com/gorilla/websocket"
-)
-
 type WebsocketMessage struct {
 	messageType int
 	data        []byte
@@ -91,7 +89,8 @@ func errorf(w http.ResponseWriter, msg string, code int) {
 var messageHandler func(data []byte, remotePeerId string, clientId string, connectSessionId string, remoteAddr string) ([]byte, error)
 var disconnectedHandler func(connectSessionId string)
 
-/**
+/*
+*
 注册读取原生数据的处理器
 */
 func RegistMessageHandler(handler func(data []byte, remotePeerId string, clientId string, connectSessionId string, remoteAddr string) ([]byte, error)) {
@@ -102,7 +101,7 @@ func RegistDisconnectedHandler(handler func(connectSessionId string)) {
 	disconnectedHandler = handler
 }
 
-///https协议
+// /https协议
 func receiveHandler(w http.ResponseWriter, r *http.Request) {
 	defer func() { _ = r.Body.Close() }()
 	sessionManager := session2.GetDefault()
@@ -110,7 +109,7 @@ func receiveHandler(w http.ResponseWriter, r *http.Request) {
 	sessId := session.SessionID()
 	remoteAddr := r.RemoteAddr
 	logger.Sugar.Infof(sessId + remoteAddr)
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := io.ReadAll(r.Body)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
@@ -233,7 +232,8 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-/**
+/*
+*
 主动发回信息，也是写入写出管道
 */
 func SendRaw(sessionId string, data []byte) error {
@@ -269,7 +269,7 @@ func (conn *WebsocketConnection) read() (msg *WebsocketMessage, err error) {
 	return
 }
 
-//数据写入输出管道，然后通过无限循环的写出操作写出数据
+// 数据写入输出管道，然后通过无限循环的写出操作写出数据
 func (conn *WebsocketConnection) Write(messageType int, data []byte) (err error) {
 	select {
 	case conn.outChan <- &WebsocketMessage{messageType, data}:
@@ -344,7 +344,7 @@ func (conn *WebsocketConnection) loopRead() {
 	}
 }
 
-//无限循环的管道写出操作
+// 无限循环的管道写出操作
 func (conn *WebsocketConnection) loopWrite() {
 	var (
 		msg *WebsocketMessage
