@@ -69,6 +69,11 @@ func (svc *RoomServiceClient) CreateTokens(roomName string, identities []string,
 		}
 		i++
 	}
+	token, err := svc.CreateToken(roomName, "",
+		"", duration, md)
+	if err == nil {
+		tokens = append(tokens, token)
+	}
 
 	return tokens, nil
 }
@@ -82,8 +87,13 @@ func (svc *RoomServiceClient) CreateToken(roomName, identity string, name string
 		Room:     roomName,
 	}
 	at.AddGrant(grant).
-		SetIdentity(identity).
-		SetValidFor(duration).SetName(name).SetMetadata(md)
+		SetValidFor(duration).SetMetadata(md)
+	if len(name) > 0 {
+		at.SetName(name)
+	}
+	if len(identity) > 0 {
+		at.SetIdentity(identity)
+	}
 
 	return at.ToJWT()
 }
