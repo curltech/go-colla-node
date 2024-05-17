@@ -329,6 +329,12 @@ func (conn *WebsocketConnection) loopRead() {
 			conn.Close()
 			return
 		} else {
+			//如果是ping，则忽略
+			if len(data) == 4 {
+				if string(data) == "ping" {
+					return
+				}
+			}
 			//阻塞在这里，等待inChan有空闲位置
 			select {
 			case conn.inChan <- &WebsocketMessage{
