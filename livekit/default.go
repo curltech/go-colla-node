@@ -69,8 +69,8 @@ func (svc *RoomServiceClient) CreateTokens(roomName string, identities []string,
 		}
 		i++
 	}
-	token, err := svc.CreateToken(roomName, "",
-		"", duration, md)
+	token, err := svc.CreateToken(roomName, "anonymous",
+		"anonymous", duration, md)
 	if err == nil {
 		tokens = append(tokens, token)
 	}
