@@ -24,7 +24,7 @@ func HandleRaw(data []byte, p *pipe.Pipe) ([]byte, error) {
 	}
 	//调用Receive函数或者Response函数处理
 	sessId := p.GetStream().Conn().ID()
-	remotePeerId := p.GetStream().Conn().RemotePeer().Pretty()
+	remotePeerId := p.GetStream().Conn().RemotePeer().String()
 	remoteAddr := p.GetStream().Conn().RemoteMultiaddr().String()
 	ResponsePipePool[sessId] = p
 	data, err = protocolMessageHandler.MessageHandler(data, remotePeerId, "", sessId, remoteAddr)

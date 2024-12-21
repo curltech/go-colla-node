@@ -296,7 +296,7 @@ func routingTableFilter(dht *kaddht.IpfsDHT, conns []network.Conn) bool {
 }
 
 func PeerAdded(id peer.ID) {
-	peerId := id.Pretty()
+	peerId := id.String()
 	logger.Sugar.Debugf("PeerEndpointDHT.RoutingTable add peer: %v", peerId)
 	// PeerEndPointAction
 	_, err := dht.PeerEndPointAction.PeerEndPoint(peerId)
@@ -323,7 +323,7 @@ func PeerAdded(id peer.ID) {
 }
 
 func PeerRemoved(id peer.ID) {
-	peerId := id.Pretty()
+	peerId := id.String()
 	logger.Sugar.Debugf("PeerEndpointDHT.RoutingTable remove peer: %v", peerId)
 	// 更改状态
 	peerEndPoints, err := service.GetPeerEndpointService().GetLocal(peerId)

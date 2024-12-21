@@ -23,7 +23,8 @@ type Consensus struct {
 	MemCache *cache.Cache
 }
 
-/**
+/*
+*
 获取日志缓存的key
 */
 func (this *Consensus) GetLogCacheKey(log *entity.ConsensusLog) string {
@@ -31,7 +32,8 @@ func (this *Consensus) GetLogCacheKey(log *entity.ConsensusLog) string {
 	return key
 }
 
-/**
+/*
+*
 获取datablock缓存的key
 */
 func (this *Consensus) GetDataBlockCacheKey(blockId string, sliceNumber uint64) string {
@@ -39,7 +41,7 @@ func (this *Consensus) GetDataBlockCacheKey(blockId string, sliceNumber uint64) 
 	return key
 }
 
-//origin为原数组，count为随机取出的个数，最终返回一个count容量的目标数组
+// origin为原数组，count为随机取出的个数，最终返回一个count容量的目标数组
 func randomSlice(origin []string, count int, seed int64) []string {
 	tmpOrigin := make([]string, len(origin))
 	copy(tmpOrigin, origin)
@@ -58,7 +60,8 @@ func randomSlice(origin []string, count int, seed int64) []string {
 	return result
 }
 
-/**
+/*
+*
 获取最近的peer集合
 */
 func (this *Consensus) NearestConsensusPeer(key string, createTimestamp uint64) []string {
@@ -72,7 +75,7 @@ func (this *Consensus) NearestConsensusPeer(key string, createTimestamp uint64) 
 	ids := dht.PeerEndpointDHT.RoutingTable.NearestPeers(id, bucketSize)
 	if len(ids) > 0 {
 		for _, id := range ids {
-			peerIds = append(peerIds, id.Pretty())
+			peerIds = append(peerIds, id.String())
 		}
 	}
 	if len(ids) > config.ConsensusParams.PeerNum {
@@ -82,7 +85,8 @@ func (this *Consensus) NearestConsensusPeer(key string, createTimestamp uint64) 
 	}
 }
 
-/**
+/*
+*
 主节点挑选副节点
 */
 func (this *Consensus) ChooseConsensusPeer(dataBlock *entity.DataBlock) []string {
@@ -99,7 +103,8 @@ func (this *Consensus) ChooseConsensusPeer(dataBlock *entity.DataBlock) []string
 	return peerIds
 }
 
-/**
+/*
+*
 创建新的ConsensusLog，存入数据库中
 */
 func (this *Consensus) CreateConsensusLog(chainMessage *entity2.ChainMessage, dataBlock *entity.DataBlock, myselfPeer *entity1.MyselfPeer, status string) *entity.ConsensusLog {
@@ -126,7 +131,8 @@ func (this *Consensus) CreateConsensusLog(chainMessage *entity2.ChainMessage, da
 	return log
 }
 
-/**
+/*
+*
 从消息中提取datablock
 */
 func (this *Consensus) GetDataBlock(chainMessage *entity2.ChainMessage) (*entity.DataBlock, error) {
@@ -160,7 +166,8 @@ func (this *Consensus) GetDataBlock(chainMessage *entity2.ChainMessage) (*entity
 	return dataBlock, nil
 }
 
-/**
+/*
+*
 从消息中提取ConsensusLog
 */
 func (this *Consensus) GetConsensusLog(chainMessage *entity2.ChainMessage) (*entity.ConsensusLog, error) {

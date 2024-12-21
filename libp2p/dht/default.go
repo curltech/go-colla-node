@@ -252,7 +252,7 @@ func (this *PeerEntityDHT) FindPeer(id peer.ID) (_ peer.AddrInfo, err error) {
 	start := time.Now()
 	addrInfo, err := this.DHT.FindPeer(global.Global.Context, id)
 	end := time.Now()
-	logger.Sugar.Infof("FindPeer time:%v, %v", id.Pretty(), end.Sub(start))
+	logger.Sugar.Infof("FindPeer time:%v, %v", id.String(), end.Sub(start))
 	return addrInfo, err
 }
 

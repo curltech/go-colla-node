@@ -33,7 +33,7 @@ type cmNotifee MonitorConnMgr
 // count exceeds the high watermark, a trim may be triggered.
 func (nn *cmNotifee) Connected(n network.Network, c network.Conn) {
 	nn.BasicConnMgr.Notifee().Connected(n, c)
-	peerId := c.RemotePeer().Pretty()
+	peerId := c.RemotePeer().String()
 	addr := c.RemoteMultiaddr().String()
 	logger.Sugar.Debugf("New Connected! %v %v, addr:%v", peerId, c.ID(), addr)
 }
@@ -42,7 +42,7 @@ func (nn *cmNotifee) Connected(n network.Network, c network.Conn) {
 // The notifee updates the BasicConnMgr accordingly to stop tracking the connection, and performs housekeeping.
 func (nn *cmNotifee) Disconnected(n network.Network, c network.Conn) {
 	nn.BasicConnMgr.Notifee().Disconnected(n, c)
-	peerId := c.RemotePeer().Pretty()
+	peerId := c.RemotePeer().String()
 	addr := c.RemoteMultiaddr().String()
 	logger.Sugar.Debugf("New Disconnected! %v %v, addr:%v", peerId, c.ID(), addr)
 	handler.Disconnect(peerId, "", c.ID())
@@ -68,7 +68,7 @@ func (nn *cmNotifee) OpenedStream(n network.Network, s network.Stream) {
 
 // ClosedStream is no-op in this implementation.
 func (nn *cmNotifee) ClosedStream(n network.Network, s network.Stream) {
-	peerId := s.Conn().RemotePeer().Pretty()
+	peerId := s.Conn().RemotePeer().String()
 	logger.Sugar.Debugf("New ClosedStream! %v %v %v", s.ID(), s.Protocol(), peerId)
 	//nn.BasicConnMgr.Notifee().ClosedStream(n, s)
 	handler.Close(peerId, string(s.Protocol()), s.Conn().ID(), s.ID())

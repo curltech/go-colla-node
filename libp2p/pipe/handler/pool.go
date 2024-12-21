@@ -96,7 +96,7 @@ func GetRequestPipe(peerId string, protocolId string) *pipe.Pipe {
 		if p != nil {
 			conn := p.GetStream().Conn()
 			if conn != nil {
-				peerId := conn.RemotePeer().Pretty()
+				peerId := conn.RemotePeer().String()
 				logger.Sugar.Debugf("GetRequestPipe-remote peer: %v %v, steamId: %v", peerId, conn.ID(), stream.ID())
 			}
 			return p
@@ -114,7 +114,7 @@ func CreatePipe(stream network.Stream, direct string) *pipe.Pipe {
 	if p != nil {
 		conn := p.GetStream().Conn()
 		if conn != nil {
-			peerId := conn.RemotePeer().Pretty()
+			peerId := conn.RemotePeer().String()
 			logger.Sugar.Debugf("CreatePipe-remote peer: %v %v, steamId: %v", peerId, conn.ID(), stream.ID())
 			connectSessionId := conn.ID()
 			logger.Sugar.Debugf("CreatePipe-connectSessionId: %v", connectSessionId)

@@ -46,15 +46,15 @@ func pingPong(id peer.ID) (time.Duration, error) {
 func connect(id peer.ID) (peer.AddrInfo, error) {
 	addr, err := PeerEndpointDHT.FindPeer(id)
 	if err != nil {
-		logger.Sugar.Errorf("failed to FindPeer: %v, err: %v", id.Pretty(), err)
+		logger.Sugar.Errorf("failed to FindPeer: %v, err: %v", id.String(), err)
 	} else {
 		logger.Sugar.Infof("successfully FindPeer: %v", addr)
 	}
 	err = global.Global.Host.Connect(global.Global.Context, addr)
 	if err != nil {
-		logger.Sugar.Errorf("failed to Connect: %v, err: %v", id.Pretty(), err)
+		logger.Sugar.Errorf("failed to Connect: %v, err: %v", id.String(), err)
 	} else {
-		logger.Sugar.Infof("successfully Connect: %v", id.Pretty())
+		logger.Sugar.Infof("successfully Connect: %v", id.String())
 	}
 
 	return addr, err

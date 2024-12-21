@@ -99,12 +99,12 @@ func (this *connectAction) returnPeerEndpoint(chainMessage *entity2.ChainMessage
 				ctx, cancel := context.WithCancel(global.Global.Context)
 				defer cancel()
 				defer wg.Done()
-				logger.Sugar.Infof("ClosestPeers-PeerId: %v", p.Pretty())
+				logger.Sugar.Infof("ClosestPeers-PeerId: %v", p.String())
 				routing.PublishQueryEvent(ctx, &routing.QueryEvent{
 					Type: routing.Value,
 					ID:   p,
 				})
-				k := ns.GetPeerEndpointKey(p.Pretty())
+				k := ns.GetPeerEndpointKey(p.String())
 				recvdVals, err := dht.PeerEndpointDHT.GetValues(k)
 				if err != nil {
 					logger.Sugar.Errorf("failed to GetValues by PeerEndpoint key: %v, err: %v", k, err)
