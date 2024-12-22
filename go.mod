@@ -31,7 +31,7 @@ require (
 )
 
 require (
-	github.com/curltech/go-colla-core v0.1.23
+	github.com/curltech/go-colla-core v0.1.24
 	github.com/elazarl/goproxy v0.0.0-20221015165544-a0805db90819
 	github.com/ipfs/go-cid v0.4.1
 	github.com/ipfs/go-datastore v0.6.0
