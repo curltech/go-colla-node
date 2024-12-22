@@ -29,6 +29,8 @@ github.com/andybalholm/brotli v1.1.1/go.mod h1:05ib4cKhjx3OQYUY22hTVd34Bc8upXjOL
 github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239/go.mod h1:2FmKhYUyUczH0OGQWaF5ceTx0UBShxjsH6f8oGKYe2c=
 github.com/at-wat/ebml-go v0.16.0 h1:3NPy83uMzVRHWdWlcJYSXWn/+u2GmtPQSL1LZJbjcCw=
 github.com/at-wat/ebml-go v0.16.0/go.mod h1:w1cJs7zmGsb5nnSvhWGKLCxvfu4FVx5ERvYDIalj1ww=
+github.com/at-wat/ebml-go v0.17.1 h1:pWG1NOATCFu1hnlowCzrA1VR/3s8tPY6qpU+2FwW7X4=
+github.com/at-wat/ebml-go v0.17.1/go.mod h1:w1cJs7zmGsb5nnSvhWGKLCxvfu4FVx5ERvYDIalj1ww=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/benbjohnson/clock v1.3.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/benbjohnson/clock v1.3.5 h1:VvXlSJBzZpA/zum6Sj74hxwYI2DIxRWuNIoXAzHZz5o=
@@ -105,6 +107,8 @@ github.com/emersion/go-imap v1.2.2-0.20220928192137-6fac715be9cf h1:EUDVFh7Cpdv9
 github.com/emersion/go-imap v1.2.2-0.20220928192137-6fac715be9cf/go.mod h1:Qlx1FSx2FTxjnjWpIlVNEuX+ylerZQNFE5NsmKFSejY=
 github.com/emersion/go-imap-idle v0.0.0-20201224103203-6f42b9020098 h1:J+qvrz94n18fVThwhUWwrBwRbcNqi+VgcUJlaph430A=
 github.com/emersion/go-imap-idle v0.0.0-20201224103203-6f42b9020098/go.mod h1:N/6S3dRTVt8xT867m+476C16+v/Fq4WZYvh2Chg0nmg=
+github.com/emersion/go-imap-idle v0.0.0-20210907174914-db2568431445 h1:dAGbaaU4LLupO7dnYZaELOoI3RoVDNi5DCGejLe8a7c=
+github.com/emersion/go-imap-idle v0.0.0-20210907174914-db2568431445/go.mod h1:N/6S3dRTVt8xT867m+476C16+v/Fq4WZYvh2Chg0nmg=
 github.com/emersion/go-message v0.11.1/go.mod h1:C4jnca5HOTo4bGN9YdqNQM9sITuT3Y0K6bSUw9RklvY=
 github.com/emersion/go-message v0.15.0/go.mod h1:wQUEfE+38+7EW8p8aZ96ptg6bAb1iwdgej19uXASlE4=
 github.com/emersion/go-message v0.18.1 h1:tfTxIoXFSFRwWaZsgnqS1DSZuGpYGzSmCZD8SK3QA2E=

@@ -4,10 +4,10 @@ go 1.23
 
 require (
 	github.com/ProtonMail/gopenpgp/v2 v2.8.1
-	github.com/at-wat/ebml-go v0.16.0
+	github.com/at-wat/ebml-go v0.17.1
 	github.com/curltech/go-push-sdk v1.2.0
 	github.com/emersion/go-imap v1.2.2-0.20220928192137-6fac715be9cf
-	github.com/emersion/go-imap-idle v0.0.0-20201224103203-6f42b9020098
+	github.com/emersion/go-imap-idle v0.0.0-20210907174914-db2568431445
 	github.com/emersion/go-message v0.18.1
 	github.com/emersion/go-sasl v0.0.0-20241020182733-b788ff22d5a6
 	github.com/emersion/go-smtp v0.21.3
