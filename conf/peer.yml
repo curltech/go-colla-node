@@ -1,10 +1,10 @@
 app:
-  name: peer1
+  name: peer
   serialize: json
   sessionLog: false
   template: html
 server:
-  name: peer1
+  name: peer
   email: user@mailbox
   password: password
   websocket:
@@ -15,12 +15,12 @@ log:
   filePath: /Users/jingsonghu/colla/logs/peer1.log
 http:
   port: 8081
-  externalAddr: peer1.curltech.io
+  externalAddr: peer.curltech.io
   externalPort: 9091
   tls:
     mode: cert
     port: 9091
-    url: peer1.curltech.io
+    url: peer.curltech.io
     email: user@mailbox
     cert: conf/camsi-server-ec.crt
     key: conf/camsi-server-ec.key
