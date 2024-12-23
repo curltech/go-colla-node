@@ -12,7 +12,7 @@ server:
 log:
   level: info
   encoder: console
-  filePath: /Users/jingsonghu/colla/logs/peer1.log
+  filePath: /Users/jingsonghu/colla/logs/peer.log
 http:
   port: 8081
   externalAddr: peer.curltech.io
