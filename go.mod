@@ -1,6 +1,6 @@
 module github.com/curltech/go-colla-node
 
-go 1.23
+go 1.24
 
 require (
 	github.com/ProtonMail/gopenpgp/v2 v2.8.1
