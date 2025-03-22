@@ -2,14 +2,15 @@ package webrtc
 
 import (
 	"github.com/curltech/go-colla-core/logger"
-	"github.com/pion/webrtc/v3"
+	"github.com/pion/webrtc/v4"
 	"io"
 	"time"
 )
 
 const MessageSize = 15
 
-/**
+/*
+*
 创建detach的api，其datachannel为detach
 */
 func (this *BasePeerConnection) createDetachApi() (*webrtc.API, error) {

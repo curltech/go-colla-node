@@ -2,7 +2,7 @@ package webrtc
 
 import (
 	"github.com/curltech/go-colla-core/config"
-	"github.com/pion/webrtc/v3"
+	"github.com/pion/webrtc/v4"
 )
 
 type SignalType string
@@ -27,7 +27,7 @@ const (
 	PeerConnectionStatus_closed       PeerConnectionStatus = "closed"    //是否关闭连接完成
 )
 
-///可以注册的事件
+// /可以注册的事件
 type WebrtcEventType string
 
 const (
@@ -94,7 +94,8 @@ type MeetingRoom struct {
 	Identity string `json:"identity,omitempty"`
 }
 
-/**
+/*
+*
 用于交换的signal消息，当type为join的时候，表示需要服务器反拨，发起offer
 如果为offer，表示服务器为被叫方，如果router字段不为空，表示有sfu的要求
 */

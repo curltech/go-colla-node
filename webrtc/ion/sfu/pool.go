@@ -8,7 +8,7 @@ package sfu
 //	"github.com/curltech/go-colla-node/p2p"
 //	"github.com/curltech/go-colla-node/p2p/chain/action/dht"
 //	"github.com/pion/ion-sfu/pkg/sfu"
-//	"github.com/pion/webrtc/v3"
+//	"github.com/pion/webrtc/v4"
 //	"sync"
 //)
 //

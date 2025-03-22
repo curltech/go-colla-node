@@ -3,7 +3,7 @@ package webrtc
 import (
 	"errors"
 	"github.com/curltech/go-colla-core/logger"
-	webrtc1 "github.com/pion/webrtc/v3"
+	webrtc1 "github.com/pion/webrtc/v4"
 	"sync"
 )
 
@@ -17,7 +17,8 @@ const (
 	RouterIdentity_PubSub     = "pubsub"
 )
 
-/**
+/*
+*
 自己实现的SFU
 sfu是多个peer的集合，一个room可以有多个sfu，但是在一个服务器peer上只能有一个，所以roomId和sfuId相同
 */
@@ -33,7 +34,8 @@ type Sfu struct {
 	lock        sync.Mutex
 }
 
-/**
+/*
+*
 创建新的SFU
 */
 func Create(sfuId string) *Sfu {
@@ -45,7 +47,8 @@ func Create(sfuId string) *Sfu {
 	return sfu
 }
 
-/**
+/*
+*
 加入SFU
 */
 func (this *Sfu) join(peerConnection *AdvancedPeerConnection) error {
@@ -144,7 +147,8 @@ func (this *Sfu) onTrack(peerConnection *AdvancedPeerConnection) {
 	})
 }
 
-/**
+/*
+*
 离开SFU
 */
 func (this *Sfu) leave(peerConnection *AdvancedPeerConnection) error {
@@ -168,7 +172,8 @@ func (this *Sfu) leave(peerConnection *AdvancedPeerConnection) error {
 	return nil
 }
 
-/**
+/*
+*
 发布的意思：
 产生自己的发布者列表，把已经存在的订阅者加入到自己的订阅者列表中
 */
@@ -203,7 +208,8 @@ func (this *Sfu) publish(peerConnection *AdvancedPeerConnection) error {
 	return nil
 }
 
-/**
+/*
+*
 新的远程轨道转换成本地轨道，然后加到所有的订阅者上
 */
 func (this *Sfu) publishTrack(peerConnection *AdvancedPeerConnection, trackRemote *webrtc1.TrackRemote) error {
@@ -256,7 +262,8 @@ func (this *Sfu) publishTrack(peerConnection *AdvancedPeerConnection, trackRemot
 	return nil
 }
 
-/**
+/*
+*
 订阅的意思：
 1.将自己加入到全局订阅者列表中，加入自己到所有的发布者的订阅者列表
 2.将发布者的所有远程轨道生成本地轨道，加入到自己的轨道中
@@ -317,7 +324,8 @@ func (this *Sfu) subscribe(peerConnection *AdvancedPeerConnection) error {
 
 }
 
-/**
+/*
+*
 一个服务器上的所有sfu的集合，每个sfu都属于不同的room
 */
 type SfuPool struct {
@@ -325,7 +333,8 @@ type SfuPool struct {
 	lock sync.Mutex
 }
 
-/**
+/*
+*
 sfu池
 */
 var sfuPool *SfuPool = &SfuPool{sfus: make(map[string]*Sfu)}
@@ -334,7 +343,8 @@ func GetSfuPool() *SfuPool {
 	return sfuPool
 }
 
-/**
+/*
+*
 根据roomId查找是否有sfu，如果存在就加入，不存在，则创建一个sfu并加入
 */
 func (this *SfuPool) Join(peerConnection *AdvancedPeerConnection) (*Sfu, error) {
@@ -369,7 +379,8 @@ func (this *SfuPool) Get(roomId string) *Sfu {
 	return nil
 }
 
-/**
+/*
+*
 关闭*AdvancedPeerConnection
 */
 func (this *SfuPool) Leave(peerConnection *AdvancedPeerConnection) error {

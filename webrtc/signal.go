@@ -3,10 +3,11 @@ package webrtc
 import (
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/p2p/chain/action/dht"
-	"github.com/pion/webrtc/v3" //用到了webrtc的数据结构，但是更好的是不用，只将转换的方法做在webrtc里面
+	"github.com/pion/webrtc/v4" //用到了webrtc的数据结构，但是更好的是不用，只将转换的方法做在webrtc里面
 )
 
-/**
+/*
+*
 调用注册发送信号函数发送信号
 */
 func Signal(webrtcSignal *WebrtcSignal, targetPeerId string) (interface{}, error) {
@@ -42,7 +43,7 @@ func Signal(webrtcSignal *WebrtcSignal, targetPeerId string) (interface{}, error
 	return dht.SignalAction.Signal("", sig, targetPeerId)
 }
 
-///将信号消息转换成信号对象
+// /将信号消息转换成信号对象
 func Transform(payload map[string]interface{}) *WebrtcSignal {
 	signalType := ""
 	_type, ok := payload["type"]

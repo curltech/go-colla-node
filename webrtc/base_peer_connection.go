@@ -5,7 +5,7 @@ import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-core/util/security"
-	"github.com/pion/webrtc/v3"
+	"github.com/pion/webrtc/v4"
 	"strings"
 	"time"
 )
@@ -65,7 +65,8 @@ func CreateBasePeerConnection(initiator bool) *BasePeerConnection {
 	return &basePeerConnection
 }
 
-/**
+/*
+*
 注册事件，发生时调用外部函数
 */
 func (this *BasePeerConnection) On(name WebrtcEventType, fn func(event *WebrtcEvent) (interface{}, error)) {
@@ -75,7 +76,8 @@ func (this *BasePeerConnection) On(name WebrtcEventType, fn func(event *WebrtcEv
 	this.events[name] = fn
 }
 
-/**
+/*
+*
 事件发生，调用外部函数
 */
 func (this *BasePeerConnection) Emit(name WebrtcEventType, event *WebrtcEvent) (interface{}, error) {
@@ -89,7 +91,8 @@ func (this *BasePeerConnection) Emit(name WebrtcEventType, event *WebrtcEvent) (
 	return nil, errors.New("EventNotExist")
 }
 
-/**
+/*
+*
 创建媒体引擎和API对象，在需要自定义音视频编码的时候使用
 */
 func (this *BasePeerConnection) createApi() (*webrtc.API, error) {
@@ -138,7 +141,7 @@ func (this *BasePeerConnection) Init(extension *SignalExtension, localTracks []w
 		this.onIceConnectionStateChange(state)
 	})
 
-	this.peerConnection.OnICEGatheringStateChange(func(state webrtc.ICEGathererState) {
+	this.peerConnection.OnICEGatheringStateChange(func(state webrtc.ICEGatheringState) {
 		this.onIceGatheringStateChange(state)
 	})
 
@@ -235,7 +238,7 @@ func (this *BasePeerConnection) onIceConnectionStateChange(state webrtc.ICEConne
 	}
 }
 
-func (this *BasePeerConnection) onIceGatheringStateChange(state webrtc.ICEGathererState) {
+func (this *BasePeerConnection) onIceGatheringStateChange(state webrtc.ICEGatheringState) {
 	if this.status == PeerConnectionStatus_connected {
 		logger.Sugar.Errorf("PeerConnectionStatus has already connected")
 		return
@@ -258,7 +261,8 @@ func (this *BasePeerConnection) onSignalingStateChange(state webrtc.SignalingSta
 	this.Emit(WebrtcEventType_signalingState, &WebrtcEvent{Data: state})
 }
 
-/**
+/*
+*
 对candidate的处理，pion建议的和simplepeer的实现有差异，体现在加入时间，发送时间，
 pion的发送时间是在远程sdp被设置以后，之前一律候选，在收到sdp后统一发送，加入时间是在收到对方的candidate时马上加入，应该比较快
 simplepeer的发送时间是onIceCandidate就发送，加入时间是在收到candidate或者sdp信号，sdp被设置后加入，包括候选一起加入，如果sdp未设置，一律候选
@@ -285,7 +289,7 @@ func (this *BasePeerConnection) onNegotiationNeeded() {
 	logger.Sugar.Infof("onNegotiationNeeded")
 }
 
-///被叫不能在第一次的时候主动发起协议过程，主叫或者被叫不在第一次的时候可以发起协商过程
+// /被叫不能在第一次的时候主动发起协议过程，主叫或者被叫不在第一次的时候可以发起协商过程
 func (this *BasePeerConnection) negotiate() {
 	if this.initiator {
 		this._negotiateOffer()
@@ -306,7 +310,7 @@ func (this *BasePeerConnection) negotiate() {
 	}
 }
 
-///作为主叫，发起协商过程createOffer
+// /作为主叫，发起协商过程createOffer
 func (this *BasePeerConnection) _negotiateOffer() {
 	if this.status == PeerConnectionStatus_closed {
 		logger.Sugar.Errorf("PeerConnectionStatus closed")
@@ -321,7 +325,7 @@ func (this *BasePeerConnection) _negotiateOffer() {
 	this._createOffer()
 }
 
-///作为主叫，创建offer，设置到本地会话描述，并发送offer
+// /作为主叫，创建offer，设置到本地会话描述，并发送offer
 func (this *BasePeerConnection) _createOffer() {
 	if this.status == PeerConnectionStatus_closed {
 		logger.Sugar.Errorf("PeerConnectionStatus closed")
@@ -344,7 +348,7 @@ func (this *BasePeerConnection) _createOffer() {
 	}
 }
 
-///作为主叫，调用外部方法发送offer
+// /作为主叫，调用外部方法发送offer
 func (this *BasePeerConnection) _sendOffer(offer webrtc.SessionDescription) {
 	if this.status == PeerConnectionStatus_closed {
 		logger.Sugar.Errorf("PeerConnectionStatus closed")
@@ -360,7 +364,7 @@ func (this *BasePeerConnection) _sendOffer(offer webrtc.SessionDescription) {
 	logger.Sugar.Infof("end sendOffer")
 }
 
-///外部在收到信号的时候调用
+// /外部在收到信号的时候调用
 func (this *BasePeerConnection) onSignal(webrtcSignal *WebrtcSignal) {
 	if this.initiator {
 		this._onOfferSignal(webrtcSignal)
@@ -369,7 +373,7 @@ func (this *BasePeerConnection) onSignal(webrtcSignal *WebrtcSignal) {
 	}
 }
 
-///作为主叫，从信号服务器传回来远程的webrtcSignal信息，从signalAction回调
+// /作为主叫，从信号服务器传回来远程的webrtcSignal信息，从signalAction回调
 func (this *BasePeerConnection) _onOfferSignal(webrtcSignal *WebrtcSignal) {
 	if this.status == PeerConnectionStatus_closed {
 		logger.Sugar.Errorf("PeerConnectionStatus closed")
@@ -446,7 +450,7 @@ func (this *BasePeerConnection) _onOfferSignal(webrtcSignal *WebrtcSignal) {
 	}
 }
 
-///作为被叫，协商时发送再协商信号给主叫，要求重新发起协商
+// /作为被叫，协商时发送再协商信号给主叫，要求重新发起协商
 func (this *BasePeerConnection) _negotiateAnswer() {
 	if this.status == PeerConnectionStatus_closed {
 		logger.Sugar.Errorf("PeerConnectionStatus closed")
@@ -469,7 +473,7 @@ func (this *BasePeerConnection) _negotiateAnswer() {
 	this.negotiateStatus = NegotiateStatus_negotiating
 }
 
-///作为被叫，创建answer，发生在被叫方，将answer回到主叫方
+// /作为被叫，创建answer，发生在被叫方，将answer回到主叫方
 func (this *BasePeerConnection) _createAnswer() {
 	if this.status == PeerConnectionStatus_closed {
 		logger.Sugar.Errorf("PeerConnectionStatus closed")
@@ -493,7 +497,7 @@ func (this *BasePeerConnection) _createAnswer() {
 	}
 }
 
-//作为被叫，发送answer
+// 作为被叫，发送answer
 func (this *BasePeerConnection) _sendAnswer(answer *webrtc.SessionDescription) {
 	if this.status == PeerConnectionStatus_closed {
 		logger.Sugar.Errorf("PeerConnectionStatus closed")
@@ -511,7 +515,7 @@ func (this *BasePeerConnection) _sendAnswer(answer *webrtc.SessionDescription) {
 	logger.Sugar.Infof("sendAnswer:${answer.type} successfully")
 }
 
-///作为被叫，从信号服务器传回来远程的webrtcSignal信息，从signalAction回调
+// /作为被叫，从信号服务器传回来远程的webrtcSignal信息，从signalAction回调
 func (this *BasePeerConnection) _onAnswerSignal(webrtcSignal *WebrtcSignal) {
 	if this.status == PeerConnectionStatus_closed {
 		logger.Sugar.Errorf("PeerConnectionStatus closed")
@@ -583,7 +587,8 @@ func (this *BasePeerConnection) requestMissingTransceivers() {
 	}
 }
 
-/**
+/*
+*
 关闭peer
 */
 func (this *BasePeerConnection) Close() {
@@ -667,7 +672,8 @@ func (this *BasePeerConnection) addTransceiver(kind webrtc.RTPCodecType, init ..
 	}
 }
 
-/**
+/*
+*
 获取统计信息，设置连接状态，发送缓存的待发送数据
 */
 func (this *BasePeerConnection) setStatsReport() {

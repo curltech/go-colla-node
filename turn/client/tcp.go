@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/pion/logging"
-	"github.com/pion/turn/v2"
+	"github.com/pion/turn/v4"
 )
 
 type tcpClient struct {

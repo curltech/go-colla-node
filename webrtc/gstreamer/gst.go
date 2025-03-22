@@ -2,7 +2,7 @@ package gstreamer
 
 import (
 	"github.com/curltech/go-colla-node/webrtc/gstreamer/sink"
-	"github.com/pion/webrtc/v3"
+	"github.com/pion/webrtc/v4"
 )
 
 var pipeline *sink.Pipeline

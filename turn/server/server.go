@@ -8,7 +8,7 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/pion/stun"
-	"github.com/pion/turn/v2"
+	"github.com/pion/turn/v4"
 	"net"
 	"regexp"
 )
@@ -28,7 +28,8 @@ var Server = &turnServer{}
 // If passwords are stored they should be saved to your DB hashed using turn.GenerateAuthKey
 var usersMap map[string][]byte
 
-/**
+/*
+*
 turn验证
 */
 func authHandler(username string, realm string, srcAddr net.Addr) ([]byte, bool) {
@@ -54,7 +55,8 @@ func authHandler(username string, realm string, srcAddr net.Addr) ([]byte, bool)
 	return nil, false
 }
 
-/**
+/*
+*
 启动turn server
 */
 func (this *turnServer) Start() {

@@ -6,14 +6,14 @@ import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/pion/rtp"
 	"github.com/pion/rtp/codecs"
-	"github.com/pion/webrtc/v3"
-	"github.com/pion/webrtc/v3/pkg/media"
-	"github.com/pion/webrtc/v3/pkg/media/h264reader"
-	"github.com/pion/webrtc/v3/pkg/media/ivfreader"
-	"github.com/pion/webrtc/v3/pkg/media/ivfwriter"
-	"github.com/pion/webrtc/v3/pkg/media/oggreader"
-	"github.com/pion/webrtc/v3/pkg/media/oggwriter"
-	"github.com/pion/webrtc/v3/pkg/media/samplebuilder"
+	"github.com/pion/webrtc/v4"
+	"github.com/pion/webrtc/v4/pkg/media"
+	"github.com/pion/webrtc/v4/pkg/media/h264reader"
+	"github.com/pion/webrtc/v4/pkg/media/ivfreader"
+	"github.com/pion/webrtc/v4/pkg/media/ivfwriter"
+	"github.com/pion/webrtc/v4/pkg/media/oggreader"
+	"github.com/pion/webrtc/v4/pkg/media/oggwriter"
+	"github.com/pion/webrtc/v4/pkg/media/samplebuilder"
 	"golang.org/x/image/vp8"
 	"image/jpeg"
 	"io"
@@ -21,7 +21,8 @@ import (
 	"time"
 )
 
-/**
+/*
+*
 读取ivf视频文件到输出流
 videoTrack, err := webrtc.NewTrackLocalStaticSample(webrtc.RTPCodecCapability{MimeType: "video/h264"}, "video", "pion")
 videoTrack, err := webrtc.NewTrackLocalStaticSample(webrtc.RTPCodecCapability{MimeType: "video/vp8"}, "video", "pion")
@@ -118,7 +119,8 @@ func readH264Video(videoFileName string, videoTrack *webrtc.TrackLocalStaticSamp
 	}
 }
 
-/**
+/*
+*
 加密的模拟方法
 */
 func encrypt(frame []byte) []byte {
@@ -130,7 +132,8 @@ func encrypt(frame []byte) []byte {
 	return frame
 }
 
-/**
+/*
+*
 读取ogg格式的音频文件到输出流
 */
 func readAudio(audioFileName string, audioTrack *webrtc.TrackLocalStaticSample) {
@@ -185,7 +188,8 @@ func readAudio(audioFileName string, audioTrack *webrtc.TrackLocalStaticSample) 
 	}
 }
 
-/**
+/*
+*
 写ogg音频流到文件
 */
 func writeAudio(audioFileName string, track *webrtc.TrackRemote) {
@@ -200,7 +204,8 @@ func writeAudio(audioFileName string, track *webrtc.TrackRemote) {
 	}
 }
 
-/**
+/*
+*
 写ivf视频流到文件
 */
 func writeVideo(videoFileName string, track *webrtc.TrackRemote) {
@@ -216,7 +221,8 @@ func writeVideo(videoFileName string, track *webrtc.TrackRemote) {
 	}
 }
 
-/**
+/*
+*
 写入磁盘文件
 */
 func saveToDisk(i media.Writer, track *webrtc.TrackRemote) {
@@ -239,7 +245,8 @@ func saveToDisk(i media.Writer, track *webrtc.TrackRemote) {
 	}
 }
 
-/**
+/*
+*
 将远程的媒体webm格式保存到磁盘
 */
 type webmSaver struct {
@@ -416,7 +423,8 @@ func Save(filename string, audioTrack *webrtc.TrackRemote, videoTrack *webrtc.Tr
 	}
 }
 
-/**
+/*
+*
 convert incoming video frames to jpeg
 */
 func Snapshot(rtpPacket *rtp.Packet) (*bytes.Buffer, error) {

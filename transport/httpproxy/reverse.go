@@ -12,7 +12,8 @@ import (
 	"time"
 )
 
-/**
+/*
+*
 使用fasthttp实现的http反向代理，支持http,ws,stdhttp,wss的代理映射
 */
 type ProxyServer struct {
@@ -30,7 +31,8 @@ func init() {
 	parseMapping()
 }
 
-/**
+/*
+*
 解析配置文件的映射配置
 */
 func parseMapping() error {
@@ -102,8 +104,10 @@ func parseMapping() error {
 			ps.weights[addr] = proxy.Weight(w)
 		}
 		//创建被代理的http服务器或者websocket服务器（只支持一个地址）
-		if mode == "stdhttp" || mode == "stdhttp" {
-			reverseProxy := proxy.NewReverseProxy("", proxy.WithBalancer(ps.weights), proxy.WithTimeout(5*time.Second))
+		if mode == "stdhttp" {
+			proxy.WithBalancer(ps.weights)
+			proxy.WithTimeout(5 * time.Second)
+			reverseProxy, _ := proxy.NewReverseProxyWith()
 			ps.ReverseProxy = reverseProxy
 		} else if mode == "ws" || mode == "wss" {
 			for key, _ := range ps.weights {
@@ -111,7 +115,11 @@ func parseMapping() error {
 				if len(ks) == 2 {
 					host := ks[0]
 					path := "/" + ks[1]
-					wsReverseProxy := proxy.NewWSReverseProxy(host, path)
+					proxy.WithAddress(host, path)
+					wsReverseProxy, err := proxy.NewWSReverseProxyWith()
+					if err != nil {
+						return err
+					}
 					ps.WSReverseProxy = wsReverseProxy
 					break
 				}
@@ -168,7 +176,8 @@ func (proxyServer *ProxyServer) ProxyHandler(ctx *fasthttp.RequestCtx) {
 	}
 }
 
-/**
+/*
+*
 启动代理服务器，对外使用fasthttp的http server，支持https模式
 */
 func Start() error {

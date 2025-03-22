@@ -3,7 +3,7 @@ package webrtc
 import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/pion/rtp"
-	"github.com/pion/webrtc/v3"
+	"github.com/pion/webrtc/v4"
 )
 
 type AdvancedPeerConnection struct {
@@ -32,7 +32,8 @@ func CreateAdvancedPeerConnection(peerId string, initiator bool, clientId string
 	return &advancedPeerConnection
 }
 
-/**
+/*
+*
 创建新的Webrtc节点
 */
 func (this *AdvancedPeerConnection) Init(iceServers []webrtc.ICEServer) error {
@@ -128,21 +129,24 @@ func (this *AdvancedPeerConnection) Id() string {
 	return this.basePeerConnection.id
 }
 
-/**
+/*
+*
 设置本节点的信号
 */
 func (this *AdvancedPeerConnection) onSignal(webrtcSignal *WebrtcSignal) {
 	this.basePeerConnection.onSignal(webrtcSignal)
 }
 
-/**
+/*
+*
 获取本节点的webrtc连接状态
 */
 func (this *AdvancedPeerConnection) status() PeerConnectionStatus {
 	return this.basePeerConnection.status
 }
 
-/**
+/*
+*
 利用缺省数据通道发送数据
 */
 func (this *AdvancedPeerConnection) Send(data []byte) error {
@@ -155,7 +159,8 @@ func (this *AdvancedPeerConnection) Send(data []byte) error {
 	return nil
 }
 
-/**
+/*
+*
 利用缺省数据通道发送数据
 */
 func (this *AdvancedPeerConnection) SendText(data string) error {
@@ -172,7 +177,8 @@ func (this *AdvancedPeerConnection) connected() bool {
 	return this.basePeerConnection.status == PeerConnectionStatus_connected
 }
 
-/**
+/*
+*
 关闭本节点的wenbrtc连接，并从池中删除
 */
 func (this *AdvancedPeerConnection) Close() {

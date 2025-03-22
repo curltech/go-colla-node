@@ -6,7 +6,7 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/p2p/chain/action/dht"
 	libp2pcrypto "github.com/libp2p/go-libp2p/core/crypto"
-	"github.com/pion/webrtc/v3"
+	"github.com/pion/webrtc/v4"
 	"time"
 )
 
@@ -67,7 +67,6 @@ func (this *PeerConnectionPool) get(peerId string) []*AdvancedPeerConnection {
 	return nil
 }
 
-//
 func (this *PeerConnectionPool) getOne(peerId string, clientId string) *AdvancedPeerConnection {
 	peerConnections, ok := this.peerConnections[peerId]
 	if ok && peerConnections != nil && len(peerConnections) > 0 {
@@ -81,7 +80,6 @@ func (this *PeerConnectionPool) getOne(peerId string, clientId string) *Advanced
 	return nil
 }
 
-//
 func (this *PeerConnectionPool) put(
 	peerId string,
 	advancedPeerConnection *AdvancedPeerConnection,
@@ -99,7 +97,6 @@ func (this *PeerConnectionPool) put(
 	peerConnections[clientId] = advancedPeerConnection
 }
 
-//
 func (this *PeerConnectionPool) create(peerId string, clientId string, name string, connectPeerId string, connectSessionId string, room *MeetingRoom,
 	iceServers []webrtc.ICEServer) (*AdvancedPeerConnection, error) {
 	//如果已经存在，先关闭删除
@@ -152,7 +149,7 @@ func (this *PeerConnectionPool) remove(peerId string, clientId string) map[strin
 	return nil
 }
 
-///主动关闭，从池中移除连接
+// /主动关闭，从池中移除连接
 func (this *PeerConnectionPool) Close(peerId string, clientId string) bool {
 	removePeerConnections :=
 		this.remove(peerId, clientId)
@@ -168,8 +165,8 @@ func (this *PeerConnectionPool) Close(peerId string, clientId string) bool {
 	return false
 }
 
-/// 获取连接已经建立的连接，可能是多个
-/// @param peerId
+// / 获取连接已经建立的连接，可能是多个
+// / @param peerId
 func (this *PeerConnectionPool) getConnected(peerId string) []*AdvancedPeerConnection {
 	peerConnections_ := make([]*AdvancedPeerConnection, 0)
 	peerConnections := this.get(peerId)
@@ -197,7 +194,7 @@ func (this *PeerConnectionPool) getAll() []*AdvancedPeerConnection {
 	return peerConnections
 }
 
-///清除过一段时间仍没有连接上的连接
+// /清除过一段时间仍没有连接上的连接
 func (this *PeerConnectionPool) clear() {
 	removedPeerIds := make([]string, 0)
 	for peerId, _ := range this.peerConnections {
@@ -257,19 +254,19 @@ func (this *PeerConnectionPool) createIfNotExist(peerId string,
 	return advancedPeerConnection, nil
 }
 
-///接收到signal
+// /接收到signal
 func (this *PeerConnectionPool) onSignal(peerId string, signal map[string]interface{},
 	clientId string, connectPeerId string, connectSessionId string) {
 	var webrtcSignal *WebrtcSignal = Transform(signal)
 	this.onWebrtcSignal(peerId, webrtcSignal, clientId, connectPeerId, connectSessionId)
 }
 
-/// 接收到信号服务器发来的signal的处理,没有完成，要仔细考虑多终端的情况
-/// 如果发来的是answer,寻找主叫的peerId,必须找到，否则报错，找到后检查clientId
-/// 如果发来的是offer,检查peerId，没找到创建一个新的被叫，如果找到，检查clientId
-/// @param peerId 源peerId
-/// @param connectSessionId
-/// @param data
+// / 接收到信号服务器发来的signal的处理,没有完成，要仔细考虑多终端的情况
+// / 如果发来的是answer,寻找主叫的peerId,必须找到，否则报错，找到后检查clientId
+// / 如果发来的是offer,检查peerId，没找到创建一个新的被叫，如果找到，检查clientId
+// / @param peerId 源peerId
+// / @param connectSessionId
+// / @param data
 func (this *PeerConnectionPool) onWebrtcSignal(peerId string, signal *WebrtcSignal,
 	clientId string, connectPeerId string, connectSessionId string) error {
 	var signalType = signal.SignalType
@@ -353,9 +350,9 @@ func (this *PeerConnectionPool) onWebrtcSignal(peerId string, signal *WebrtcSign
 	return nil
 }
 
-/// 向peer发送信息，如果是多个，遍历发送
-/// @param peerId
-/// @param data
+// / 向peer发送信息，如果是多个，遍历发送
+// / @param peerId
+// / @param data
 func (this *PeerConnectionPool) send(peerId string, data []byte,
 	clientId string) {
 	peerConnections := this.get(peerId)
@@ -373,8 +370,8 @@ func (this *PeerConnectionPool) send(peerId string, data []byte,
 	return
 }
 
-///收到发来的ChainMessage消息，进行后续的action处理
-///webrtc的数据通道发来的消息可以是ChainMessage，也可以是简单的非ChainMessage
+// /收到发来的ChainMessage消息，进行后续的action处理
+// /webrtc的数据通道发来的消息可以是ChainMessage，也可以是简单的非ChainMessage
 func (this *PeerConnectionPool) onMessage(event WebrtcEvent) {
 	logger.Sugar.Infof("peerId: ${event.peerId} clientId:${event.clientId} is onMessage")
 
@@ -458,7 +455,7 @@ func (this *PeerConnectionPool) status(peerId string, clientId string) PeerConne
 	return PeerConnectionStatus_none
 }
 
-///调用signalAction发送signal到信号服务器
+// /调用signalAction发送signal到信号服务器
 func (this *PeerConnectionPool) signal(evt *WebrtcEvent) (interface{}, error) {
 	peerId := evt.PeerId
 	clientId := evt.ClientId

@@ -2,7 +2,7 @@ package libp2p
 
 import (
 	"bytes"
-	openpgpcrypto "github.com/ProtonMail/gopenpgp/v2/crypto"
+	openpgpcrypto "github.com/ProtonMail/gopenpgp/v3/crypto"
 	"github.com/curltech/go-colla-core/crypto/openpgp"
 	"github.com/libp2p/go-libp2p/core/crypto"
 	pb "github.com/libp2p/go-libp2p/core/crypto/pb"
@@ -16,7 +16,7 @@ type OpenPGPPrivateKey struct {
 // Bytes returns a serialized, storeable representation of this key
 // DEPRECATED in favor of Marshal / Unmarshal
 func (this *OpenPGPPrivateKey) Bytes() ([]byte, error) {
-	return openpgp.BytePrivateKey(this.PrivateKey, nil), nil
+	return openpgp.BytePrivateKey(this.PrivateKey, nil)
 }
 
 // Equals checks whether two PubKeys are the same
@@ -35,7 +35,7 @@ func (this *OpenPGPPrivateKey) Equals(key crypto.Key) bool {
 //
 // This function is the inverse of {Priv,Pub}KeyUnmarshaler.
 func (this *OpenPGPPrivateKey) Raw() ([]byte, error) {
-	return openpgp.BytePrivateKey(this.PrivateKey, nil), nil
+	return openpgp.BytePrivateKey(this.PrivateKey, nil)
 }
 
 // Type returns the protobof key type.
@@ -46,12 +46,12 @@ func (this *OpenPGPPrivateKey) Type() pb.KeyType {
 // PrivateKey
 // Cryptographically sign the given bytes
 func (this *OpenPGPPrivateKey) Sign(plaintext []byte) ([]byte, error) {
-	return openpgp.Sign(this.PrivateKey, nil, plaintext), nil
+	return openpgp.Sign(this.PrivateKey, plaintext)
 }
 
 // Return a public key paired with this private key
 func (this *OpenPGPPrivateKey) GetPublic() crypto.PubKey {
-	pub := openpgp.GetPublicKey(this.PrivateKey)
+	pub, _ := openpgp.GetPublicKey(this.PrivateKey)
 	publicKey := &OpenPGPPublicKey{PublicKey: pub, KeyType: this.KeyType}
 
 	return publicKey
@@ -65,7 +65,7 @@ type OpenPGPPublicKey struct {
 // Bytes returns a serialized, storeable representation of this key
 // DEPRECATED in favor of Marshal / Unmarshal
 func (this *OpenPGPPublicKey) Bytes() ([]byte, error) {
-	return openpgp.BytePublicKey(this.PublicKey), nil
+	return openpgp.BytePublicKey(this.PublicKey)
 }
 
 // Equals checks whether two PubKeys are the same
@@ -81,7 +81,7 @@ func (this *OpenPGPPublicKey) Equals(key crypto.Key) bool {
 //
 // This function is the inverse of {Priv,Pub}KeyUnmarshaler.
 func (this *OpenPGPPublicKey) Raw() ([]byte, error) {
-	return openpgp.BytePublicKey(this.PublicKey), nil
+	return openpgp.BytePublicKey(this.PublicKey)
 }
 
 // Type returns the protobof key type.
@@ -92,5 +92,5 @@ func (this *OpenPGPPublicKey) Type() pb.KeyType {
 // PublicKeys
 // Verify that 'sig' is the signed hash of 'data'
 func (this *OpenPGPPublicKey) Verify(data []byte, sig []byte) (bool, error) {
-	return openpgp.Verify(this.PublicKey, data, sig), nil
+	return openpgp.Verify(this.PublicKey, data, sig)
 }

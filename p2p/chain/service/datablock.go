@@ -21,7 +21,8 @@ import (
 	"time"
 )
 
-/**
+/*
+*
 同步表结构，服务继承基本服务的方法
 */
 type DataBlockService struct {
@@ -241,8 +242,8 @@ func (this *DataBlockService) StoreValue(db *entity.DataBlock) error {
 			}
 			if len(signatureData) > 0 {
 				signature := std.DecodeBase64(db.Signature)
-				pass := openpgp.Verify(publicKey, []byte(signatureData), signature)
-				if pass != true {
+				pass, err := openpgp.Verify(publicKey, []byte(signatureData), signature)
+				if err != nil || pass != true {
 					return errors.New(fmt.Sprintf("SignatureVerifyFailure, blockId: %v, peerId: %v", db.BlockId, db.PeerId))
 				}
 			}

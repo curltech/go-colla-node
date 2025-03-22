@@ -3,7 +3,7 @@ package webrtc
 import (
 	"errors"
 	"github.com/curltech/go-colla-core/logger"
-	"github.com/pion/webrtc/v3"
+	"github.com/pion/webrtc/v4"
 )
 
 func (this *BasePeerConnection) BufferedAmount() uint64 {
@@ -59,7 +59,8 @@ func (this *BasePeerConnection) onMessage(msg webrtc.DataChannelMessage) {
 	}
 }
 
-/**
+/*
+*
 低于阀值的时候触发
 */
 func (this *BasePeerConnection) onChannelBufferedAmountLow() {
@@ -81,7 +82,8 @@ func (this *BasePeerConnection) onChannelOpen() {
 	this.dataChannelOpen = true
 }
 
-/**
+/*
+*
 数据通道关闭，关闭节点
 */
 func (this *BasePeerConnection) onChannelClose() {
@@ -94,14 +96,16 @@ func (this *BasePeerConnection) onChannelClose() {
 	this.Close()
 }
 
-/**
+/*
+*
 把要发送的数据送入缓存
 */
 func (this *BasePeerConnection) SendText(message string) error {
 	return this.Send([]byte(message))
 }
 
-/**
+/*
+*
 把要发送的数据送入缓存
 */
 func (this *BasePeerConnection) Send(data []byte) error {
@@ -122,7 +126,8 @@ func (this *BasePeerConnection) Send(data []byte) error {
 	return nil
 }
 
-/**
+/*
+*
 在独立的线程中循环发送缓存的数据
 */
 func (this *BasePeerConnection) loopSend() {

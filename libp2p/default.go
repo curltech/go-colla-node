@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	openpgpcrypto "github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/curltech/go-colla-core/config"
 	"github.com/curltech/go-colla-core/crypto"
 	"github.com/curltech/go-colla-core/crypto/openpgp"
@@ -405,15 +404,15 @@ func getMyselfPeer() (libp2pcrypto.PrivKey, *entity.MyselfPeer) {
 		/**
 		加密对应的密钥对openpgp
 		*/
-		privKey := openpgp.GenerateKeyPair(crypto.KeyPairType_Ed25519, []byte(password), false, name, email)
-		privateKey := privKey.(*openpgpcrypto.Key)
-		myself.PrivateKey = std.EncodeBase64(openpgp.BytePrivateKey(privateKey, []byte(password)))
+		privateKey, err := openpgp.GenerateKeyPair(crypto.KeyPairType_Ed25519, []byte(password), name, email)
+		bs, err = openpgp.BytePrivateKey(privateKey, []byte(password))
+		myself.PrivateKey = std.EncodeBase64(bs)
 		global.Global.PrivateKey = privateKey
 		logger.Sugar.Debugf("PrivateKey length: %v", len(myself.PrivateKey))
 
-		publicKey := openpgp.GetPublicKey(privateKey)
+		publicKey, err := openpgp.GetPublicKey(privateKey)
 		global.Global.PublicKey = publicKey
-		bs = openpgp.BytePublicKey(publicKey)
+		bs, err = openpgp.BytePublicKey(publicKey)
 		myself.PublicKey = std.EncodeBase64(bs)
 		logger.Sugar.Debugf("PublicKey length: %v", len(myself.PublicKey))
 

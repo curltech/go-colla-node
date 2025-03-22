@@ -3,11 +3,12 @@ package webrtc
 import (
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/pion/rtcp"
-	"github.com/pion/webrtc/v3"
+	"github.com/pion/webrtc/v4"
 	"time"
 )
 
-/**
+/*
+*
 将本地轨道加入，并存放进流中
 */
 func (this *BasePeerConnection) AddTrack(track webrtc.TrackLocal) (*webrtc.RTPSender, error) {
@@ -30,7 +31,8 @@ func (this *BasePeerConnection) AddTrack(track webrtc.TrackLocal) (*webrtc.RTPSe
 	return sender, nil
 }
 
-/**
+/*
+*
 读取发送者的数据
 */
 func (this *BasePeerConnection) read(sender *webrtc.RTPSender) {
@@ -68,7 +70,8 @@ func (this *BasePeerConnection) removeTrack(track webrtc.TrackLocal) {
 	this.negotiate()
 }
 
-/**
+/*
+*
 告诉对方peer加快发送
 */
 func (this *BasePeerConnection) remb(track *webrtc.TrackRemote) {
@@ -79,7 +82,8 @@ func (this *BasePeerConnection) remb(track *webrtc.TrackRemote) {
 	}
 }
 
-/**
+/*
+*
 每三秒告诉对方关键帧
 */
 func (this *BasePeerConnection) keyFrame(track *webrtc.TrackRemote) {
@@ -94,7 +98,8 @@ func (this *BasePeerConnection) keyFrame(track *webrtc.TrackRemote) {
 	}
 }
 
-/**
+/*
+*
 有新的媒体轨道连接上来
 */
 func (this *BasePeerConnection) onTrack(track *webrtc.TrackRemote, receiver *webrtc.RTPReceiver) {

@@ -3,7 +3,7 @@ package sfu
 import (
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/p2p/chain/action/dht"
-	"github.com/pion/webrtc/v3"
+	"github.com/pion/webrtc/v4"
 )
 
 const (
@@ -28,7 +28,8 @@ type SfuSignal struct {
 	Candidate *webrtc.ICECandidateInit `json:"candidate,omitempty"`
 }
 
-/**
+/*
+*
 调用注册发送信号函数发送信号
 */
 func Signal(sfuSignal *SfuSignal, targetPeerId string) (interface{}, error) {

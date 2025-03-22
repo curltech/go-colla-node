@@ -2,7 +2,7 @@ package global
 
 import (
 	"context"
-	openpgp "github.com/ProtonMail/gopenpgp/v2/crypto"
+	openpgp "github.com/ProtonMail/gopenpgp/v3/crypto"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
 	"github.com/curltech/go-push-sdk/push"

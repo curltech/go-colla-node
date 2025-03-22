@@ -2,7 +2,7 @@ package handler
 
 import (
 	"errors"
-	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/gopenpgp/v3/crypto"
 	"github.com/curltech/go-colla-core/crypto/openpgp"
 	"github.com/curltech/go-colla-core/crypto/std"
 	"github.com/curltech/go-colla-core/util/compress"
@@ -17,21 +17,24 @@ import (
 	"net/http"
 )
 
-/**
+/*
+*
 在发送前校验各字段，然后再加密等处理
 */
 func SendValidate(msg *msg1.ChainMessage) error {
 	return nil
 }
 
-/**
+/*
+*
 在接收解密处理后校验，然后再进行业务处理
 */
 func ReceiveValidate(msg *msg1.ChainMessage) error {
 	return nil
 }
 
-/**
+/*
+*
 在发送回应数据前校验，然后再加密等处理
 */
 func ResponseValidate(msg *msg1.ChainMessage) error {
@@ -63,7 +66,7 @@ func Encrypt(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 			return msg, err
 		}
 
-		signature := openpgp.Sign(global.Global.PrivateKey, nil, data)
+		signature, _ := openpgp.Sign(global.Global.PrivateKey, data)
 		msg.PayloadSignature = std.EncodeBase64(signature)
 	}
 	if msg.NeedCompress == true && len(string(data)) > CompressLimit {
@@ -73,9 +76,16 @@ func Encrypt(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 	}
 	if msg.NeedEncrypt == true {
 		key := std.GenerateSecretKey(32)
-		data = openpgp.EncryptSymmetrical([]byte(key), data)
-
-		payloadKey := openpgp.EncryptKey([]byte(key), openpgpPub)
+		data, err = openpgp.EncryptSymmetrical([]byte(key), data)
+		if err != nil {
+			msg.NeedEncrypt = false
+			return msg, err
+		}
+		payloadKey, err := openpgp.EncryptKey([]byte(key), openpgpPub)
+		if err != nil {
+			msg.NeedEncrypt = false
+			return msg, err
+		}
 		msg.PayloadKey = std.EncodeBase64(payloadKey)
 	}
 	msg.TransportPayload = std.EncodeBase64(data)
@@ -156,18 +166,24 @@ func Decrypt(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 		srcPublicKey, err := GetPublicKey(msg.SrcPeerId)
 		if err == nil {
 			payloadSignature := std.DecodeBase64(msg.PayloadSignature)
-			pass := openpgp.Verify(srcPublicKey, data, payloadSignature)
+			pass, _ := openpgp.Verify(srcPublicKey, data, payloadSignature)
 			if pass != true {
 				previousPublicKeyPayloadSignature := std.DecodeBase64(msg.PreviousPublicKeyPayloadSignature)
-				pass = openpgp.Verify(srcPublicKey, data, previousPublicKeyPayloadSignature)
+				pass, _ = openpgp.Verify(srcPublicKey, data, previousPublicKeyPayloadSignature)
 				if pass != true {
 					return nil, errors.New("PayloadVerifyFailure")
 				}
 			}
 		}
 		payloadKey := std.DecodeBase64(msg.PayloadKey)
-		secretKey := openpgp.DecryptKey(payloadKey, global.Global.PrivateKey)
-		data = openpgp.DecryptSymmetrical(secretKey, data)
+		secretKey, err := openpgp.DecryptKey(payloadKey, global.Global.PrivateKey)
+		if err != nil {
+			return msg, err
+		}
+		data, err = openpgp.DecryptSymmetrical(secretKey, data)
+		if err != nil {
+			return msg, err
+		}
 	}
 	if msg.NeedCompress == true {
 		data = compress.GzipUncompress(data)
