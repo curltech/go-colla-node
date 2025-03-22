@@ -32,7 +32,7 @@ http:
 database:
   drivername: postgres
   # dsn: /home/azureuser/colla/peer1.db
-  host: localhost
+  host: 192.168.1.18
   port: 5432
   dbname: postgres
   user: postgres
