@@ -468,7 +468,7 @@ func Start() {
 	//这一步代码里会主动连接，所以比较快，所以装载PeerEndpoint比较合适
 	Bootstrap()
 	//把自己的信息写到分布式网络，但是不写其他节点通过GetValue也能找到
-	dht.PeerEndpointDHT.PutMyself()
+	//dht.PeerEndpointDHT.PutMyself()
 	//9.设置其他的路由发现方式，发现不能打开，会因为连接不上删除节点
 	//routingDiscovery()
 	//10.局域网可设置mdns路由发现方式
