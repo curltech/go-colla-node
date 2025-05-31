@@ -3,6 +3,7 @@ package dht
 import (
 	"bytes"
 	"context"
+	"errors"
 	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/datastore/handler"
@@ -10,10 +11,9 @@ import (
 	"github.com/curltech/go-colla-node/libp2p/ns"
 	"github.com/curltech/go-colla-node/libp2p/routingtable"
 	"github.com/curltech/go-colla-node/p2p/dht/entity"
-	"github.com/gogo/protobuf/proto"
+	u "github.com/ipfs/boxo/util"
 	"github.com/ipfs/go-cid"
 	ds "github.com/ipfs/go-datastore"
-	u "github.com/ipfs/go-ipfs-util"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	kb "github.com/libp2p/go-libp2p-kbucket"
 	"github.com/libp2p/go-libp2p-kbucket/peerdiversity"
@@ -24,6 +24,7 @@ import (
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/routing"
 	"github.com/multiformats/go-base32"
+	"google.golang.org/protobuf/proto"
 	"strings"
 	"time"
 )
@@ -138,7 +139,7 @@ func (this *PeerEntityDHT) PutValue(key string, value []byte, opts ...routing.Op
 		if error != nil && error.Error() == "can't replace a newer value with an older value" {
 			logger.Sugar.Warnf("can't replace a newer value with an older value")
 			return nil
-		} else if error == kb.ErrLookupFailure {
+		} else if errors.Is(error, kb.ErrLookupFailure) {
 			logger.Sugar.Warnf("failed to find any peer in table")
 			return nil
 		}
@@ -196,7 +197,7 @@ func (this *PeerEntityDHT) GetValue(key string, opts ...routing.Option) (_ []byt
 		strings.HasPrefix(key, "/"+ns.DataBlock_Owner_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Src_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Target_Prefix) == true) &&
-		error == kb.ErrLookupFailure {
+		errors.Is(error, kb.ErrLookupFailure) {
 		logger.Sugar.Warnf("failed to find any peer in table")
 		return byteArr, nil
 	} else {
@@ -214,7 +215,7 @@ func (this *PeerEntityDHT) SearchValue(key string, opts ...routing.Option) (<-ch
 		strings.HasPrefix(key, "/"+ns.DataBlock_Owner_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Src_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Target_Prefix) == true) &&
-		error == kb.ErrLookupFailure {
+		errors.Is(error, kb.ErrLookupFailure) {
 		logger.Sugar.Warnf("failed to find any peer in table")
 		return valChs, nil
 	} else {
@@ -240,7 +241,7 @@ func (this *PeerEntityDHT) GetValues(key string, opts ...routing.Option) ([][]by
 		strings.HasPrefix(key, "/"+ns.DataBlock_Owner_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Src_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Target_Prefix) == true) &&
-		error == kb.ErrLookupFailure {
+		errors.Is(error, kb.ErrLookupFailure) {
 		logger.Sugar.Warnf("failed to find any peer in table")
 		return recvdVals, nil
 	} else {

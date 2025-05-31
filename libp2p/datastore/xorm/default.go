@@ -17,13 +17,13 @@ import (
 	handler2 "github.com/curltech/go-colla-node/p2p/chain/handler"
 	service1 "github.com/curltech/go-colla-node/p2p/chain/service"
 	dhtentity "github.com/curltech/go-colla-node/p2p/dht/entity"
-	"github.com/gogo/protobuf/proto"
 	"github.com/ipfs/go-datastore"
 	dsq "github.com/ipfs/go-datastore/query"
 	util "github.com/ipfs/go-ipfs-util"
 	record "github.com/libp2p/go-libp2p-record"
 	recpb "github.com/libp2p/go-libp2p-record/pb"
 	"github.com/multiformats/go-base32"
+	"google.golang.org/protobuf/proto"
 	"strings"
 	"time"
 )
@@ -332,7 +332,8 @@ func (this *XormDatastore) Sync(ctx context.Context, prefix datastore.Key) error
 	return nil
 }
 
-/**
+/*
+*
 GetValue其实可以支持返回多条记录和全文检索结果
 一般Key的格式是/peerEndpoint/12D3KooWG59NPEuY1dseFzXMSyYbHQb1pfpPiMq5fk7c48exxNJp
 如果需要支持条件查询，第二个/后的格式就不是这样的，可以用=表示条件，类似url，甚至类似elastic的查询条件
