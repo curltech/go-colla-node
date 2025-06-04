@@ -13,7 +13,7 @@ import (
 	"net/http"
 )
 
-// HandleChainMessage libp2p,wss,https的处理handler，将原始数据还原成ChainMessage，
+// ReceiveRaw HandleChainMessage libp2p,wss,https的处理handler，将原始数据还原成ChainMessage，
 // 然后根据消息类型进行分支处理
 // 对于libp2p，可以提前获取远程peerId，remotePeerId不为空，已经建立了remotePeerId和sessId的连接池
 // 用于信息返回
@@ -42,11 +42,15 @@ func ReceiveRaw(data []byte, remotePeerId string, clientId string, connectSessio
 	if chainMessage.SrcConnectPeerId == "" {
 		chainMessage.SrcConnectPeerId = string(global.Global.PeerId)
 	}
+	if chainMessage.ConnectPeerId == "" {
+		chainMessage.ConnectPeerId = string(global.Global.PeerId)
+	}
+
 	if chainMessage.SrcConnectSessionId == "" {
 		chainMessage.SrcConnectSessionId = connectSessionId
 	}
 	chainMessage.ConnectSessionId = connectSessionId
-	PutPeerClientId(connectSessionId, remotePeerId, clientId)
+	PutPeerClientId(connectSessionId, chainMessage.ConnectPeerId, remotePeerId, clientId)
 	response, err = Dispatch(chainMessage)
 
 responseProcess:

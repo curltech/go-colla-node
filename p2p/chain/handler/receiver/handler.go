@@ -18,7 +18,7 @@ type PeeClientId struct {
 // PeerClientConnectionPool connectSessionId与PeeClientId的映射
 var peerClientConnectionPool sync.Map //make(map[string]*PeeClientId)
 
-func PutPeerClientId(connectSessionId string, remotePeerId string, clientId string) {
+func PutPeerClientId(connectSessionId string, connectPeerId string, remotePeerId string, clientId string) {
 	if remotePeerId == "" {
 		logger.Sugar.Errorf("remotePeerId is blank")
 		return
@@ -37,6 +37,7 @@ func PutPeerClientId(connectSessionId string, remotePeerId string, clientId stri
 				peerClient.LastAccessTime = &currentTime
 				peerClient.ActiveStatus = entity.ActiveStatus_Up
 				peerClient.ConnectSessionId = connectSessionId
+				peerClient.ConnectPeerId = connectPeerId
 				err = svc.GetPeerClientService().PutValues(peerClient)
 				if err != nil {
 					logger.Sugar.Errorf("failed to PutPCs, peerId: %v, err: %v", remotePeerId, err)

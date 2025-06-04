@@ -28,7 +28,7 @@ type connectAction struct {
 var ConnectAction connectAction
 
 // Receive 接收Connect消息进行处理，保存peerclient，返回peerclients（类似findclient）
-func (this *connectAction) Receive(chainMessage *entity2.ChainMessage) (*entity2.ChainMessage, error) {
+func (conn *connectAction) Receive(chainMessage *entity2.ChainMessage) (*entity2.ChainMessage, error) {
 	var response *entity2.ChainMessage = nil
 	v := chainMessage.Payload
 	peerClient, ok := v.(*entity.PeerClient)
@@ -48,12 +48,17 @@ func (this *connectAction) Receive(chainMessage *entity2.ChainMessage) (*entity2
 	if err != nil {
 		return response, err
 	}
-	go this.returnPeerEndpoint(chainMessage)
+	go conn.returnPeerEndpoint(chainMessage)
 	peerId := peerClient.PeerId
 	activeStatus := peerClient.ActiveStatus
 	//对连接的客户端，发回保存的转发消息
 	if activeStatus == entity.ActiveStatus_Up {
-		go biz.RelaySend(peerClient)
+		go func() {
+			err := biz.RelaySend(peerClient)
+			if err != nil {
+
+			}
+		}()
 	}
 	peerClients, err := service.GetPeerClientService().GetValues(peerId, "", "", "")
 	if err != nil {
@@ -61,17 +66,15 @@ func (this *connectAction) Receive(chainMessage *entity2.ChainMessage) (*entity2
 	} else {
 		response = handler.Response(chainMessage.MessageType, peerClients)
 		response.PayloadType = handler.PayloadType_PeerClients
-		if err == nil {
-			response.TargetPeerId = peerId
-			response.ConnectPeerId = peerId
-			response.NeedCompress = false
-		}
+		response.TargetPeerId = peerId
+		response.ConnectPeerId = peerId
+		response.NeedCompress = false
 	}
 	return response, nil
 }
 
 // 返回节点以及附近节点的列表
-func (this *connectAction) returnPeerEndpoint(chainMessage *entity2.ChainMessage) {
+func (conn *connectAction) returnPeerEndpoint(chainMessage *entity2.ChainMessage) {
 	var response *entity2.ChainMessage = nil
 	// 返回peerEndPoint信息
 	peers := make([]*entity.PeerEndpoint, 0)
@@ -134,7 +137,7 @@ func (this *connectAction) returnPeerEndpoint(chainMessage *entity2.ChainMessage
 		handler.SetResponse(chainMessage, response)
 		response.NeedCompress = false
 	}
-	this.Send(response)
+	_, _ = conn.Send(response)
 }
 
 func init() {
