@@ -18,7 +18,7 @@ type PeeClientId struct {
 // PeerClientConnectionPool connectSessionId与PeeClientId的映射
 var peerClientConnectionPool sync.Map //make(map[string]*PeeClientId)
 
-func PutPeeClientId(connectSessionId string, remotePeerId string, clientId string) {
+func PutPeerClientId(connectSessionId string, remotePeerId string, clientId string) {
 	if remotePeerId == "" {
 		logger.Sugar.Errorf("remotePeerId is blank")
 		return

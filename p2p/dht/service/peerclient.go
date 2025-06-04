@@ -13,7 +13,8 @@ import (
 	"sync"
 )
 
-/**
+/*
+*
 同步表结构，服务继承基本服务的方法
 */
 type PeerClientService struct {
@@ -27,24 +28,24 @@ func GetPeerClientService() *PeerClientService {
 	return peerClientService
 }
 
-func (this *PeerClientService) GetSeqName() string {
+func (svc *PeerClientService) GetSeqName() string {
 	return seqname
 }
 
-func (this *PeerClientService) NewEntity(data []byte) (interface{}, error) {
-	entity := &entity.PeerClient{}
+func (svc *PeerClientService) NewEntity(data []byte) (interface{}, error) {
+	peerClient := &entity.PeerClient{}
 	if data == nil {
-		return entity, nil
+		return peerClient, nil
 	}
-	err := message.Unmarshal(data, entity)
+	err := message.Unmarshal(data, peerClient)
 	if err != nil {
 		return nil, err
 	}
 
-	return entity, err
+	return peerClient, err
 }
 
-func (this *PeerClientService) NewEntities(data []byte) (interface{}, error) {
+func (svc *PeerClientService) NewEntities(data []byte) (interface{}, error) {
 	entities := make([]*entity.PeerClient, 0)
 	if data == nil {
 		return &entities, nil
@@ -58,7 +59,7 @@ func (this *PeerClientService) NewEntities(data []byte) (interface{}, error) {
 }
 
 func init() {
-	service.GetSession().Sync(new(entity.PeerClient))
+	_ = service.GetSession().Sync(new(entity.PeerClient))
 
 	peerClientService.OrmBaseService.GetSeqName = peerClientService.GetSeqName
 	peerClientService.OrmBaseService.FactNewEntity = peerClientService.NewEntity
@@ -70,26 +71,26 @@ func init() {
 	//把所有客户端的活动状态更新成未连接
 	peerClient := new(entity.PeerClient)
 	peerClient.ActiveStatus = entity.ActiveStatus_Down
-	peerClientService.Update(peerClient, nil, "")
+	_, _ = peerClientService.Update(peerClient, nil, "")
 }
 
-func (this *PeerClientService) getCacheKey(key string) string {
+func (svc *PeerClientService) getCacheKey(key string) string {
 	return "PeerClient:" + key
 }
 
-func (this *PeerClientService) GetFromCache(peerId string) *entity.PeerClient {
-	key := this.getCacheKey(peerId)
+func (svc *PeerClientService) GetFromCache(peerId string) *entity.PeerClient {
+	key := svc.getCacheKey(peerId)
 	ptr, found := MemCache.Get(key)
 	if found {
 		return ptr.(*entity.PeerClient)
 	}
-	this.Mutex.Lock()
-	defer this.Mutex.Unlock()
+	svc.Mutex.Lock()
+	defer svc.Mutex.Unlock()
 	ptr, found = MemCache.Get(key)
 	if !found {
 		peerClient := entity.PeerClient{}
 		peerClient.PeerId = peerId
-		found, _ = this.Get(&peerClient, false, "", "")
+		found, _ = svc.Get(&peerClient, false, "", "")
 		if found {
 			ptr = &peerClient
 		} else {
@@ -102,7 +103,7 @@ func (this *PeerClientService) GetFromCache(peerId string) *entity.PeerClient {
 	return ptr.(*entity.PeerClient)
 }
 
-func (this *PeerClientService) Validate(peerClient *entity.PeerClient) error {
+func (svc *PeerClientService) Validate(peerClient *entity.PeerClient) error {
 	//expireDate := peerClient.ExpireDate
 	//if expireDate == 0 {
 	//	return errors.New("Invalid expireDate")
@@ -111,7 +112,7 @@ func (this *PeerClientService) Validate(peerClient *entity.PeerClient) error {
 }
 
 // GetLocals 根据peerclient的peerid和clientid查找匹配的本地peerclient
-func (this *PeerClientService) GetLocals(key string, clientId string) ([]*entity.PeerClient, error) {
+func (svc *PeerClientService) GetLocals(key string, clientId string) ([]*entity.PeerClient, error) {
 	rec, err := dht.PeerEndpointDHT.GetLocal(key)
 	if err != nil {
 		logger.Sugar.Errorf("failed to GetLocal by key: %v, err: %v", key, err)
@@ -131,6 +132,9 @@ func (this *PeerClientService) GetLocals(key string, clientId string) ([]*entity
 					pcs = append(pcs, peerClient)
 				}
 			}
+			if len(pcs) == 0 {
+				logger.Sugar.Errorf("failed to find key: %v, clientId: %v peer client", key, clientId)
+			}
 			return pcs, nil
 		} else {
 			return peerClients, nil
@@ -140,7 +144,7 @@ func (this *PeerClientService) GetLocals(key string, clientId string) ([]*entity
 	return nil, nil
 }
 
-func (this *PeerClientService) PutLocals(peerClients []*entity.PeerClient) error {
+func (svc *PeerClientService) PutLocals(peerClients []*entity.PeerClient) error {
 	for _, peerClient := range peerClients {
 		key := ns.GetPeerClientKey(peerClient.PeerId)
 		bytePeerClient, err := message.Marshal(peerClient)
@@ -156,10 +160,11 @@ func (this *PeerClientService) PutLocals(peerClients []*entity.PeerClient) error
 	return nil
 }
 
-/**
+/*
+*
 根据peerId，mobile，email，name分布式查询PeerClient
 */
-func (this *PeerClientService) GetValues(peerId string, mobile string, email string, name string) ([]*entity.PeerClient, error) {
+func (svc *PeerClientService) GetValues(peerId string, mobile string, email string, name string) ([]*entity.PeerClient, error) {
 	if len(peerId) == 0 && len(mobile) == 0 && len(name) == 0 {
 		logger.Sugar.Errorf("InvalidPeerClientKey")
 		return nil, errors.New("InvalidPeerClientKey")
@@ -168,7 +173,7 @@ func (this *PeerClientService) GetValues(peerId string, mobile string, email str
 	var key string
 	if len(peerId) > 0 {
 		key = ns.GetPeerClientKey(peerId)
-		pcs, err := this.GetKeyValues(key)
+		pcs, err := svc.GetKeyValues(key)
 		if err != nil {
 			return nil, err
 		}
@@ -178,7 +183,7 @@ func (this *PeerClientService) GetValues(peerId string, mobile string, email str
 	}
 	if len(mobile) > 0 {
 		key = ns.GetPeerClientMobileKey(mobile, true)
-		pcs, err := this.GetKeyValues(key)
+		pcs, err := svc.GetKeyValues(key)
 		if err != nil {
 			return nil, err
 		}
@@ -188,7 +193,7 @@ func (this *PeerClientService) GetValues(peerId string, mobile string, email str
 	}
 	if len(email) > 0 {
 		key = ns.GetPeerClientEmailKey(email, true)
-		pcs, err := this.GetKeyValues(key)
+		pcs, err := svc.GetKeyValues(key)
 		if err != nil {
 			return nil, err
 		}
@@ -198,7 +203,7 @@ func (this *PeerClientService) GetValues(peerId string, mobile string, email str
 	}
 	if len(name) > 0 {
 		key = ns.GetPeerClientNameKey(name, true)
-		pcs, err := this.GetKeyValues(key)
+		pcs, err := svc.GetKeyValues(key)
 		if err != nil {
 			return nil, err
 		}
@@ -209,7 +214,7 @@ func (this *PeerClientService) GetValues(peerId string, mobile string, email str
 	return peerClients, nil
 }
 
-func (this *PeerClientService) GetKeyValues(key string) ([]*entity.PeerClient, error) {
+func (svc *PeerClientService) GetKeyValues(key string) ([]*entity.PeerClient, error) {
 	peerClients := make([]*entity.PeerClient, 0)
 	if config.Libp2pParams.FaultTolerantLevel == 0 {
 		recvdVals, err := dht.PeerEndpointDHT.GetValues(key)
@@ -238,7 +243,7 @@ func (this *PeerClientService) GetKeyValues(key string) ([]*entity.PeerClient, e
 		}
 	} else if config.Libp2pParams.FaultTolerantLevel == 2 {
 		// 查询删除local记录
-		locals, err := this.GetLocals(key, "")
+		locals, err := svc.GetLocals(key, "")
 		if err != nil {
 			return nil, err
 		}
@@ -246,7 +251,7 @@ func (this *PeerClientService) GetKeyValues(key string) ([]*entity.PeerClient, e
 			for _, local := range locals {
 				peerClients = append(peerClients, local)
 			}
-			this.Delete(locals, "")
+			_, _ = svc.Delete(locals, "")
 		}
 		// 查询non-local记录
 		recvdVals, err := dht.PeerEndpointDHT.GetValues(key)
@@ -254,7 +259,7 @@ func (this *PeerClientService) GetKeyValues(key string) ([]*entity.PeerClient, e
 			return nil, err
 		}
 		// 恢复local记录
-		err = this.PutLocals(locals)
+		err = svc.PutLocals(locals)
 		if err != nil {
 			return nil, err
 		}
@@ -275,27 +280,27 @@ func (this *PeerClientService) GetKeyValues(key string) ([]*entity.PeerClient, e
 	return peerClients, nil
 }
 
-func (this *PeerClientService) PutValues(peerClient *entity.PeerClient) error {
-	err := this.PutValue(peerClient, ns.PeerClient_KeyKind)
+func (svc *PeerClientService) PutValues(peerClient *entity.PeerClient) error {
+	err := svc.PutValue(peerClient, ns.PeerClient_KeyKind)
 	if err != nil {
 		return err
 	}
-	//err = this.PutValue(peerClient, ns.PeerClient_Mobile_KeyKind)
+	//err = svc.PutValue(peerClient, ns.PeerClient_Mobile_KeyKind)
 	//if err != nil {
 	//	return err
 	//}
-	//err = this.PutValue(peerClient, ns.PeerClient_Email_KeyKind)
+	//err = svc.PutValue(peerClient, ns.PeerClient_Email_KeyKind)
 	//if err != nil {
 	//	return err
 	//}
-	//err = this.PutValue(peerClient, ns.PeerClient_Name_KeyKind)
+	//err = svc.PutValue(peerClient, ns.PeerClient_Name_KeyKind)
 	//if err != nil {
 	//	return err
 	//}
 	return nil
 }
 
-func (this *PeerClientService) PutValue(peerClient *entity.PeerClient, keyKind string) error {
+func (svc *PeerClientService) PutValue(peerClient *entity.PeerClient, keyKind string) error {
 	bytePeerClient, err := message.Marshal(peerClient)
 	if err != nil {
 		return err

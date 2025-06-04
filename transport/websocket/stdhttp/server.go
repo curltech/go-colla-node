@@ -9,8 +9,8 @@ import (
 	"github.com/curltech/go-colla-node/transport/util"
 	"github.com/gorilla/websocket"
 	"io"
-	"io/ioutil"
 	"mime"
+	"mime/multipart"
 	"net"
 	"net/http"
 	"os"
@@ -69,7 +69,7 @@ func Start() {
 	} else {
 		// 假如域名存在，使用LetsEncrypt certificates
 		if config.TlsParams.Domain != "" {
-			util.HttpLetsEncrypt(listenAddr, config.TlsParams.Domain, nil)
+			_ = util.HttpLetsEncrypt(listenAddr, config.TlsParams.Domain, nil)
 			//util.FastHttpLetsEncrypt(listenAddr,config.TlsParams.Domain,nil)
 		} else {
 			err = http.ListenAndServe(listenAddr, nil)
@@ -83,7 +83,7 @@ func Start() {
 
 func errorf(w http.ResponseWriter, msg string, code int) {
 	logger.Sugar.Errorf(msg+",error code:%v", code)
-	w.Write([]byte(msg))
+	_, _ = w.Write([]byte(msg))
 }
 
 var messageHandler func(data []byte, remotePeerId string, clientId string, connectSessionId string, remoteAddr string) ([]byte, error)
@@ -122,7 +122,7 @@ func receiveHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	} else {
 		w.WriteHeader(http.StatusOK)
-		w.Write(data)
+		_, _ = w.Write(data)
 	}
 }
 
@@ -145,8 +145,13 @@ func uploadFileHandler(w http.ResponseWriter, r *http.Request) {
 				errorf(w, "INVALID_FILE:"+key, http.StatusBadRequest)
 				continue
 			} else {
-				defer file.Close()
-				fileBytes, err := ioutil.ReadAll(file)
+				defer func(file multipart.File) {
+					err := file.Close()
+					if err != nil {
+
+					}
+				}(file)
+				fileBytes, err := io.ReadAll(file)
 				if err != nil {
 					errorf(w, "INVALID_FILE", http.StatusBadRequest)
 					continue
@@ -171,7 +176,12 @@ func uploadFileHandler(w http.ResponseWriter, r *http.Request) {
 					errorf(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
 					continue
 				}
-				defer newFile.Close()
+				defer func(newFile *os.File) {
+					err := newFile.Close()
+					if err != nil {
+
+					}
+				}(newFile)
 				if _, err := newFile.Write(fileBytes); err != nil {
 					errorf(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
 					continue
@@ -180,7 +190,7 @@ func uploadFileHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.Write([]byte("SUCCESS"))
+	_, _ = w.Write([]byte("SUCCESS"))
 }
 
 func websocketHandler(w http.ResponseWriter, r *http.Request) {
@@ -258,7 +268,7 @@ func (conn *WebsocketConnection) read() (msg *WebsocketMessage, err error) {
 				return nil, err
 			}
 			if response != nil {
-				conn.Write(websocket.BinaryMessage, response)
+				_ = conn.Write(websocket.BinaryMessage, response)
 			}
 		}
 	case <-conn.closeChan:
@@ -282,7 +292,7 @@ func (conn *WebsocketConnection) Write(messageType int, data []byte) (err error)
 
 func (conn *WebsocketConnection) Close() {
 	// 线程安全，可多次调用
-	conn.WsConnect.Close()
+	_ = conn.WsConnect.Close()
 	// 利用标记，让closeChan只关闭一次
 	conn.mutex.Lock()
 	defer conn.mutex.Unlock()
@@ -310,14 +320,15 @@ func (conn *WebsocketConnection) loopRead() {
 			return
 		}
 		if readTimeout > 0 {
-			conn.WsConnect.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(readTimeout)))
+			_ = conn.WsConnect.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(readTimeout)))
 		} else {
-			conn.WsConnect.SetReadDeadline(time.Time{})
+			_ = conn.WsConnect.SetReadDeadline(time.Time{})
 		}
 		messageType, data, err = conn.WsConnect.ReadMessage()
 		if err != nil {
 			// 判断是不是超时
-			if netErr, ok := err.(net.Error); ok {
+			var netErr net.Error
+			if errors.As(err, &netErr) {
 				if netErr.Timeout() {
 					logger.Sugar.Errorf("ReadMessage timeout remote: %v\n", conn.WsConnect.RemoteAddr())
 				}
@@ -341,7 +352,7 @@ func (conn *WebsocketConnection) loopRead() {
 				messageType: messageType,
 				data:        data,
 			}:
-				conn.read()
+				_, _ = conn.read()
 			case <-conn.closeChan: // closeChan 感知 conn断开
 				conn.Close()
 				return
@@ -374,14 +385,15 @@ func (conn *WebsocketConnection) loopWrite() {
 		}
 		if msg != nil {
 			if writeTimeout > 0 {
-				conn.WsConnect.SetWriteDeadline(time.Now().Add(time.Millisecond * time.Duration(writeTimeout)))
+				_ = conn.WsConnect.SetWriteDeadline(time.Now().Add(time.Millisecond * time.Duration(writeTimeout)))
 			} else {
-				conn.WsConnect.SetWriteDeadline(time.Time{})
+				_ = conn.WsConnect.SetWriteDeadline(time.Time{})
 			}
 			err = conn.WsConnect.WriteMessage(msg.messageType, msg.data)
 			if err != nil {
 				// 判断是不是超时
-				if netErr, ok := err.(net.Error); ok {
+				var netErr net.Error
+				if errors.As(err, &netErr) {
 					if netErr.Timeout() {
 						logger.Sugar.Errorf("WriteMessage timeout remote: %v\n", conn.WsConnect.RemoteAddr())
 					}
@@ -415,7 +427,7 @@ func (conn *WebsocketConnection) loopHeartbeat() {
 		var sessionId = conn.Session.SessionID()
 		err := conn.Write(websocket.BinaryMessage, []byte("heartbeat:"+sessionId))
 		if err != nil {
-			logger.Sugar.Errorf("heartbeat fail:%v", err.Error())
+			logger.Sugar.Errorf("remote client: %v, heartbeat fail: %v", conn.WsConnect.RemoteAddr().String(), err.Error())
 			conn.Close()
 			break
 		}

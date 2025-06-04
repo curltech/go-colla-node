@@ -37,7 +37,7 @@ func GetResponsePipe(connectSessionId string) *pipe.Pipe {
 				logger.Sugar.Errorf(err.Error())
 				return nil
 			}
-			stream.SetProtocol(global.Global.ChainProtocolID)
+			_ = stream.SetProtocol(global.Global.ChainProtocolID)
 			p, err := pipe.CreatePipe(stream, HandleRaw, msgtype.MsgDirect_Request)
 			if err != nil {
 				logger.Sugar.Errorf(err.Error())
@@ -122,7 +122,7 @@ func CreatePipe(stream network.Stream, direct string) *pipe.Pipe {
 			if ok {
 				if conn != oldConn {
 					logger.Sugar.Debugf("----------CreatePipe-resetConn: v%", connectSessionId)
-					oldConn.Close()
+					_ = oldConn.Close()
 					NetworkConnectionPool[connectSessionId] = conn
 				}
 			} else {

@@ -22,7 +22,12 @@ func RelaySend(peerClient *entity.PeerClient) error {
 		//chainMessage.TargetConnectPeerId = peerClient.ConnectPeerId
 		//chainMessage.TargetConnectAddress = peerClient.ConnectAddress
 		//chainMessage.TargetClientId = peerClient.ClientId
-		go sender.RelaySend(chainMessage)
+		go func() {
+			_, err := sender.RelaySend(chainMessage)
+			if err != nil {
+
+			}
+		}()
 	}
 
 	chainMessage := &entity3.ChainMessage{}
@@ -33,12 +38,12 @@ func RelaySend(peerClient *entity.PeerClient) error {
 func DeleteTimeout() {
 	timeout := time.Now().Add(time.Hour * 24 * 7)
 	chainMessage := &entity3.ChainMessage{}
-	service2.GetChainMessageService().Delete(chainMessage, "createDate<=?", &timeout)
+	_, _ = service2.GetChainMessageService().Delete(chainMessage, "createDate<=?", &timeout)
 }
 
 func Cron() *cron.Cron {
 	c := cron.New()
-	c.AddFunc("0 0 2 * * *", DeleteTimeout)
+	_ = c.AddFunc("0 0 2 * * *", DeleteTimeout)
 	c.Start()
 
 	return c

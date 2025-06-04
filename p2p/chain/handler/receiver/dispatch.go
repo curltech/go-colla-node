@@ -15,9 +15,11 @@ func Dispatch(chainMessage *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 	targetPeerId := chainMessage.TargetPeerId
 	//目标是自己，则对payload解密，否则直接转发
 	if targetPeerId == "" || global.IsMyself(targetPeerId) {
-		handler.Decrypt(chainMessage)
+		_, _ = handler.Decrypt(chainMessage)
 	} else {
-		go sender.RelaySend(chainMessage)
+		go func() {
+			_, _ = sender.RelaySend(chainMessage)
+		}()
 		response := handler.Response(chainMessage.MessageType, time.Now())
 		return response, nil
 	}
@@ -41,7 +43,7 @@ func Dispatch(chainMessage *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 			return response, nil
 		}
 	} else if direct == msgtype.MsgDirect_Response {
-		chainMessageHandler.ResponseHandler(chainMessage)
+		_ = chainMessageHandler.ResponseHandler(chainMessage)
 	}
 
 	return response, nil

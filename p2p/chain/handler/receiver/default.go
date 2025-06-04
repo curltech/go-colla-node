@@ -46,7 +46,7 @@ func ReceiveRaw(data []byte, remotePeerId string, clientId string, connectSessio
 		chainMessage.SrcConnectSessionId = connectSessionId
 	}
 	chainMessage.ConnectSessionId = connectSessionId
-	PutPeeClientId(connectSessionId, remotePeerId, clientId)
+	PutPeerClientId(connectSessionId, remotePeerId, clientId)
 	response, err = Dispatch(chainMessage)
 
 responseProcess:

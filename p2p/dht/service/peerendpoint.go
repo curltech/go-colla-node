@@ -14,7 +14,8 @@ import (
 	"sync"
 )
 
-/**
+/*
+*
 同步表结构，服务继承基本服务的方法
 */
 type PeerEndpointService struct {
@@ -28,24 +29,24 @@ func GetPeerEndpointService() *PeerEndpointService {
 	return peerEndpointService
 }
 
-func (this *PeerEndpointService) GetSeqName() string {
+func (svc *PeerEndpointService) GetSeqName() string {
 	return seqname
 }
 
-func (this *PeerEndpointService) NewEntity(data []byte) (interface{}, error) {
-	entity := &entity.PeerEndpoint{}
+func (svc *PeerEndpointService) NewEntity(data []byte) (interface{}, error) {
+	peerEndpoint := &entity.PeerEndpoint{}
 	if data == nil {
-		return entity, nil
+		return peerEndpoint, nil
 	}
-	err := message.Unmarshal(data, entity)
+	err := message.Unmarshal(data, peerEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	return entity, err
+	return peerEndpoint, err
 }
 
-func (this *PeerEndpointService) NewEntities(data []byte) (interface{}, error) {
+func (svc *PeerEndpointService) NewEntities(data []byte) (interface{}, error) {
 	entities := make([]*entity.PeerEndpoint, 0)
 	if data == nil {
 		return &entities, nil
@@ -59,30 +60,30 @@ func (this *PeerEndpointService) NewEntities(data []byte) (interface{}, error) {
 }
 
 func init() {
-	service.GetSession().Sync(new(entity.PeerEndpoint))
+	_ = service.GetSession().Sync(new(entity.PeerEndpoint))
 	peerEndpointService.OrmBaseService.GetSeqName = peerEndpointService.GetSeqName
 	peerEndpointService.OrmBaseService.FactNewEntity = peerEndpointService.NewEntity
 	peerEndpointService.OrmBaseService.FactNewEntities = peerEndpointService.NewEntities
 	container.RegistService(ns.PeerEndpoint_Prefix, peerEndpointService)
 }
 
-func (this *PeerEndpointService) getCacheKey(key string) string {
+func (svc *PeerEndpointService) getCacheKey(key string) string {
 	return "PeerEndpoint:" + key
 }
 
-func (this *PeerEndpointService) GetFromCache(peerId string) *entity.PeerEndpoint {
-	key := this.getCacheKey(peerId)
+func (svc *PeerEndpointService) GetFromCache(peerId string) *entity.PeerEndpoint {
+	key := svc.getCacheKey(peerId)
 	ptr, found := MemCache.Get(key)
 	if found {
 		return ptr.(*entity.PeerEndpoint)
 	}
-	this.Mutex.Lock()
-	defer this.Mutex.Unlock()
+	svc.Mutex.Lock()
+	defer svc.Mutex.Unlock()
 	ptr, found = MemCache.Get(key)
 	if !found {
 		peerEndpoint := entity.PeerEndpoint{}
 		peerEndpoint.PeerId = peerId
-		found, _ = this.Get(&peerEndpoint, false, "", "")
+		found, _ = svc.Get(&peerEndpoint, false, "", "")
 		if found {
 			ptr = &peerEndpoint
 		} else {
@@ -95,22 +96,25 @@ func (this *PeerEndpointService) GetFromCache(peerId string) *entity.PeerEndpoin
 	return ptr.(*entity.PeerEndpoint)
 }
 
-/**
+/*
+*
 根据peerId分布式查找PeerEndpoint
 */
-func (this *PeerEndpointService) FindPeer(peerId string) (string, error) {
+func (svc *PeerEndpointService) FindPeer(peerId string) (string, error) {
 	id, err := peer.Decode(peerId)
 	if err != nil {
+		logger.Sugar.Errorf("not effective peer endpoint peerId: %v, error: %v", peerId, err.Error())
 		return "", err
 	}
 	addrInfo, err := dht.PeerEndpointDHT.FindPeer(id)
 	if err != nil {
+		logger.Sugar.Errorf("find peer endpoint peerId: %v, error: %v", peerId, err.Error())
 		return "", err
 	}
 	return addrInfo.String(), nil
 }
 
-func (this *PeerEndpointService) GetLocal(peerId string) ([]*entity.PeerEndpoint, error) {
+func (svc *PeerEndpointService) GetLocal(peerId string) ([]*entity.PeerEndpoint, error) {
 	key := ns.GetPeerEndpointKey(peerId)
 	rec, err := dht.PeerEndpointDHT.GetLocal(key)
 	if err != nil {
@@ -130,7 +134,7 @@ func (this *PeerEndpointService) GetLocal(peerId string) ([]*entity.PeerEndpoint
 	return nil, nil
 }
 
-func (this *PeerEndpointService) PutLocal(peerEndpoint *entity.PeerEndpoint) error {
+func (svc *PeerEndpointService) PutLocal(peerEndpoint *entity.PeerEndpoint) error {
 	key := ns.GetPeerEndpointKey(peerEndpoint.PeerId)
 	bytePeerEndpoint, err := message.Marshal(peerEndpoint)
 	if err != nil {
@@ -139,7 +143,7 @@ func (this *PeerEndpointService) PutLocal(peerEndpoint *entity.PeerEndpoint) err
 	return dht.PeerEndpointDHT.PutLocal(key, bytePeerEndpoint)
 }
 
-func (this *PeerEndpointService) GetValue(peerId string) (*entity.PeerEndpoint, error) {
+func (svc *PeerEndpointService) GetValue(peerId string) (*entity.PeerEndpoint, error) {
 	key := ns.GetPeerClientKey(peerId)
 	buf, err := dht.PeerEndpointDHT.GetValue(key)
 	if err != nil {
@@ -153,7 +157,7 @@ func (this *PeerEndpointService) GetValue(peerId string) (*entity.PeerEndpoint, 
 	return peerEndpoint, nil
 }
 
-func (this *PeerEndpointService) PutValue(peerEndpoint *entity.PeerEndpoint) error {
+func (svc *PeerEndpointService) PutValue(peerEndpoint *entity.PeerEndpoint) error {
 	key := ns.GetPeerEndpointKey(peerEndpoint.PeerId)
 	value, err := message.Marshal(peerEndpoint)
 	if err != nil {
@@ -164,19 +168,19 @@ func (this *PeerEndpointService) PutValue(peerEndpoint *entity.PeerEndpoint) err
 	return err
 }
 
-func (this *PeerEndpointService) GetRand(seed int64) []*entity.PeerEndpoint {
+func (svc *PeerEndpointService) GetRand(seed int64) []*entity.PeerEndpoint {
 	limit := config.ConsensusParams.PeerNum
 	peerEndpoints := make([]*entity.PeerEndpoint, 0)
 	peerEndpoint := &entity.PeerEndpoint{}
 	//peerEndpoint.Status = entity2.EntityStatus_Effective
 	peerEndpoint.ActiveStatus = entity.ActiveStatus_Up
-	count, _ := this.Count(peerEndpoint, "")
+	count, _ := svc.Count(peerEndpoint, "")
 	from := 0
 	if int(count) > limit {
 		rand.Seed(seed)
 		from = rand.Intn(int(count) - limit)
 	}
-	err := this.Find(&peerEndpoints, peerEndpoint, "", from, limit, "")
+	err := svc.Find(&peerEndpoints, peerEndpoint, "", from, limit, "")
 	if err == nil {
 		return peerEndpoints
 	}

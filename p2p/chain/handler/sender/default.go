@@ -22,19 +22,19 @@ import (
 )
 
 // Send 发送ChainMessage消息的唯一方法
-//1.找出发送的目标地址和方式
-//2.根据情况处理校验，加密，压缩等
-//3.建立合适的通道并发送，比如libp2p的Pipe并Write消息流
-//4.等待即时的返回，校验，解密，解压缩等
+// 1.找出发送的目标地址和方式
+// 2.根据情况处理校验，加密，压缩等
+// 3.建立合适的通道并发送，比如libp2p的Pipe并Write消息流
+// 4.等待即时的返回，校验，解密，解压缩等
 func Send(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
-	handler1.Encrypt(msg)
+	_, _ = handler1.Encrypt(msg)
 
 	return RelaySend(msg)
 }
 
 // DirectSend 定位器之间直接发送方法
 func DirectSend(msg *msg1.ChainMessage) (*msg1.ChainMessage, error) {
-	handler1.Encrypt(msg)
+	_, _ = handler1.Encrypt(msg)
 
 	return ForwardPeerEndpoint(msg, msg.ConnectPeerId)
 }
@@ -50,8 +50,7 @@ func ForwardPeerEndpoint(msg *msg1.ChainMessage, connectPeerId string) (*msg1.Ch
 				_, _, err := pipe.Write(data, false)
 				if err == nil {
 					return msg, nil
-				}
-				if err != nil {
+				} else {
 					logger.Sugar.Errorf("pipe.Write failure: %v", err)
 				}
 			}
@@ -64,7 +63,7 @@ func ForwardPeerEndpoint(msg *msg1.ChainMessage, connectPeerId string) (*msg1.Ch
 	}
 	//如果websocket连接没找到，先保存本地
 	if msgtype.CHAT == msg.MessageType {
-		service2.GetChainMessageService().Insert(msg)
+		_, _ = service2.GetChainMessageService().Insert(msg)
 	}
 	return msg, nil
 }
@@ -83,8 +82,7 @@ func ForwardPeerClient(chainMessage *msg1.ChainMessage, peerClient *entity.PeerC
 				err = websocketConnection.Write(websocket.BinaryMessage, data)
 				if err == nil {
 					return chainMessage, nil
-				}
-				if err != nil {
+				} else {
 					logger.Sugar.Errorf("pipe.Write failure: %v", err)
 				}
 			} else {
@@ -111,7 +109,7 @@ func ForwardPeerClient(chainMessage *msg1.ChainMessage, peerClient *entity.PeerC
 	}
 	logger.Sugar.Errorf("ForwardPeerClient fail")
 	if msgtype.CHAT == chainMessage.MessageType {
-		service2.GetChainMessageService().Insert(chainMessage)
+		_, _ = service2.GetChainMessageService().Insert(chainMessage)
 	}
 
 	return chainMessage, nil
@@ -145,27 +143,28 @@ func RelaySend(chainMessage *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 			chainMessage.TargetConnectPeerId = peerClient.ConnectPeerId
 			// 如果PeerClient的连接节点是自己，下一步就是最终目标，将目标会话放入消息中
 			if global.IsMyself(peerClient.ConnectPeerId) {
-				ForwardPeerClient(chainMessage, peerClient)
+				_, _ = ForwardPeerClient(chainMessage, peerClient)
 			} else { // 否则下一步就是连接节点
-				ForwardPeerEndpoint(chainMessage, peerClient.ConnectPeerId)
+				_, _ = ForwardPeerEndpoint(chainMessage, peerClient.ConnectPeerId)
 			}
 			return chainMessage, nil
 		} else {
 			// 目标是PeerEndPoint，下一步是定位器节点
 			if connectPeerId != "" {
-				ForwardPeerEndpoint(chainMessage, connectPeerId)
+				_, _ = ForwardPeerEndpoint(chainMessage, connectPeerId)
 				return chainMessage, nil
 			}
 		}
 	}
 	//如果无法转发，先保存本地
 	if msgtype.CHAT == chainMessage.MessageType {
-		service2.GetChainMessageService().Insert(chainMessage)
+		_, _ = service2.GetChainMessageService().Insert(chainMessage)
 	}
 	return nil, err
 }
 
-/**
+/*
+*
 本地和分布式查询PeerClient，如果找不到则查找PeerEndpoint
 第一个参数返回找到的PeerClient，第二个参数返回找到的PeerEndpoint的peerId，即targetPeerId
 */
@@ -191,8 +190,13 @@ func Lookup(targetPeerId string, targetClientId string) (*entity.PeerClient, str
 				return peerClient, "", nil
 			}
 		}
-	}
-	connectPeerId, err := service.GetPeerEndpointService().FindPeer(targetPeerId)
+		logger.Sugar.Errorf("find peer client peerId: %v, clientId: %v, but no one has up active status", targetPeerId, targetClientId)
+	} else {
+		connectPeerId, err := service.GetPeerEndpointService().FindPeer(targetPeerId)
 
-	return nil, connectPeerId, err
+		return nil, connectPeerId, err
+	}
+	logger.Sugar.Errorf("failed to find peer client peerId: %v, clientId: %v, but no one has up active status", targetPeerId, targetClientId)
+
+	return nil, "", err
 }
