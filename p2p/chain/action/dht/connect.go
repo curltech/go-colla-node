@@ -39,9 +39,9 @@ func (conn *connectAction) Receive(chainMessage *entity2.ChainMessage) (*entity2
 	if err != nil {
 		return response, err
 	}
-	peerClient.ConnectSessionId = chainMessage.ConnectSessionId
-	peerClient.ConnectPeerId = chainMessage.ConnectPeerId
-	peerClient.ConnectAddress = chainMessage.ConnectAddress
+	peerClient.ConnectSessionId = chainMessage.SrcConnectSessionId
+	peerClient.ConnectPeerId = chainMessage.SrcConnectPeerId
+	peerClient.ConnectAddress = chainMessage.SrcConnectAddress
 	currentTime := time.Now()
 	peerClient.LastAccessTime = &currentTime
 	err = service.GetPeerClientService().PutValues(peerClient)

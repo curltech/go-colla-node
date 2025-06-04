@@ -115,7 +115,8 @@ func ForwardPeerClient(chainMessage *msg1.ChainMessage, peerClient *entity.PeerC
 	return chainMessage, nil
 }
 
-// RelaySend 转发chainmessage，根据TargetPeerId查询TargetConnectSessionId，找到如何到达目标
+// RelaySend 转发chainmessage，
+// 根据TargetPeerId查询TargetConnectSessionId，找到如何到达目标
 func RelaySend(chainMessage *msg1.ChainMessage) (*msg1.ChainMessage, error) {
 	topic := chainMessage.Topic
 	if topic != "" {

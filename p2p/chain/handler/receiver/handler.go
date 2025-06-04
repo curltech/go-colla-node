@@ -18,29 +18,30 @@ type PeeClientId struct {
 // PeerClientConnectionPool connectSessionId与PeeClientId的映射
 var peerClientConnectionPool sync.Map //make(map[string]*PeeClientId)
 
-func PutPeerClientId(connectSessionId string, connectPeerId string, remotePeerId string, clientId string) {
-	if remotePeerId == "" {
+func UpdatePeerClient(peerClient *entity.PeerClient) {
+	if peerClient.PeerId == "" {
 		logger.Sugar.Errorf("remotePeerId is blank")
 		return
 	}
-	peerClientConnectionPool.Store(connectSessionId, &PeeClientId{PeerId: remotePeerId, ClientId: clientId})
-	k := ns.GetPeerClientKey(remotePeerId)
-	peerClients, err := svc.GetPeerClientService().GetLocals(k, clientId)
+	peerClientConnectionPool.Store(peerClient.ConnectSessionId, &PeeClientId{PeerId: peerClient.PeerId, ClientId: peerClient.ClientId})
+	k := ns.GetPeerClientKey(peerClient.PeerId)
+	peerClients, err := svc.GetPeerClientService().GetLocals(k, peerClient.ClientId)
 	if err != nil {
-		logger.Sugar.Errorf("failed to GetLocalPCs by peerId: %v, err: %v", remotePeerId, err)
+		logger.Sugar.Errorf("failed to GetLocalPCs by peerId: %v, err: %v", peerClient.PeerId, err)
 	}
 	if len(peerClients) > 0 {
-		for _, peerClient := range peerClients {
+		for _, pc := range peerClients {
 			var activeStatus = peerClient.ActiveStatus
 			if activeStatus != entity.ActiveStatus_Up {
 				currentTime := time.Now()
-				peerClient.LastAccessTime = &currentTime
-				peerClient.ActiveStatus = entity.ActiveStatus_Up
-				peerClient.ConnectSessionId = connectSessionId
-				peerClient.ConnectPeerId = connectPeerId
-				err = svc.GetPeerClientService().PutValues(peerClient)
+				pc.LastAccessTime = &currentTime
+				pc.ActiveStatus = entity.ActiveStatus_Up
+				pc.ConnectSessionId = peerClient.ConnectSessionId
+				pc.ConnectPeerId = peerClient.ConnectPeerId
+				pc.ClientId = peerClient.ClientId
+				err = svc.GetPeerClientService().PutValues(pc)
 				if err != nil {
-					logger.Sugar.Errorf("failed to PutPCs, peerId: %v, err: %v", remotePeerId, err)
+					logger.Sugar.Errorf("failed to PutPCs, peerId: %v, err: %v", pc.PeerId, err)
 				}
 				break
 			}
