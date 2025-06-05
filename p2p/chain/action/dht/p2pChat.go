@@ -29,13 +29,14 @@ type p2pChatAction struct {
 
 var P2pChatAction p2pChatAction
 
-/**
+/*
+*
 接收消息进行处理，返回为空则没有返回消息，否则，有返回消息
 */
-func (this *p2pChatAction) Receive(chainMessage *entity2.ChainMessage) (*entity2.ChainMessage, error) {
+func (act *p2pChatAction) Receive(chainMessage *entity2.ChainMessage) (*entity2.ChainMessage, error) {
 	// 查找最终目标会话
 	peerClient, _, _ := sender.Lookup(chainMessage.TargetPeerId, chainMessage.TargetClientId)
-	logger.Sugar.Infof("Receive %v message", this.MsgType)
+	logger.Sugar.Infof("Receive %v message", act.MsgType)
 	var response *entity2.ChainMessage = nil
 
 	if peerClient != nil {

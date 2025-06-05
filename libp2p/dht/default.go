@@ -125,7 +125,7 @@ func (this *PeerEntityDHT) PutLocal(key string, value []byte, opts ...routing.Op
 
 func (this *PeerEntityDHT) PutValue(key string, value []byte, opts ...routing.Option) (err error) {
 	start := time.Now()
-	error := this.DHT.PutValue(global.Global.Context, key, value, opts...)
+	err = this.DHT.PutValue(global.Global.Context, key, value, opts...)
 	end := time.Now()
 	logger.Sugar.Infof("PutValue time:%v, %v", key, end.Sub(start))
 	if strings.HasPrefix(key, "/"+ns.PeerClient_Prefix) == true ||
@@ -136,15 +136,15 @@ func (this *PeerEntityDHT) PutValue(key string, value []byte, opts ...routing.Op
 		strings.HasPrefix(key, "/"+ns.DataBlock_Owner_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Src_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Target_Prefix) == true {
-		if error != nil && error.Error() == "can't replace a newer value with an older value" {
+		if err != nil && err.Error() == "can't replace a newer value with an older value" {
 			logger.Sugar.Warnf("can't replace a newer value with an older value")
 			return nil
-		} else if errors.Is(error, kb.ErrLookupFailure) {
+		} else if errors.Is(err, kb.ErrLookupFailure) {
 			logger.Sugar.Warnf("failed to find any peer in table")
 			return nil
 		}
 	}
-	return error
+	return err
 }
 
 func (this *PeerEntityDHT) GetLocal(key string) (*recpb.Record, error) {
@@ -153,7 +153,7 @@ func (this *PeerEntityDHT) GetLocal(key string) (*recpb.Record, error) {
 	dsKey := ds.NewKey(base32.RawStdEncoding.EncodeToString([]byte(key)))
 	//buf, err := dht.datastore.Get(dskey)
 	buf, err := handler.NewDispatchDatastore().Get(global.Global.Context, dsKey)
-	if err == ds.ErrNotFound {
+	if errors.Is(err, ds.ErrNotFound) {
 		return nil, nil
 	}
 	if err != nil {
@@ -186,7 +186,7 @@ func (this *PeerEntityDHT) GetLocal(key string) (*recpb.Record, error) {
 
 func (this *PeerEntityDHT) GetValue(key string, opts ...routing.Option) (_ []byte, err error) {
 	start := time.Now()
-	byteArr, error := this.DHT.GetValue(global.Global.Context, key, opts...)
+	byteArr, err := this.DHT.GetValue(global.Global.Context, key, opts...)
 	end := time.Now()
 	logger.Sugar.Infof("GetValue time:%v, %v", key, end.Sub(start))
 	if (strings.HasPrefix(key, "/"+ns.PeerClient_Prefix) == true ||
@@ -197,16 +197,16 @@ func (this *PeerEntityDHT) GetValue(key string, opts ...routing.Option) (_ []byt
 		strings.HasPrefix(key, "/"+ns.DataBlock_Owner_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Src_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Target_Prefix) == true) &&
-		errors.Is(error, kb.ErrLookupFailure) {
+		errors.Is(err, kb.ErrLookupFailure) {
 		logger.Sugar.Warnf("failed to find any peer in table")
 		return byteArr, nil
 	} else {
-		return byteArr, error
+		return byteArr, err
 	}
 }
 
 func (this *PeerEntityDHT) SearchValue(key string, opts ...routing.Option) (<-chan []byte, error) {
-	valChs, error := this.DHT.SearchValue(global.Global.Context, key, opts...)
+	valChs, err := this.DHT.SearchValue(global.Global.Context, key, opts...)
 	if (strings.HasPrefix(key, "/"+ns.PeerClient_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerClient_Mobile_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerClient_Email_Prefix) == true ||
@@ -215,18 +215,18 @@ func (this *PeerEntityDHT) SearchValue(key string, opts ...routing.Option) (<-ch
 		strings.HasPrefix(key, "/"+ns.DataBlock_Owner_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Src_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Target_Prefix) == true) &&
-		errors.Is(error, kb.ErrLookupFailure) {
+		errors.Is(err, kb.ErrLookupFailure) {
 		logger.Sugar.Warnf("failed to find any peer in table")
 		return valChs, nil
 	} else {
-		return valChs, error
+		return valChs, err
 	}
 }
 
 func (this *PeerEntityDHT) GetValues(key string, opts ...routing.Option) ([][]byte, error) {
 	start := time.Now()
-	//recvdVals, error := this.DHT.GetValues(global.Global.Context, key, opts...)
-	valChs, error := this.DHT.SearchValue(global.Global.Context, key, opts...)
+	//recvdVals, err := this.DHT.GetValues(global.Global.Context, key, opts...)
+	valChs, err := this.DHT.SearchValue(global.Global.Context, key, opts...)
 	var recvdVals [][]byte
 	for r := range valChs {
 		recvdVals = append(recvdVals, r)
@@ -241,11 +241,11 @@ func (this *PeerEntityDHT) GetValues(key string, opts ...routing.Option) ([][]by
 		strings.HasPrefix(key, "/"+ns.DataBlock_Owner_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Src_Prefix) == true ||
 		strings.HasPrefix(key, "/"+ns.PeerTransaction_Target_Prefix) == true) &&
-		errors.Is(error, kb.ErrLookupFailure) {
+		errors.Is(err, kb.ErrLookupFailure) {
 		logger.Sugar.Warnf("failed to find any peer in table")
 		return recvdVals, nil
 	} else {
-		return recvdVals, error
+		return recvdVals, err
 	}
 }
 

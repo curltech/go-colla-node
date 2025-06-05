@@ -128,8 +128,12 @@ func (svc *PeerClientService) GetLocals(key string, clientId string) ([]*entity.
 		if len(clientId) > 0 {
 			pcs := make([]*entity.PeerClient, 0)
 			for _, peerClient := range peerClients {
-				if peerClient.ClientId == clientId {
+				if clientId == "unknownClientId" {
 					pcs = append(pcs, peerClient)
+				} else {
+					if peerClient.ClientId == clientId {
+						pcs = append(pcs, peerClient)
+					}
 				}
 			}
 			if len(pcs) == 0 {
