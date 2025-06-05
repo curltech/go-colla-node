@@ -193,25 +193,24 @@ func uploadFileHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte("SUCCESS"))
 }
 
+var upgrade = &websocket.Upgrader{
+	ReadBufferSize:  config.ServerWebsocketParams.WriteBufferSize,
+	WriteBufferSize: config.ServerWebsocketParams.ReadBufferSize,
+	CheckOrigin: func(r *http.Request) bool {
+		if r.Method != "POST" && r.Method != "GET" {
+			logger.Sugar.Errorf("method is not POST or GET")
+			return false
+		}
+		var websocketPath = config.ServerWebsocketParams.Path
+		if r.URL.Path != websocketPath {
+			logger.Sugar.Errorf("path error")
+			return false
+		}
+		return true
+	},
+}
+
 func websocketHandler(w http.ResponseWriter, r *http.Request) {
-	var readBufferSize = config.ServerWebsocketParams.WriteBufferSize
-	var writeBufferSize = config.ServerWebsocketParams.ReadBufferSize
-	upgrade := &websocket.Upgrader{
-		ReadBufferSize:  readBufferSize,
-		WriteBufferSize: writeBufferSize,
-		CheckOrigin: func(r *http.Request) bool {
-			if r.Method != "POST" && r.Method != "GET" {
-				logger.Sugar.Errorf("method is not POST or GET")
-				return false
-			}
-			var websocketPath = config.ServerWebsocketParams.Path
-			if r.URL.Path != websocketPath {
-				logger.Sugar.Errorf("path error")
-				return false
-			}
-			return true
-		},
-	}
 	conn, err := upgrade.Upgrade(w, r, nil)
 	if err != nil {
 		logger.Sugar.Errorf("websocket error:", err)

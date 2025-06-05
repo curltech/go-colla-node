@@ -31,7 +31,7 @@ func UpdatePeerClient(peerClient *entity.PeerClient) {
 	}
 	if len(peerClients) > 0 {
 		for _, pc := range peerClients {
-			var activeStatus = peerClient.ActiveStatus
+			var activeStatus = pc.ActiveStatus
 			if activeStatus != entity.ActiveStatus_Up {
 				currentTime := time.Now()
 				pc.LastAccessTime = &currentTime
