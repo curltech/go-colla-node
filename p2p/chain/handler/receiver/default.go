@@ -2,6 +2,7 @@ package receiver
 
 import (
 	"github.com/curltech/go-colla-core/config"
+	"github.com/curltech/go-colla-core/logger"
 	"github.com/curltech/go-colla-core/util/message"
 	"github.com/curltech/go-colla-node/libp2p/global"
 	"github.com/curltech/go-colla-node/libp2p/pubsub"
@@ -44,6 +45,8 @@ func ReceiveRaw(data []byte, srcPeerId string, clientId string, connectSessionId
 		chainMessage.SrcConnectSessionId = connectSessionId
 	}
 	chainMessage.ConnectSessionId = connectSessionId
+	logger.Sugar.Infof("Received raw chain message, srcPeerId: %v, clientId: %v, connectSessionId: %v, remoteAddr: %v", srcPeerId, clientId, connectSessionId, remoteAddr)
+
 	peerClient = &entity.PeerClient{PeerId: srcPeerId, ConnectPeerId: chainMessage.SrcConnectPeerId, ConnectSessionId: connectSessionId, ClientId: clientId}
 	UpdatePeerClient(peerClient)
 	response, err = Dispatch(chainMessage)

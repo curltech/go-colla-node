@@ -86,7 +86,7 @@ func ForwardPeerClient(chainMessage *msg1.ChainMessage, peerClient *entity.PeerC
 					logger.Sugar.Errorf("pipe.Write failure: %v", err)
 				}
 			} else {
-				logger.Sugar.Errorf("targetConnectSessionId has no websocketConnection")
+				logger.Sugar.Errorf("targetConnectSessionId: %v has no websocketConnection", peerClient.ConnectSessionId)
 			}
 		} else {
 			logger.Sugar.Errorf("targetConnectSessionId is nil")

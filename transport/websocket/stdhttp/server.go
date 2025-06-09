@@ -231,6 +231,7 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	WebsocketConnectionPool[sessionId] = connection
+	logger.Sugar.Warnf("New websocket connection, address: %v, session: %v", connection.WsConnect.RemoteAddr(), sessionId)
 	// 启动读协程
 	go connection.loopRead()
 	// 启动写协程
@@ -302,6 +303,7 @@ func (conn *WebsocketConnection) Close() {
 	mutex.Lock()
 	defer mutex.Unlock()
 	delete(WebsocketConnectionPool, conn.Session.SessionID())
+	logger.Sugar.Infof("connection is closeed, address: %v, sessionId: %v", conn.WsConnect.RemoteAddr(), conn.Session.SessionID())
 	disconnectedHandler(conn.Session.SessionID())
 }
 

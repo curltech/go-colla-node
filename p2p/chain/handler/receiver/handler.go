@@ -41,7 +41,9 @@ func UpdatePeerClient(peerClient *entity.PeerClient) {
 				pc.ClientId = peerClient.ClientId
 				err = svc.GetPeerClientService().PutValues(pc)
 				if err != nil {
-					logger.Sugar.Errorf("failed to PutPCs, peerId: %v, err: %v", pc.PeerId, err)
+					logger.Sugar.Errorf("failed to put peer client, peerId: %v, err: %v", pc.PeerId, err)
+				} else {
+					logger.Sugar.Infof("successfully put peer client, peerId: %v", pc.PeerId)
 				}
 				break
 			}

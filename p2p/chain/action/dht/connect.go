@@ -48,6 +48,7 @@ func (conn *connectAction) Receive(chainMessage *entity2.ChainMessage) (*entity2
 	if err != nil {
 		return response, err
 	}
+	logger.Sugar.Infof("peer connected successfully and put peer client, peerId: %v, connectSessionId: %v, activeStatus: %v", peerClient.PeerId, peerClient.ConnectSessionId, peerClient.ActiveStatus)
 	go conn.returnPeerEndpoint(chainMessage)
 	peerId := peerClient.PeerId
 	activeStatus := peerClient.ActiveStatus
